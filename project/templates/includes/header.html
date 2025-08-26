@@ -1,0 +1,69 @@
+<header> 
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container-fluid">
+        <button class="btn btn-outline-light d-lg-none" type="button" id="sidebar-toggler-mobile">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="d-none d-lg-block">
+            <span class="navbar-brand mb-0 h1 fw-bold">ACASA Poza Azul</span>
+        </div>
+        <div class="ms-auto">
+            <div class="dropdown">
+                <a href="#" class="nav-link dropdown-toggle" id="usuarioDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user-circle me-2"></i> Nombre de Usuario
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="usuarioDropdown">
+                    <li><a class="dropdown-item" href="#perfil.html"><i class="fas fa-user me-2"></i> Perfil</a></li>
+                    <li><a class="dropdown-item" href="#informacion.html"><i class="fas fa-info-circle me-2"></i> Información</a></li>
+                    <li><a class="dropdown-item" href="#configuracion.html"><i class="fas fa-cog me-2"></i> Configuración</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="cerrar_sesion.html"><i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="sidebar d-none d-lg-block" id="sidebar">
+    <div class="sidebar-header">
+        <h5>ACASA Poza Azul</h5>
+    </div>
+    <div class="sidebar-menu">
+        <a href="inicio.html"><i class="fas fa-home me-2"></i> Inicio</a>
+
+        <!-- Menú Socio con submenú -->
+        <a class="d-flex justify-content-between align-items-center" 
+           data-bs-toggle="collapse" 
+           href="#submenuSocio" 
+           role="button" 
+           aria-expanded="false" 
+           aria-controls="submenuSocio"
+           id="socioMenu">
+            <span><i class="fas fa-users me-2"></i> Socio</span>
+            <i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse ps-4" id="submenuSocio">
+            <a href="registrar_socio.html"><i class="fas fa-user-plus me-2"></i> Registrar</a>
+            <a href="lista_socios.html"><i class="fas fa-list me-2"></i> Lista de Socios</a>
+        </div>
+
+        <a href="#cobros"><i class="fas fa-hand-holding-usd me-2"></i> Cobros</a>
+
+         <a class="d-flex justify-content-between align-items-center" 
+           data-bs-toggle="collapse" 
+           href="#submenuReuniones" 
+           role="button" 
+           aria-expanded="false" 
+           aria-controls="submenuReuniones"
+           id="reunionMenu">
+            <span><i class="fas fa-calendar-check me-2"></i> Reuniones</span>
+            <i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse ps-4" id="submenuReuniones">
+            <a href="registrar_reunion.html"><i class="fas fa-user-plus me-2"></i> Registrar</a>
+            <a href="#lista_reunion.html"><i class="fas fa-list me-2"></i> Lista de reuniones</a>
+        </div>
+    </div>
+</div>
+
+</header>
