@@ -69,6 +69,10 @@ body {
   .sidebar.active ~ .content {
     margin-left: 250px;
   }
+  
+  .content-with-sidebar {
+    margin-left: 250px; /* Ajusta este valor si tu sidebar tiene otro ancho */
+  }
 }
 
 /* En móvil: sidebar se superpone, contenido no se mueve */
