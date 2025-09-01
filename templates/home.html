@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Inicio | ACASA Poza Azul{% endblock %}
+
+{% block content %}
+<div id="inicio">
+  <div class="d-flex flex-column align-items-center justify-content-center" style="height: 80vh;">
+    <img src="{% static 'img/logoProyecto-removebg-preview.png' %}" 
+         alt="Logo de ACASA Poza Azul"
+         class="mb-4 rounded-circle border border-5 border-info shadow-lg logo-principal">
+    <h1 class="display-4 text-center text-primary fw-light">Proyecto ACASA Poza Azul</h1>
+  </div>
+</div>
+{% endblock %}
