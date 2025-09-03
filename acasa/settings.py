@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Renmplazamos el modelo de usuario por Partner
+AUTH_USER_MODEL = 'project.Partner'
+
 
 # Application definition
 
@@ -37,6 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'project',
+    'collection',
+    'meeting',
 ]
 
 MIDDLEWARE = [
