@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ACASA Poza Azul{% endblock %}</title>
+
+  <!-- CSS externos -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Archivos estáticos -->
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <nav class="navbar fixed-top">
+      <div class="container-fluid">
+        <button class="btn btn-outline-light me-3" type="button" id="sidebar-toggler">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="text-light">
+          <a href="{% url 'inicio' %}" class="link-light text-decoration-none">
+            <h5 class="m-0">ACASA Poza Azul</h5>
+          </a>
+        </div>
+
+        <div class="ms-auto">
+          <div class="dropdown">
+            <a href="#" class="nav-link dropdown-toggle" id="usuarioDropdown" data-bs-toggle="dropdown">
+              <img src="{% static 'img/not_found.jpg' %}" alt="Usuario"
+                   class="rounded-circle border border-2 border-info me-2 user-photo-session">
+              <span class="d-none d-sm-inline">Nombre de Usuario</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end z-3">
+              <li><span class="dropdown-item disabled">
+                <i class="fas fa-user-shield me-2"></i> <strong>ADMINISTRADOR</strong></span></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Perfil</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Sidebar -->
+  <div class="sidebar active z-2" id="sidebar">
+    <div class="sidebar-header">
+      <a href="{% url 'inicio' %}">
+        <img src="{% static 'img/logoProyecto-removebg-preview.png' %}" alt="Logo ACASA Poza Azul" class="logo-sidebar">
+      </a>
+    </div>
+    <div class="sidebar-menu p-2">
+      <a href="{% url 'inicio' %}"><i class="fas fa-home me-2"></i> Inicio</a>
+
+      <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuProyecto">
+        <span><i class="fa-solid fa-building me-3"></i>Proyecto</span>
+        <i class="fas fa-chevron-down small"></i>
+      </a>
+      <div class="collapse ps-4" id="submenuProyecto">
+        <a href="#"><i class="fa-solid fa-file-invoice me-3"></i>Información</a>
+        <a href="#"><i class="fa-solid fa-circle-dollar-to-slot me-3"></i>Tarifa</a>
+        <a href="#"><i class="fa-solid fa-map-location-dot me-3"></i>Comunidades</a>
+      </div>
+
+      <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuReuniones">
+        <span><i class="fas fa-calendar-check me-3"></i>Reuniones</span>
+        <i class="fas fa-chevron-down small"></i>
+      </a>
+      <div class="collapse ps-4" id="submenuReuniones">
+        <a href="#"><i class="fa-solid fa-plus me-2"></i>Reuniones</a>
+        <a href="#"><i class="fa-solid fa-clipboard-user me-2"></i>Asistencia</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <main class="content" id="main-content">
+    <div class="container-fluid pt-5 mt-4">
+      {% block content %}
+      {% endblock %}
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer mt-auto text-center w-100 z-1">
+    <small class="footer-text">&copy; 2025 Derechos Reservados Universidad de El Salvador</small>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>
