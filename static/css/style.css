@@ -183,3 +183,27 @@ body {
     font-size: 0.7em;
   }
 }
+
+/*Tarifas*/
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.search-input-group {
+    width: 100%;
+    max-width: 350px;
+}
+
+.table thead th {
+    background-color: var(--azul-oscuro);
+    /* Cambiado a azul oscuro */
+    color: var(--blanco);
+    border-bottom: none;
+    font-weight: 600;
+    padding: 12px 15px;
+}

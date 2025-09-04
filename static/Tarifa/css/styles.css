@@ -5,25 +5,30 @@
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
 }
+
 .modal-header .modal-title {
     color: var(--blanco);
 }
+
 .modal-header .btn-close {
     filter: invert(1) grayscale(1);
 }
+
 /* Icono de ayuda destacado */
 .card-header-custom .btn-link .fa-circle-info {
     border-radius: 50%;
     background-color: var(--azul-oscuro);
     color: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     padding: 4px;
     font-size: 1.2em;
     transition: box-shadow 0.2s;
 }
+
 .card-header-custom .btn-link:hover .fa-circle-info {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
+
 /* Card header personalizado para azul oscuro y letras blancas */
 .card-header-custom {
     background-color: var(--azul-oscuro);
@@ -31,78 +36,84 @@
     border-top-left-radius: 15px !important;
     border-top-right-radius: 15px !important;
 }
+
 :root {
-            --azul-oscuro: #004085;
-            --azul-medio: #007bff;
-            --celeste: #17a2b8;
-            --blanco: #ffffff;
-            --negro: #212529;
-            --sombra-card: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+    --azul-oscuro: #004085;
+    --azul-medio: #007bff;
+    --celeste: #17a2b8;
+    --blanco: #ffffff;
+    --negro: #212529;
+    --sombra-card: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .table-container {
-            background-color: var(--blanco);
-        }
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa;
+}
 
-        .table {
-            border-radius: 7px;
-            overflow: hidden;
-        }
+.table-container {
+    background-color: var(--blanco);
+}
 
-        .table thead th {
-            background-color: var(--azul-oscuro); /* Cambiado a azul oscuro */
-            color: var(--blanco);
-            border-bottom: none;
-            font-weight: 600;
-            padding: 12px 15px;
-        }
+.table {
+    border-radius: 7px;
+    overflow: hidden;
+}
 
-        .table tbody tr:hover {
-            background-color: #e9ecef;
-        }
+.table thead th {
+    background-color: var(--azul-oscuro);
+    /* Cambiado a azul oscuro */
+    color: var(--blanco);
+    border-bottom: none;
+    font-weight: 600;
+    padding: 12px 15px;
+}
 
-        .table tbody td {
-            vertical-align: middle;
-            padding: 10px 15px;
-        }
+.table tbody tr:hover {
+    background-color: #e9ecef;
+}
 
-        .btn-action-group .btn {
-            margin-right: 5px;
-        }
-        
-        #btn-abrir-crud {
-            padding: .375rem .75rem; /* Botón más pequeño */
-            font-size: .875rem; /* Fuente más pequeña */
-        }
-        
-        .search-input-group {
-            width: 100%;
-            max-width: 350px;
-        }
+.table tbody td {
+    vertical-align: middle;
+    padding: 10px 15px;
+}
 
-        .header-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+.btn-action-group .btn {
+    margin-right: 5px;
+}
 
-        @media (max-width: 767px) {
-            .header-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .search-input-group {
-                max-width: 100%;
-            }
-            #btn-abrir-crud {
-                width: 100%;
-            }
-        }
+#btn-abrir-crud {
+    padding: .375rem .75rem;
+    /* Botón más pequeño */
+    font-size: .875rem;
+    /* Fuente más pequeña */
+}
+
+.search-input-group {
+    width: 100%;
+    max-width: 350px;
+}
+
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 767px) {
+    .header-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-input-group {
+        max-width: 100%;
+    }
+
+    #btn-abrir-crud {
+        width: 100%;
+    }
+}
