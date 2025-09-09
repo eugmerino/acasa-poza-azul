@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.3/css/dataTables.bootstrap5.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
 
     <!-- Archivos estáticos -->
     {% load static %}
@@ -69,7 +71,7 @@
           <i class="fas fa-chevron-down small"></i>
         </a>
         <div class="collapse ps-4" id="submenuProyecto">
-          <a href="#"><i class="fa-solid fa-file-invoice me-3"></i>Información</a>
+          <a href="{% url 'project_info' %}"><i class="fa-solid fa-file-invoice me-3"></i>Información</a>
           <a href="{% url 'fee_list' %}"><i class="fa-solid fa-circle-dollar-to-slot me-3"></i>Tarifa</a>
           <a href="#"><i class="fa-solid fa-map-location-dot me-3"></i>Comunidades</a>
         </div>
@@ -104,6 +106,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/2.3.3/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.3.3/js/dataTables.bootstrap5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"
+        integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <script src="{% static 'js/script.js' %}"></script>
     {% block extra_js %}{% endblock %}
