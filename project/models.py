@@ -5,7 +5,7 @@ from django.db import models
 class Project(models.Model):
     title = models.CharField(
         "Titulo",
-        max_length=200,
+        max_length=50,
         help_text="Titulo del proyecto",
     )
     description = models.TextField("Descripción")

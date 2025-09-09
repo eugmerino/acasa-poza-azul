@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Proyecto | ACASA Poza Azul
+{% endblock %}
+
+{% block content %}
+  <div class="row mt-4 mb-2 text-center">
+    <div class="col-12">
+      <h1 class="h3">Información del proyecto</h1>
+    </div>
+  </div>
+  <div class="table-container rounded-4 shadow p-4 mb-5">
+    <div id="project-content">
+      {% include 'partials/project_form_partial.html' %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const contentDiv = document.getElementById('project-content')
+
+  // Función para recargar el bloque content con AJAX
+  function reloadContent() {
+    fetch("{% url 'project_info' %}", {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(response => response.text())
+      .then(html => {
+        contentDiv.innerHTML = html
+        initFormEvents() // reactivar eventos en el nuevo contenido
+      })
+  }
+
+  // Función principal que inicializa todos los eventos y validaciones
+  function initFormEvents() {
+    const btnEdit = document.getElementById('btn-edit')
+    const btnCancel = document.getElementById('btn-cancel')
+    const btnSave = document.getElementById('btn-save')
+    const form = document.getElementById('project-form')
+    if (!form) return
+
+    const inputs = form.querySelectorAll('input, textarea, select')
+    const logoInput = document.getElementById('id_logo')
+    const logoPreview = document.getElementById('logo-preview')
+
+    const titleInput = document.getElementById('id_title')
+    const connectionInput = document.getElementById('id_connection_price')
+    const absenceInput = document.getElementById('id_absence_fine')
+
+    const titleErr = document.getElementById('title-error')
+    const connErr = document.getElementById('connection-error')
+    const absErr = document.getElementById('absence-error')
+
+    function invalidate(input, errEl, msg) {
+      input.classList.add('is-invalid')
+      if (errEl) errEl.textContent = msg || ''
+    }
+    function validateOK(input, errEl) {
+      input.classList.remove('is-invalid')
+      if (errEl) errEl.textContent = ''
+    }
+
+    function validateTitle() {
+      const val = (titleInput.value || '').trim()
+      const re = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/
+      if (val === '') {
+        invalidate(titleInput, titleErr, 'Este campo es obligatorio.')
+        return false
+      }
+      if (!re.test(val)) {
+        invalidate(titleInput, titleErr, 'El título solo puede contener letras y espacios.')
+        return false
+      }
+      validateOK(titleInput, titleErr)
+      return true
+    }
+
+    function validateQuantities(input, errEl) {
+      const val = (input.value || '').trim()
+      if (val === '') {
+        invalidate(input, errEl, 'Este campo es obligatorio.')
+        return false
+      }
+      if (val.startsWith('-')) {
+        invalidate(input, errEl, 'No se aceptan números negativos.')
+        return false
+      }
+      const re = /^\d+(\.\d{1,2})?$/
+      if (!re.test(val)) {
+        invalidate(input, errEl, 'Solo se permiten hasta 2 decimales.')
+        return false
+      }
+      validateOK(input, errEl)
+      return true
+    }
+
+    function validateAll() {
+      let firstInvalid = null
+      const okTitle = validateTitle(); if (!okTitle && !firstInvalid) firstInvalid = titleInput
+      const okConn = validateQuantities(connectionInput, connErr); if (!okConn && !firstInvalid) firstInvalid = connectionInput
+      const okAbs = validateQuantities(absenceInput, absErr); if (!okAbs && !firstInvalid) firstInvalid = absenceInput
+
+      if (firstInvalid) firstInvalid.focus()
+      return okTitle && okConn && okAbs
+    }
+
+    // Validación en tiempo real
+    titleInput?.addEventListener('input', validateTitle)
+    connectionInput?.addEventListener('input', () => validateQuantities(connectionInput, connErr))
+    absenceInput?.addEventListener('input', () => validateQuantities(absenceInput, absErr))
+
+    // Click en Guardar
+    btnSave?.addEventListener('click', function (e) {
+      e.preventDefault()
+      if (!validateAll()) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Datos inválidos',
+          text: 'Por favor corrige los errores antes de guardar.',
+          confirmButtonText: 'Aceptar'
+        })
+        return
+      }
+
+      //Envia el formulario por AJAX
+      const formData = new FormData(form)
+      fetch("{% url 'project_info' %}", {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(response => response.text())
+        .then(html => {
+          contentDiv.innerHTML = html
+          initFormEvents() // reactivar eventos en el nuevo contenido
+          // Mostrar SweetAlert2 si éxito
+          const successDiv = document.getElementById('save-success')
+          if (successDiv && successDiv.dataset.success === 'True') {
+            Swal.fire({
+              icon: 'success',
+              title: '¡Guardado exitoso!',
+              text: 'La información del proyecto se guardó correctamente.',
+              timer: 2000,
+              showConfirmButton: false
+            })
+          }
+        })
+    })
+
+    // Submit por si presionan Enter
+    form?.addEventListener('submit', function (e) {
+      if (!validateAll()) {
+        e.preventDefault()
+        e.stopPropagation()
+        Swal.fire({
+          icon: 'error',
+          title: 'Datos inválidos',
+          text: 'Por favor corrige los errores antes de guardar.',
+          confirmButtonText: 'Aceptar'
+        })
+      }
+    })
+
+    // Editar
+    btnEdit?.addEventListener('click', function () {
+      inputs.forEach(input => input.disabled = false)
+      btnEdit.classList.add('d-none')
+      btnCancel.classList.remove('d-none')
+      btnSave.classList.remove('d-none')
+    })
+
+    // Cancelar → recargar contenido
+    btnCancel?.addEventListener('click', reloadContent)
+
+    // Deshabilitar inputs al cargar
+    inputs.forEach(input => input.disabled = true)
+
+    // Preview de imagen
+    if (logoInput) {
+      logoInput.addEventListener('change', function (e) {
+        const file = e.target.files[0]
+        if (file) {
+          const reader = new FileReader()
+          reader.onload = function (ev) {
+            logoPreview.src = ev.target.result
+          }
+          reader.readAsDataURL(file)
+        }
+      })
+    }
+  }
+
+  // Inicializar al cargar la página
+  initFormEvents()
+})
+</script>
+{% endblock %}
+
