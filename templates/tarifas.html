@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
-  Inicio | ACASA Poza Azul
+  Tarifas | ACASA Poza Azul
 {% endblock %}
 
 {% block content %}
@@ -39,7 +39,6 @@
           {
             data: 'isActive',
             render: function (data, type, row) {
-                console.log(data);
               if (data === 'Activa') {
                 return '<span class="badge bg-success">Activa</span>'
               } else {
