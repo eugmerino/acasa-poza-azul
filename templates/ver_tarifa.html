@@ -98,7 +98,12 @@
     document.getElementById('btn-calcular').addEventListener('click', function () {
       const metros = parseInt(document.getElementById('metros-consumidos').value)
       if (isNaN(metros) || metros < 0) {
-        alert('Ingrese un valor válido de metros cúbicos.')
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Ingrese un valor válido de metros cúbicos.',
+          confirmButtonText: 'Aceptar'
+        })
         return
       }
 
@@ -119,7 +124,12 @@
       }
 
       if (!tramoEncontrado) {
-        alert('No existe un tramo para el valor ingresado.')
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No existe un tramo para el valor ingresado.',
+          confirmButtonText: 'Aceptar'
+        })
         return
       }
 
@@ -129,7 +139,11 @@
         monto += metrosExtra * tramoEncontrado.amount_meter
       }
 
-      alert('El monto calculado es: $' + monto.toFixed(2))
+      Swal.fire({
+              title: 'Resultado: ',
+              text: 'El monto calculado es: $' + monto.toFixed(2),
+              showConfirmButton: true
+            })
       document.getElementById('metros-consumidos').value = ''
     })
   })

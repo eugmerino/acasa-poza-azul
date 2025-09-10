@@ -142,7 +142,7 @@
 {% endblock %}
 
 {% block extra_js %}
-  <script>
+ <script>
     document.addEventListener('DOMContentLoaded', function () {
       const formTramo = document.getElementById('form-tramo')
       const tablaTramos = document.getElementById('tabla-tramos')
@@ -174,7 +174,12 @@
     
         // 🚫 Bloquear si el último tramo tiene intervalo abierto ("-")
         if (ultimoMetroFinalText === '-') {
-          alert('El último tramo tiene un intervalo abierto (sin metro final). No se pueden agregar más tramos.')
+          Swal.fire({
+          icon: 'error',
+          title: 'Alerta',
+          text: 'El último tramo tiene un intervalo abierto (sin metro final). No se pueden agregar más tramos.',
+          confirmButtonText: 'Aceptar'
+          })
           event.preventDefault() // cancela la apertura del modal
           return
         }
@@ -188,7 +193,12 @@
     
       btnGuardarTramo.addEventListener('click', function () {
         if (!montoFijoInput.value && tablaTramos.rows.length === 0) {
-          alert('Por favor, completa el campo de Monto Fijo para el primer tramo.')
+          Swal.fire({
+          icon: 'error',
+          title: 'Alerta',
+          text: 'Por favor, completa el campo de Monto Fijo para el primer tramo.',
+          confirmButtonText: 'Aceptar'
+          })
           return
         }
     
@@ -199,7 +209,12 @@
     
         // Validación de rango
         if (metroFinal !== '-' && metroInicial >= metroFinal) {
-          alert('El Metro Final debe ser mayor que el Metro Inicial.')
+          Swal.fire({
+          icon: 'error',
+          title: 'Datos inválidos',
+          text: 'El Metro Final debe ser mayor que el Metro Inicial.',
+          confirmButtonText: 'Aceptar'
+        })
           return
         }
     
@@ -228,23 +243,24 @@
           montoFijo = montoCalculado.toFixed(2)
         }
     
-        // Crear fila
+        // Crear fila (Agregar Tramo)
         const newRow = document.createElement('tr')
         newRow.innerHTML = `
-                    <td>${metroInicial}</td>
-                    <td>${metroFinal}</td>
-                    <td>$${parseFloat(montoFijo).toFixed(2)}</td>
-                    <td>$${parseFloat(montoAdicional).toFixed(2)}</td>
-                    <td>
-                        <div class="text-center">
-                            <button class="btn btn-sm btn-outline-danger btn-eliminar-tramo" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </td>
-                `
+                      <td>${metroInicial}</td>
+                      <td>${metroFinal}</td>
+                      <td>$${parseFloat(montoFijo).toFixed(2)}</td>
+                      <td>$${parseFloat(montoAdicional).toFixed(2)}</td>
+                      <td>
+                          <div class="text-center">
+                              <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-tramo" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                          </div>
+                      </td>
+                  `
         tablaTramos.appendChild(newRow)
     
         tramosModal.hide()
         formTramo.reset()
+        
       })
     
       tablaTramos.addEventListener('click', function (e) {
@@ -257,7 +273,12 @@
     
         if (e.target.closest('.btn-eliminar-tramo')) {
           if (!isLastRow) {
-            alert('No puedes eliminar este tramo porque hay registros posteriores. Elimina el último tramo primero.')
+            Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No puedes eliminar este tramo porque hay registros posteriores. Elimina el último tramo primero.',
+              confirmButtonText: 'Aceptar'
+          })
             return
           }
           row.remove()
@@ -329,30 +350,75 @@
         }
       }
 
-      if (error) return
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Datos inválidos',
+          text: 'Por favor corrige los errores antes de guardar.',
+          confirmButtonText: 'Aceptar'
+        })
+        return
+      }
 
-      fetch('/fees/create/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({
-          descripcion,
-          fecha_aprobacion,
-          activa,
-          tramos
-        })
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            alert('Tarifa guardada correctamente')
-            window.location.href = '/tarifas/'
-          } else {
-            alert('Error al guardar: ' + (data.error || ''))
+      // Alerta de confirmación
+      let confirmationText = "¿Estás seguro de que quieres guardar esta tarifa?";
+      if (activa) {
+        confirmationText = "Esta acción activará la tarifa seleccionada y desactivará cualquier otra tarifa activa. ¿Estás seguro?";
+      }
+
+      Swal.fire({
+          title: '¿Estás seguro?',
+          text: confirmationText,
+          icon: 'warning',
+          showCancelButton: true,
+          customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-secondary'
+          },
+          confirmButtonText: 'Sí, guardar',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              fetch('/fees/create/', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                  },
+                  body: JSON.stringify({
+                      descripcion,
+                      fecha_aprobacion,
+                      activa,
+                      tramos
+                  })
+              })
+              .then((response) => response.json())
+              .then((data) => {
+                  if (data.success) {
+                      Swal.fire(
+                          'Guardado',
+                          'La tarifa se guardó correctamente.',
+                          'success'
+                      ).then(() => {
+                          window.location.href = '/tarifas/'
+                      });
+                  } else {
+                      Swal.fire(
+                          'Error',
+                          'Ocurrió un problema al guardar la tarifa: ' + (data.error || 'Por favor, inténtalo de nuevo.'),
+                          'error'
+                      );
+                  }
+              })
+              .catch((error) => {
+                  Swal.fire(
+                      'Error',
+                      'Ocurrió un error inesperado. Por favor, revisa tu conexión e inténtalo de nuevo.',
+                      'error'
+                  );
+              });
           }
-        })
+      });
     })
     
     // Validación en tiempo real para descripción
