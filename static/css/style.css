@@ -269,3 +269,19 @@ body {
 .popover-sm .popover-body {
     padding: 4px 8px; 
 }
+
+/* Modal header con colores institucionales */
+.modal-header {
+    background-color: var(--azul-oscuro);
+    color: var(--blanco);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.modal-header .modal-title {
+    color: var(--blanco);
+}
+
+.modal-header .btn-close {
+    filter: invert(1) grayscale(1);
+}
