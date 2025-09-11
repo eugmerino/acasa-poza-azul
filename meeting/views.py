@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .models import Meeting
+from project.models import Project
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.urls import reverse
@@ -12,6 +13,7 @@ import json
 per_page_options = [5, 10, 20, 50]
 
 def meet_list(request):
+    project = Project.objects.first()
     query = request.GET.get('q', '') 
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
@@ -29,7 +31,8 @@ def meet_list(request):
             'query': query,
             'per_page': per_page,
             'per_page_options': per_page_options,
-            'form': MeetingForm()
+            'form': MeetingForm(),
+            'project': project,
         }
     )
 

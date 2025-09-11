@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Fee
+from project.models import Project
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -15,6 +16,7 @@ from datetime import datetime
 
 
 def fee_list(request):
+    project = Project.objects.first()
     per_page_options = [5, 10, 20, 50]
 
     query = request.GET.get('q', '') 
@@ -34,6 +36,7 @@ def fee_list(request):
             'query': query,
             'per_page': per_page,
             'per_page_options': per_page_options,
+            'project': project,
         }
     )
 

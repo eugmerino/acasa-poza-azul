@@ -35,6 +35,7 @@ def project_info_view(request):
 per_page_options = [5, 10, 20, 50]
 
 def community_list(request):
+    project = Project.objects.first()
     query = request.GET.get('q', '') 
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
@@ -52,7 +53,8 @@ def community_list(request):
             'query': query,
             'per_page': per_page,
             'per_page_options': per_page_options,
-            'form': CommunityForm()
+            'form': CommunityForm(),
+            'project': project,
         }
     )
 
