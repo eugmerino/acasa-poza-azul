@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Comunidades | ACASA Poza Azul{% endblock %}
+
+{% block content %}
+<div class="row mt-4 mb-2 text-center">
+    <div class="col-12">
+        <h1 class="h3">Gestión de Comunidades</h1>
+    </div>
+</div>
+
+<div class="table-container rounded-4 shadow p-4">    
+    <div class="header-controls">
+        <button
+            id="btn-abrir-crud"
+            class="btn btn-success"
+            data-bs-toggle="modal"
+            data-bs-target="#communityModal"
+            hx-get="{% url 'community_create' %}"
+            hx-target="#community-content-modal"
+            hx-trigger="click"
+        >
+            <i class="fas fa-plus me-1"></i> Agregar Nueva Comunidad
+        </button>
+        {% include "partials/search_table.html" with hx_url=community_search_url hx_target="#community-table-content" placeholder="Buscar Comunidades..." %}
+    </div>
+    {% include "partials/community_table.html" %}
+</div>
+
+{% include "partials/community_create_modal.html" %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const modalEl = document.getElementById("communityModal");
+
+    function limpiarFormulario() {
+        const form = modalEl.querySelector("form");
+        if (form) {
+            form.reset();
+            form.querySelectorAll("input, select, textarea").forEach(el => el.value = "");
+            form.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+        }
+    }
+
+    modalEl.addEventListener("hidden.bs.modal", limpiarFormulario);
+
+    document.body.addEventListener("htmx:afterOnLoad", function (event) {
+        const triggerHeader = event.detail.xhr.getResponseHeader("HX-Trigger");
+        if (triggerHeader) {
+            try {
+                const data = JSON.parse(triggerHeader);
+                if (data.state === "success") {
+                    Swal.fire({
+                        icon: "success",
+                        title: "¡Éxito!",
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
+                    limpiarFormulario();
+                } else if (data.state === "error") {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: data.message
+                    });
+                }
+            } catch (e) {
+                console.warn("HX-Trigger no era JSON válido:", e);
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

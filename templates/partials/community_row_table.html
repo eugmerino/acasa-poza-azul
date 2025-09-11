@@ -1,0 +1,19 @@
+<tr id="community-{{ community.id }}">
+    <td>{{ forloop.counter }}</td>
+    <td>{{ community.name }}</td>
+    <td>{{ community.description }}</td>
+    <td class="text-center">
+        <div class="btn-group">
+            <button
+                type="button"
+                class="btn btn-outline-primary"
+                hx-get="{% url 'community_edit' community.id %}"
+                hx-target="#community-content-modal"
+                hx-trigger="click"
+                data-bs-toggle="modal"
+                data-bs-target="#communityModal"
+            ><i class="fas fa-edit"></i></button>
+
+        </div>
+    </td>
+</tr>
