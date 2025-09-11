@@ -8,10 +8,60 @@ import json
 from .models import Fee, Range
 from django.utils.timezone import localtime
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.paginator import Paginator
+from django.urls import reverse
+from django.db.models import Q
+
 
 def fee_list(request):
-    fees = Fee.objects.all()
-    return render(request, 'tarifas.html', {'fees': fees})
+    per_page_options = [5, 10, 20, 50]
+
+    query = request.GET.get('q', '') 
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    fee_list = Fee.objects.all().order_by('-isActive')
+    paginator = Paginator(fee_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'tarifas.html',
+        {
+            'fee_search_url': reverse('fee_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+        }
+    )
+
+
+def fee_search(request):
+    per_page_options = [5, 10, 20, 50]
+
+    query = request.GET.get('q', '') 
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    fee_list = Fee.objects.filter(
+        Q(short_description__icontains=query)
+    ).order_by('-isActive')
+
+    paginator = Paginator(fee_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'partials/fee_table.html',
+        {
+            'fee_search_url': reverse('fee_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+        }
+    )
 
 def fee_create_form(request):
     contexto = {
