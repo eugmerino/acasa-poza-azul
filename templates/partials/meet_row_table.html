@@ -14,43 +14,15 @@
         <div class="btn-group">
             <button
                 type="button"
-                class="btn btn-primary dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
+                class="btn btn-outline-primary"
+                hx-get="{% url 'meet_edit' meeting.id %}"
+                hx-target="#meet-content-modal"
+                hx-trigger="click"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
             >
-                <span class="visually-hidden">Acciones</span>
+                <i class="fas fa-edit"></i>
             </button>
-            <ul class="dropdown-menu">
-                <li>
-                    <a
-                        class="dropdown-item"
-                        href="#"
-                        hx-get="{% url 'meet_edit' meeting.id %}"
-                        hx-target="#meet-content-modal"
-                        hx-trigger="click"
-                        data-bs-toggle="modal"
-                        data-bs-target="#exampleModal"
-                    >
-                        <i class="fas fa-edit me-1"></i>
-                        Editar
-                    </a>
-                </li>
-                {% if meeting.isActive %}
-                <li>
-                    <a class="dropdown-item" href="#">
-                        <i class="fas fa-cancel me-1"></i>
-                        Suspender
-                    </a>
-                </li>
-                {% else %}
-                <li>
-                    <a class="dropdown-item" href="#">
-                        <i class="fas fa-clock me-1"></i>
-                        Programar
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
         </div>
     </td>
 </tr>

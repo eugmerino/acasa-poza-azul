@@ -28,24 +28,27 @@ class MeetingForm(forms.ModelForm):
             }),
         }
 
-    # 🔹 Validaciones personalizadas
-    def clean_title(self):
-        title = self.cleaned_data.get("title")
-        if len(title) < 5:
-            raise forms.ValidationError("El título debe tener al menos 5 caracteres.")
-        return title
-
     def clean_date(self):
         meeting_date = self.cleaned_data.get("date")
-        if meeting_date and meeting_date < date.today():
-            raise forms.ValidationError("La fecha no puede ser anterior a hoy.")
+        if meeting_date and meeting_date <= date.today():
+            raise forms.ValidationError("La fecha debe ser mayor a hoy.")
         return meeting_date
 
     def clean(self):
         cleaned_data = super().clean()
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
+        meeting_date = cleaned_data.get("date")
 
         if start_time and end_time and start_time >= end_time:
             self.add_error("end_time", "La hora de fin debe ser mayor que la hora de inicio.")
+
+        if meeting_date:
+            qs = Meeting.objects.filter(date=meeting_date)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+
+            if qs.exists():
+                self.add_error("date", "Ya existe una reunión programada en esta fecha.")
+
         return cleaned_data
