@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import Fee
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -8,10 +8,67 @@ import json
 from .models import Fee, Range
 from django.utils.timezone import localtime
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.paginator import Paginator
+from django.urls import reverse
+from django.db.models import Q
+from datetime import datetime
+
 
 def fee_list(request):
-    fees = Fee.objects.all()
-    return render(request, 'tarifas.html', {'fees': fees})
+    per_page_options = [5, 10, 20, 50]
+
+    query = request.GET.get('q', '') 
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    fee_list = Fee.objects.all().order_by('-isActive')
+    paginator = Paginator(fee_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'tarifas.html',
+        {
+            'fee_search_url': reverse('fee_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+        }
+    )
+
+
+def fee_search(request):
+    per_page_options = [5, 10, 20, 50]
+
+    query = request.GET.get('q', '').strip()
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    filters = Q(short_description__icontains=query) | Q(approval_date__icontains=query)
+
+    # Buscar por estado (activa / inactiva)
+    if query.lower() in ["activa", "activo", "true", "sí", "si"]:
+        filters |= Q(isActive=True)
+    elif query.lower() in ["inactiva", "inactivo", "false", "no"]:
+        filters |= Q(isActive=False)
+
+    fee_list = Fee.objects.filter(filters).order_by('-isActive')
+
+    paginator = Paginator(fee_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'partials/fee_table.html',
+        {
+            'fee_search_url': reverse('fee_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+        }
+    )
 
 def fee_create_form(request):
     contexto = {
@@ -55,17 +112,13 @@ def fees_json(request):
     ]
     return JsonResponse({'data': data})
 
-@csrf_exempt
-@require_POST
-def fee_activate(request):
-    fee_id = request.POST.get('id')
-    try:
-        fee = Fee.objects.get(pk=fee_id)
-        fee.isActive = True
-        fee.save()
-        return JsonResponse({'success': True})
-    except Fee.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Tarifa no encontrada'})
+
+def fee_activate(request, pk):
+    fee = get_object_or_404(Fee, pk=pk)
+    fee.isActive = True
+    fee.save()
+    return redirect("fee_list")
+
 
 @csrf_exempt
 @require_POST
