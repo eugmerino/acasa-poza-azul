@@ -15,7 +15,8 @@
         {% for row in page_obj %}
             <tr>
                 <td>{{ row.short_description }}</td>
-                <td>{{ row.approval_date }}</td>
+                <td>{{ row.approval_date|date:"d-m-Y"}}</td>
+
                 <td>
                     {% if row.isActive %}
                     <span class="badge bg-success">Activa</span>
@@ -41,7 +42,9 @@
                             </li>
                             {% if not row.isActive %}
                             <li>
-                                <a class="dropdown-item" href="{% url 'fee_activate' row.id %}">
+                                <a class="dropdown-item activar-tarifa"
+                                href="#"
+                                data-url="{% url 'fee_activate' row.id %}">
                                     <i class="fas fa-check-circle me-1"></i> Activar
                                 </a>
                             </li>

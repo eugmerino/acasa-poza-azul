@@ -11,6 +11,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.core.paginator import Paginator
 from django.urls import reverse
 from django.db.models import Q
+from datetime import datetime
 
 
 def fee_list(request):
@@ -40,13 +41,19 @@ def fee_list(request):
 def fee_search(request):
     per_page_options = [5, 10, 20, 50]
 
-    query = request.GET.get('q', '') 
+    query = request.GET.get('q', '').strip()
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
-    fee_list = Fee.objects.filter(
-        Q(short_description__icontains=query)
-    ).order_by('-isActive')
+    filters = Q(short_description__icontains=query) | Q(approval_date__icontains=query)
+
+    # Buscar por estado (activa / inactiva)
+    if query.lower() in ["activa", "activo", "true", "sí", "si"]:
+        filters |= Q(isActive=True)
+    elif query.lower() in ["inactiva", "inactivo", "false", "no"]:
+        filters |= Q(isActive=False)
+
+    fee_list = Fee.objects.filter(filters).order_by('-isActive')
 
     paginator = Paginator(fee_list, per_page)
     page_obj = paginator.get_page(page_number)
