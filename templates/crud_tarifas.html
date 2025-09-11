@@ -6,8 +6,10 @@
 {% endblock %}
 
 {% block content %}
-  <div class="mt-4 mb-4 text-center">
-    <h1 class="h3">Formulario de Tarifa</h1>
+<div class="row mt-4 mb-2 text-center">
+    <div class="col-12">
+      <h1 class="h3">Formulario de Tarifa</h1>
+    </div>
   </div>
   <div class="card mb-4">
     <div class="card-header card-header-custom">
@@ -231,14 +233,16 @@
         }
 
         // --- Validar monto adicional (opcional, con 2 decimales máx.) ---
-        if (montoAdicionalInput.value && !/^\d+$/.test(montoAdicionalInput.value)) {
-          montoAdicionalInput.classList.add('is-invalid')
+        if (montoAdicionalInput.value) {
           if (parseFloat(montoAdicionalInput.value) < 0) {
             errorMontoAdicional.textContent = 'El monto adicional no puede ser negativo.'
-          }else{
+            montoAdicionalInput.classList.add('is-invalid')
+            error = true
+          } else if (!/^\d+(\.\d{1,2})?$/.test(montoAdicionalInput.value)) {
             errorMontoAdicional.textContent = 'El monto adicional solo puede tener 2 decimales.'
+            montoAdicionalInput.classList.add('is-invalid')
+            error = true
           }
-          error = true
         }
 
         // --- Validación especial: primer tramo debe tener monto fijo ---
