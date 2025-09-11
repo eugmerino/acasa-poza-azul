@@ -8,6 +8,7 @@ urlpatterns = [
     path("", include("core.urls")),
     path("", include("collection.urls")),
     path("", include("project.urls")),
+    path("reuniones/", include("meeting.urls")),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,56 @@
+<tr id="meeting-{{ meeting.id }}">
+    <td>{{ meeting.title }}</td>
+    <td>{{ meeting.date|date:"d-m-Y" }}</td>
+    <td>{{ meeting.start_time }}</td>
+    <td>{{ meeting.end_time }}</td>
+    <td>
+        {% if meeting.isActive %}
+        <span class="badge bg-success">Programada</span>
+        {% else %}
+        <span class="badge bg-secondary">Suspendida</span>   
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="btn-group">
+            <button
+                type="button"
+                class="btn btn-primary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+                <span class="visually-hidden">Acciones</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a
+                        class="dropdown-item"
+                        href="#"
+                        hx-get="{% url 'meet_edit' meeting.id %}"
+                        hx-target="#meet-content-modal"
+                        hx-trigger="click"
+                        data-bs-toggle="modal"
+                        data-bs-target="#exampleModal"
+                    >
+                        <i class="fas fa-edit me-1"></i>
+                        Editar
+                    </a>
+                </li>
+                {% if meeting.isActive %}
+                <li>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-cancel me-1"></i>
+                        Suspender
+                    </a>
+                </li>
+                {% else %}
+                <li>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-clock me-1"></i>
+                        Programar
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </td>
+</tr>

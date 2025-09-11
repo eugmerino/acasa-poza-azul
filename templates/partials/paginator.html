@@ -1,0 +1,75 @@
+<div class="header-controls">
+  <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-end">
+  
+          {# Botón "Anterior" #}
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+              <a 
+                  class="page-link"
+                  hx-get="{{ hx_url }}?page={{ page_obj.previous_page_number }}&q={{ query }}&per_page={{ per_page }}"
+                  hx-target="{{ hx_target }}"
+                  hx-include="[name='q']"
+              >Anterior</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+              <span class="page-link small">Anterior</span>
+          </li>
+          {% endif %}
+  
+          {# Números de páginas acotados #}
+          {% for num in page_obj.paginator.page_range %}
+              {% if num >= page_obj.number|add:"-1" and num <= page_obj.number|add:"1" %}
+                  {% if num == page_obj.number %}
+                      <li class="page-item active">
+                          <span class="page-link">{{ num }}</span>
+                      </li>
+                  {% else %}
+                      <li class="page-item">
+                          <a class="page-link"
+                             hx-get="{{ hx_url }}?page={{ num }}&q={{ query }}&per_page={{ per_page }}"
+                             hx-target="{{ hx_target }}"
+                             hx-include="[name='q']">
+                             {{ num }}
+                          </a>
+                      </li>
+                  {% endif %}
+              {% endif %}
+          {% endfor %}
+  
+          {# Botón "Siguiente" #}
+          {% if page_obj.has_next %}
+          <li class="page-item">
+              <a 
+                  class="page-link"
+                  hx-get="{{ hx_url }}?page={{ page_obj.next_page_number }}&q={{ query }}&per_page={{ per_page }}"
+                  hx-target="{{ hx_target }}"
+                  hx-include="[name='q']"
+              >Siguiente</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+              <span class="page-link small">Siguiente</span>
+          </li>
+          {% endif %}
+  
+      </ul>
+  </nav>
+  <div class="mb-3">
+    <label for="per-page-select" class="form-label me-2 small text-secondary">
+      Registros por página:
+    </label>
+    <select id="per-page-select" name="per_page"
+      class="form-select form-select-sm d-inline-block w-auto"
+      hx-get="{{ hx_url }}"
+      hx-target="{{ hx_target }}"
+      hx-include="[name='q']"
+      hx-trigger="change"
+      >
+        {% for n in per_page_options %}
+          <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
+        {% endfor %}
+    </select>
+  </div>
+</div>
