@@ -1,14 +1,30 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
-{% block title %}Inicio | ACASA Poza Azul{% endblock %}
+
+{% block title %}
+  Inicio |{% if project and project.title %}
+    {{ project.title }}
+  {% else %}
+    ACASA Poza Azul
+  {% endif %}
+{% endblock %}
 
 {% block content %}
-<div id="inicio">
-  <div class="d-flex flex-column align-items-center justify-content-center" style="height: 80vh;">
-    <img src="{% static 'img/logoProyecto-removebg-preview.png' %}" 
-         alt="Logo de ACASA Poza Azul"
-         class="mb-4 rounded-circle border border-5 border-info shadow-lg logo-principal">
-    <h1 class="display-4 text-center text-primary fw-light">Proyecto ACASA Poza Azul</h1>
+  <div id="inicio">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="height: 80vh;">
+      <img src="{% if project and project.logo %}
+          {{ project.logo.url }}
+        {% else %}
+          {% static 'img/image-not-found.png' %}
+        {% endif %}"
+        class="mb-4 rounded-circle border border-5 border-info shadow-lg logo-principal" />
+      <h1 class="display-4 text-center text-primary fw-light">
+        {% if project and project.title %}
+          Proyecto {{ project.title }}
+        {% else %}
+          Proyecto ACASA Poza Azul
+        {% endif %}
+      </h1>
+    </div>
   </div>
-</div>
 {% endblock %}

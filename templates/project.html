@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}
-  Proyecto | ACASA Poza Azul
+  Proyecto |{% if project and project.title %}
+    {{ project.title }}
+  {% else %}
+    ACASA Poza Azul
+  {% endif %}
 {% endblock %}
 
 {% block content %}

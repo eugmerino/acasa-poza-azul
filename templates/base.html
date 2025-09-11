@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>
       {% block title %}
-        ACASA Poza Azul
+        {% if project and project.title %}
+          {{ project.title }}
+        {% else %}
+          ACASA Poza Azul
+        {% endif %}
       {% endblock %}
     </title>
 
@@ -14,8 +18,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.3/css/dataTables.bootstrap5.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
 
     <!-- Archivos estáticos -->
     {% load static %}
@@ -29,7 +32,15 @@
         <div class="container-fluid">
           <button class="btn btn-outline-light me-3" type="button" id="sidebar-toggler"><i class="fas fa-bars"></i></button>
           <div class="text-light">
-            <a href="{% url 'inicio' %}" class="link-light text-decoration-none"><h5 class="m-0">ACASA Poza Azul</h5></a>
+            <a href="{% url 'inicio' %}" class="link-light text-decoration-none">
+              <h5 class="m-0">
+                {% if project and project.title %}
+                  {{ project.title }}
+                {% else %}
+                  ACASA Poza Azul
+                {% endif %}
+              </h5>
+            </a>
           </div>
 
           <div class="ms-auto">
@@ -61,7 +72,15 @@
     <!-- Sidebar -->
     <div class="sidebar active" id="sidebar">
       <div class="sidebar-header">
-        <a href="{% url 'inicio' %}"><img src="{% static 'img/logoProyecto-removebg-preview.png' %}" alt="Logo ACASA Poza Azul" class="logo-sidebar" /></a>
+        <a href="{% url 'inicio' %}">
+          <img src="{% if project and project.logo %}
+              {{ project.logo.url }}
+            {% else %}
+              {% static 'img/image-not-found.png' %}
+            {% endif %}"
+            alt="Logo ACASA Poza Azul"
+            class="logo-sidebar" />
+        </a>
       </div>
       <div class="sidebar-menu p-2">
         <a href="{% url 'inicio' %}"><i class="fas fa-home me-2"></i> Inicio</a>
@@ -106,15 +125,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/2.3.3/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.3.3/js/dataTables.bootstrap5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"
-        integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm"
-        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js" integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ" crossorigin="anonymous"></script>
 
     <script src="{% static 'js/script.js' %}"></script>
-    {% block extra_js %}{% endblock %}
+    {% block extra_js %}
 
+    {% endblock %}
   </body>
 </html>

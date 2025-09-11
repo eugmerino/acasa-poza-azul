@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Comunidades | ACASA Poza Azul{% endblock %}
+
+{% block title %}
+  Comunidades |{% if project and project.title %}
+    {{ project.title }}
+  {% else %}
+    ACASA Poza Azul
+  {% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="row mt-4 mb-2 text-center">
