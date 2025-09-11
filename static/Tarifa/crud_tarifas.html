@@ -1,258 +1,261 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CRUD de Tarifas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link href="css/styles.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+    <link href="css/styles.css" rel="stylesheet" />
     <style>
-        body {
-            padding: 20px;
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 900px;
-            margin: auto;
-        }
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
+      body {
+        padding: 20px;
+        font-family: 'Poppins', sans-serif;
+        background-color: #f8f9fa;
+      }
+      .container {
+        max-width: 900px;
+        margin: auto;
+      }
+      .card {
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
     </style>
-</head>
-<body>
-
-<div class="container mt-4">
-    <div class="d-flex justify-content-center align-items-center mb-4">
+  </head>
+  <body>
+    <div class="container mt-4">
+      <div class="d-flex justify-content-center align-items-center mb-4">
         <h2 class="text-center fw-light mb-0 me-2">Formulario de Tarifa</h2>
-    </div>
-    <div class="card mb-4">
+      </div>
+      <div class="card mb-4">
         <div class="card-header card-header-custom">
-            <h5 class="mb-0 d-inline">Detalles de la Tarifa</h5>
-            <a href="#ayudaModal" class="btn btn-link btn-sm order-1 order-lg-0 me-2" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda">
-                <i class="fa-solid fa-circle-info"></i>
-            </a>
+          <h5 class="mb-0 d-inline">Detalles de la Tarifa</h5>
+          <a href="#ayudaModal" class="btn btn-link btn-sm order-1 order-lg-0 me-2" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda"><i class="fa-solid fa-circle-info"></i></a>
         </div>
         <div class="card-body">
-            <form id="form-crud-tarifa">
-                <div class="row g-3">
-                    <div class="col-md-4 mb-3">
-                        <label for="fecha-aprobacion" class="form-label">
-                            Fecha de Aprobación <span class="text-danger">*</span>
-                        </label>
-                        <input type="date" class="form-control" id="fecha-aprobacion" required>
-                    </div>
-                    <div class="col-md-8 mb-3">
-                        <label for="descripcion-tarifa" class="form-label">
-                            Descripción <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" class="form-control" id="descripcion-tarifa" required>
-                    </div>
-                </div>
+          <form id="form-crud-tarifa">
+            <div class="row g-3">
+              <div class="col-md-4 mb-3">
+                <label for="fecha-aprobacion" class="form-label">Fecha de Aprobación <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="fecha-aprobacion" required />
+              </div>
+              <div class="col-md-8 mb-3">
+                <label for="descripcion-tarifa" class="form-label">Descripción <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="descripcion-tarifa" required />
+              </div>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label d-block">Tramos <span class="text-danger">*</span></label>
-                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tramosModal">
-                        <i class="fas fa-plus me-1"></i> Agregar Tramo
-                    </button>
-                    <div class="table-responsive mt-3">
-                        <table class="table table-striped table-hover align-middle">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th scope="col">Metro Inicial</th>
-                                    <th scope="col">Metro Final</th>
-                                    <th scope="col">Monto Fijo</th>
-                                    <th scope="col">Monto Adicional</th>
-                                    <th scope="col">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-tramos">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="mb-3">
+              <label class="form-label d-block">Tramos <span class="text-danger">*</span></label>
+              <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tramosModal"><i class="fas fa-plus me-1"></i> Agregar Tramo</button>
+              <div class="table-responsive mt-3">
+                <table class="table table-striped table-hover align-middle">
+                  <thead class="table-dark">
+                    <tr>
+                      <th scope="col">Metro Inicial</th>
+                      <th scope="col">Metro Final</th>
+                      <th scope="col">Monto Fijo</th>
+                      <th scope="col">Monto Adicional</th>
+                      <th scope="col">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tabla-tramos"></tbody>
+                </table>
+              </div>
+            </div>
 
-                <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="activa" checked>
-                    <label class="form-check-label" for="activa">Activa</label>
-                </div>
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" id="activa" checked />
+              <label class="form-check-label" for="activa">Activa</label>
+            </div>
 
-                <div class="d-flex justify-content-end gap-2">
-                    <div class="w-100 d-flex justify-content-between gap-2">
-                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar Tarifa</button>
-                        <button type="button" class="btn btn-secondary" onclick="window.close()"><i class="fas fa-times me-1"></i> Cancelar</button>
-                    </div>
+            <div class="d-flex justify-content-end gap-2">
+              <div class="w-100 d-flex justify-content-between gap-2">
+                <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar Tarifa</button>
+                <button type="button" class="btn btn-secondary" onclick="window.close()"><i class="fas fa-times me-1"></i> Cancelar</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="tramosModal" tabindex="-1" aria-labelledby="tramosModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="tramosModalLabel">Agregar Nuevo Tramo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="form-tramo">
+              <div class="mb-3">
+                <label for="metro-inicial" class="form-label">
+                  Metro Inicial
+                  <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Este campo se llena automáticamente." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
+                </label>
+                <input type="number" class="form-control" id="metro-inicial" required disabled />
+              </div>
+              <div class="mb-3">
+                <label for="metro-final" class="form-label">Metro Final
+                    <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Si no ingresa un valor, se tomara como intervalo abierto." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
+                </label>
+                </label>
+                <input type="number" class="form-control" id="metro-final" required />
+              </div>
+              <div class="mb-3">
+                <label for="monto-fijo" class="form-label">Monto Fijo <span class="text-danger">*</span>
+                     <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Monto mínimo a pagar en el tramo." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
+                </label>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" class="form-control" id="monto-fijo" required />
                 </div>
+              </div>
+              <div class="mb-3">
+                <label for="monto-adicional" class="form-label">Monto Adicional
+                    <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Monto a pagar extra, además del monto fijo, por cada metro que sobrepase al metro inicial." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
+                </label>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" class="form-control" id="monto-adicional" />
+                </div>
+              </div>
             </form>
+          </div>
+          <div class="modal-footer">
+            <div class="w-100 d-flex justify-content-between">
+              <button type="button" class="btn btn-success" id="btn-guardar-tramo">Guardar Tramo</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<div class="modal fade" id="tramosModal" tabindex="-1" aria-labelledby="tramosModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal fade" id="ayudaModal" tabindex="-1" aria-labelledby="ayudaModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="tramosModalLabel">Agregar Nuevo Tramo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="form-tramo">
-                    <div class="mb-3">
-                        <label for="metro-inicial" class="form-label">
-                            Metro Inicial <span class="text-danger">*</span>
-                        </label>
-                        <input type="number" class="form-control" id="metro-inicial" required readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="metro-final" class="form-label">
-                            Metro Final <span class="text-danger">*</span>
-                        </label>
-                        <input type="number" class="form-control" id="metro-final" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="monto-fijo" class="form-label">
-                            Monto Fijo <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" step="0.01" class="form-control" id="monto-fijo" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="monto-adicional" class="form-label">Monto Adicional</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" step="0.01" class="form-control" id="monto-adicional">
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <div class="w-100 d-flex justify-content-between">
-                    <button type="button" class="btn btn-success" id="btn-guardar-tramo">Guardar Tramo</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                </div>
-            </div>
+          <div class="modal-header">
+            <h5 class="modal-title" id="ayudaModalLabel">Información</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              <span class="text-danger">*</span> Los campos marcados con asterisco rojo son obligatorios.<br />
+              Por favor, completa todos los campos requeridos antes de guardar la tarifa.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<div class="modal fade" id="ayudaModal" tabindex="-1" aria-labelledby="ayudaModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="ayudaModalLabel">Información</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    <span class="text-danger">*</span> Los campos marcados con asterisco rojo son obligatorios.<br>
-                    Por favor, completa todos los campos requeridos antes de guardar la tarifa.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const formTramo = document.getElementById('form-tramo');
-        const tablaTramos = document.getElementById('tabla-tramos');
-        const btnGuardarTramo = document.getElementById('btn-guardar-tramo');
-        const metroInicialInput = document.getElementById('metro-inicial');
-        const tramosModal = document.getElementById('tramosModal');
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const formTramo = document.getElementById('form-tramo')
+        const tablaTramos = document.getElementById('tabla-tramos')
+        const btnGuardarTramo = document.getElementById('btn-guardar-tramo')
+        const metroInicialInput = document.getElementById('metro-inicial')
+        const tramosModal = document.getElementById('tramosModal')
+      
         // Lógica para establecer el valor del metro inicial al abrir el modal
         tramosModal.addEventListener('show.bs.modal', function () {
-            const tramosExistentes = tablaTramos.querySelectorAll('tr');
-            if (tramosExistentes.length === 0) {
-                // Si es el primer tramo, se establece en 0
-                metroInicialInput.value = 0;
-            } else {
-                // Si hay tramos, se toma el valor del último metro final + 1
-                const ultimoTramo = tramosExistentes[tramosExistentes.length - 1];
-                const ultimoMetroFinal = parseInt(ultimoTramo.cells[1].textContent);
-                metroInicialInput.value = ultimoMetroFinal + 1;
+          const tramosExistentes = tablaTramos.querySelectorAll('tr')
+          if (tramosExistentes.length === 0) {
+            // Si es el primer tramo, se establece en 0
+            metroInicialInput.value = 0
+          } else {
+            // Si hay tramos, se toma el valor del último metro final + 1
+            const ultimoTramo = tramosExistentes[tramosExistentes.length - 1]
+            const ultimoMetroFinal = parseInt(ultimoTramo.cells[1].textContent)
+            metroInicialInput.value = ultimoMetroFinal + 1
+          }
+        })
+      
+        btnGuardarTramo.addEventListener('click', function () {
+          const metroInicial = parseInt(metroInicialInput.value)
+          const metroFinalInput = document.getElementById('metro-final')
+          const montoFinalInput = document.getElementById('monto-final')
+          const montoAdicionalInput = document.getElementById('monto-adicional')
+      
+          // Validar que los campos del modal de tramo no estén vacíos
+          if (!metroFinalInput.value || !montoFinalInput.value) {
+            alert('Por favor, completa los campos de Metro Final y Monto Final.')
+            return
+          }
+      
+          const metroFinal = parseInt(metroFinalInput.value)
+          const montoFinal = montoFinalInput.value
+          const montoAdicional = montoAdicionalInput.value || '0.00'
+          const tramosExistentes = tablaTramos.querySelectorAll('tr')
+      
+          // 1. Validar que el Metro Inicial sea menor que el Metro Final
+          if (metroInicial >= metroFinal) {
+            alert('El Metro Final debe ser mayor que el Metro Inicial.')
+            return
+          }
+      
+          // 2. Validar solapamiento de tramos existentes (mantenida como precaución)
+          let isOverlap = false
+          tramosExistentes.forEach((row) => {
+            const existingMetroInicial = parseInt(row.cells[0].textContent)
+            const existingMetroFinal = parseInt(row.cells[1].textContent)
+      
+            if ((metroInicial >= existingMetroInicial && metroInicial < existingMetroFinal) || (metroFinal > existingMetroInicial && metroFinal <= existingMetroFinal) || (metroInicial <= existingMetroInicial && metroFinal >= existingMetroFinal)) {
+              isOverlap = true
             }
-        });
-        
-        btnGuardarTramo.addEventListener('click', function() {
-            const metroInicial = parseInt(metroInicialInput.value);
-            const metroFinalInput = document.getElementById('metro-final');
-            const montoFinalInput = document.getElementById('monto-final');
-            const montoAdicionalInput = document.getElementById('monto-adicional');
-
-            // Validar que los campos del modal de tramo no estén vacíos
-            if (!metroFinalInput.value || !montoFinalInput.value) {
-                alert('Por favor, completa los campos de Metro Final y Monto Final.');
-                return;
-            }
-
-            const metroFinal = parseInt(metroFinalInput.value);
-            const montoFinal = montoFinalInput.value;
-            const montoAdicional = montoAdicionalInput.value || '0.00';
-            const tramosExistentes = tablaTramos.querySelectorAll('tr');
-
-            // 1. Validar que el Metro Inicial sea menor que el Metro Final
-            if (metroInicial >= metroFinal) {
-                alert('El Metro Final debe ser mayor que el Metro Inicial.');
-                return;
-            }
-            
-            // 2. Validar solapamiento de tramos existentes (mantenida como precaución)
-            let isOverlap = false;
-            tramosExistentes.forEach(row => {
-                const existingMetroInicial = parseInt(row.cells[0].textContent);
-                const existingMetroFinal = parseInt(row.cells[1].textContent);
-                
-                if ((metroInicial >= existingMetroInicial && metroInicial < existingMetroFinal) ||
-                    (metroFinal > existingMetroInicial && metroFinal <= existingMetroFinal) ||
-                    (metroInicial <= existingMetroInicial && metroFinal >= existingMetroFinal)) {
-                    isOverlap = true;
-                }
-            });
-
-            if (isOverlap) {
-                alert('¡Atención! Este tramo se solapa con un tramo ya existente.');
-                return;
-            }
-            
-            // Si todas las validaciones pasan, se añade la fila
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${metroInicial}</td>
-                <td>${metroFinal}</td>
-                <td>$${parseFloat(montoFinal).toFixed(2)}</td>
-                <td>$${parseFloat(montoAdicional).toFixed(2)}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-danger btn-eliminar-tramo" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-                </td>
-            `;
-            tablaTramos.appendChild(newRow);
-            
-            // Cierra el modal y limpia el formulario
-            const modal = bootstrap.Modal.getInstance(document.getElementById('tramosModal'));
-            modal.hide();
-            formTramo.reset();
-        });
-
+          })
+      
+          if (isOverlap) {
+            alert('¡Atención! Este tramo se solapa con un tramo ya existente.')
+            return
+          }
+      
+          // Si todas las validaciones pasan, se añade la fila
+          const newRow = document.createElement('tr')
+          newRow.innerHTML = `
+                      <td>${metroInicial}</td>
+                      <td>${metroFinal}</td>
+                      <td>$${parseFloat(montoFinal).toFixed(2)}</td>
+                      <td>$${parseFloat(montoAdicional).toFixed(2)}</td>
+                      <td>
+                          <button class="btn btn-sm btn-outline-danger btn-eliminar-tramo" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                      </td>
+                  `
+          tablaTramos.appendChild(newRow)
+      
+          // Cierra el modal y limpia el formulario
+          const modal = bootstrap.Modal.getInstance(document.getElementById('tramosModal'))
+          modal.hide()
+          formTramo.reset()
+        })
+      
         // Lógica para eliminar un tramo de la tabla
-        tablaTramos.addEventListener('click', function(e) {
-            if (e.target.closest('.btn-eliminar-tramo')) {
-                const row = e.target.closest('tr');
-                row.remove();
-            }
-        });
-    });
-</script>
-
-</body>
+        tablaTramos.addEventListener('click', function (e) {
+          if (e.target.closest('.btn-eliminar-tramo')) {
+            const row = e.target.closest('tr')
+            row.remove()
+          }
+        })
+      })
+      
+      document.addEventListener('DOMContentLoaded', function () {
+        // Inicializa todos los popovers con clase personalizada
+        const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        popoverTriggerList.forEach(function (popoverTriggerEl) {
+          new bootstrap.Popover(popoverTriggerEl, {
+            customClass: 'popover-sm'
+          })
+        })
+      })
+    </script>
+  </body>
 </html>

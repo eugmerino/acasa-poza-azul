@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Comunidades | ACASA Poza Azul{% endblock %}
+
+{% block content %}
+    <div class="mt-5 mb-4 text-center">
+        <h1 class="h3">Gestión de Comunidades</h1>
+    </div>
+
+    <div class="table-container rounded-4 shadow p-4">    
+        <div class="header-controls">
+            <button id="btn-abrir-crud" class="btn btn-success">
+                <i class="fas fa-plus me-1"></i> Agregar Nueva Comunidad
+            </button>
+            {% include "partials/search_table.html" with hx_url=community_search_url hx_target="#community-list" placeholder="Buscar comunidad..." %}
+        </div>
+        {% include "partials/community_table.html" %}
+    </div>
+{% endblock %}

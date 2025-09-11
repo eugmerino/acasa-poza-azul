@@ -1,0 +1,28 @@
+<div
+    class="table-responsive rounded-3"
+    id="table-content"
+>
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+        <tr>
+            <th>Título de la reunión</th>
+            <th>Día</th>
+            <th>Hora de inicio</th>
+            <th>Hora de fin</th>
+            <th>Estado</th>
+            <th>Suspender</th>
+        </tr>
+        </thead>
+        <tbody id="table-body">
+        {% for meeting in page_obj %}
+            {% include "partials/meet_row_table.html" %}
+        {% empty %}
+            <tr>
+                <td colspan="4">No hay resultados</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "partials/paginator.html" with hx_url=meet_search_url hx_target="#table-content" per_page_options=per_page_options %}
+</div>

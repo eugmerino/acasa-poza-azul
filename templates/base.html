@@ -73,7 +73,7 @@
         <div class="collapse ps-4" id="submenuProyecto">
           <a href="{% url 'project_info' %}"><i class="fa-solid fa-file-invoice me-3"></i>Información</a>
           <a href="{% url 'fee_list' %}"><i class="fa-solid fa-circle-dollar-to-slot me-3"></i>Tarifa</a>
-          <a href="#"><i class="fa-solid fa-map-location-dot me-3"></i>Comunidades</a>
+          <a href="{% url 'community_list' %}"><i class="fa-solid fa-map-location-dot me-3"></i>Comunidades</a>
         </div>
 
         <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuReuniones">
@@ -81,7 +81,7 @@
           <i class="fas fa-chevron-down small"></i>
         </a>
         <div class="collapse ps-4" id="submenuReuniones">
-          <a href="#"><i class="fa-solid fa-plus me-2"></i>Reuniones</a>
+          <a href="{% url 'meet_list' %}"><i class="fa-solid fa-plus me-2"></i>Reuniones</a>
           <a href="#"><i class="fa-solid fa-clipboard-user me-2"></i>Asistencia</a>
         </div>
       </div>
@@ -110,6 +110,8 @@
         integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ" crossorigin="anonymous"></script>
 
     <script src="{% static 'js/script.js' %}"></script>
     {% block extra_js %}{% endblock %}

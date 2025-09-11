@@ -136,7 +136,6 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(html => {
           contentDiv.innerHTML = html
           initFormEvents() // reactivar eventos en el nuevo contenido
-          // Mostrar SweetAlert2 si éxito
           const successDiv = document.getElementById('save-success')
           if (successDiv && successDiv.dataset.success === 'True') {
             Swal.fire({

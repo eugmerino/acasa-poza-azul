@@ -10,7 +10,7 @@
   </div>
   <div class="table-container rounded-4 shadow p-4 mb-5">
     <div class="header-controls">
-      <button id="btn-abrir-crud" class="btn btn-success"><i class="fas fa-plus me-1"></i> Agregar Nueva Tarifa</button>
+      <a href="{% url 'fee_create_form' %}" class="btn btn-success" role="button"><i class="fas fa-plus me-1"></i> Agregar Nueva Tarifa</a>
     </div>
     <div class="table-responsive rounded-3">
       <table id="tabla-fees" class="table table-striped table-hover table-azul-oscuro align-middle rounded-bottom rounded-3">
@@ -29,70 +29,129 @@
 {% endblock %}
 
 {% block extra_js %}
-  <script>
-    $(document).ready(function () {
-      $('#tabla-fees').DataTable({
-        ajax: "{% url 'fees_json' %}",
-        columns: [
-          { data: 'short_description' },
-          { data: 'approval_date' },
-          {
-            data: 'isActive',
-            render: function (data, type, row) {
-              if (data === 'Activa') {
-                return '<span class="badge bg-success">Activa</span>'
-              } else {
-                return '<span class="badge bg-danger">Inactiva</span>'
-              }
-            }
-          },
-          {
-            data: null,
-            render: function (data, type, row) {
-              return `
-                <div class="d-flex gap-2">
-                  <!-- Botón Ver -->
-                  <a href="/ruta/ver/${row.id}/" class="btn btn-sm btn-secondary" title="Ver">
-                    <i class="fa-solid fa-eye"></i>
-                  </a>
-                  <!-- Botón Editar -->
-                  <a href="/ruta/editar/${row.id}/" class="btn btn-sm btn-primary" title="Editar">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                  </a>
-                </div>
-              `;
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  $(document).ready(function () {
+    const tabla = $('#tabla-fees').DataTable({
+      ajax: "{% url 'fees_json' %}",
+      columns: [
+        { data: 'short_description' },
+        { data: 'approval_date' },
+        {
+          data: 'isActive',
+          render: function (data, type, row) {
+            if (data === 'Activa') {
+              return '<span class="badge bg-success">Activa</span>';
+            } else {
+              return '<span class="badge bg-secondary">Inactiva</span>';
             }
           }
-        ],
-        pageLength: 10,
-        lengthMenu: [
-          [5, 10, 25],
-          [5, 10, 25]
-        ],
-        language: {
-          decimal: ',',
-          thousands: '.',
-          processing: 'Procesando...',
-          search: 'Buscar:',
-          lengthMenu: 'Mostrar _MENU_ registros',
-          info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
-          infoEmpty: 'Mostrando 0 a 0 de 0 registros',
-          infoFiltered: '(filtrado de _MAX_ registros totales)',
-          loadingRecords: 'Cargando...',
-          zeroRecords: 'No se encontraron resultados',
-          emptyTable: 'No hay datos disponibles en la tabla',
-          paginate: {
-            first: 'Primero',
-            previous: 'Anterior',
-            next: 'Siguiente',
-            last: 'Último'
-          },
-          aria: {
-            sortAscending: ': activar para ordenar ascendente',
-            sortDescending: ': activar para ordenar descendente'
+        },
+        {
+          data: null,
+          render: function (data, type, row) {
+            let acciones = `
+              <div class="text-center">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/tarifas/${row.id}/ver/"><i class="fa-solid fa-eye me-1"></i>Ver</a></li>
+            `;
+            if (row.isActive !== 'Activa') {
+              acciones += `<li><a class="dropdown-item activar-tarifa" data-id="${row.id}" href="#"><i class="fa-solid fa-circle-check me-1"></i>Activar</a></li>`;
+            }
+            acciones += `
+                  </ul>
+                </div>
+              </div>
+            `;
+            return acciones;
           }
         }
-      })
-    })
-  </script>
+      ],
+      pageLength: 10,
+      lengthMenu: [
+        [5, 10, 25],
+        [5, 10, 25]
+      ],
+      language: {
+        decimal: ',',
+        thousands: '.',
+        processing: 'Procesando...',
+        search: 'Buscar:',
+        lengthMenu: 'Mostrar _MENU_ registros',
+        info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+        infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+        infoFiltered: '(filtrado de _MAX_ registros totales)',
+        loadingRecords: 'Cargando...',
+        zeroRecords: 'No se encontraron resultados',
+        emptyTable: 'No hay datos disponibles en la tabla',
+        paginate: {
+          first: 'Primero',
+          previous: 'Anterior',
+          next: 'Siguiente',
+          last: 'Último'
+        },
+        aria: {
+          sortAscending: ': activar para ordenar ascendente',
+          sortDescending: ': activar para ordenar descendente'
+        }
+      },
+      drawCallback: function(settings) {
+        const api = this.api();
+        const tbody = $(api.table().body());
+        const rowsOnPage = api.rows({ page: 'current' }).nodes().length;
+
+        // Si hay menos 5 registros visibles, completar con filas vacías hasta 5
+        if (rowsOnPage < 5) {
+          for (let i = 0; i + rowsOnPage < 5; i++) {
+            const emptyRow = $('<tr>').append(
+              '<td>&nbsp;</td>'.repeat(api.columns().count())
+            );
+            tbody.append(emptyRow);
+          }
+        }
+      }
+    });
+
+    // Evento para activar tarifa con confirmación
+    $('#tabla-fees').on('click', '.activar-tarifa', function (e) {
+      e.preventDefault();
+      const id = $(this).data('id');
+
+      Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción activará la tarifa seleccionada y desactivará cualquier otra tarifa activa.",
+        icon: 'warning',
+        showCancelButton: true,
+        customClass: {
+          confirmButton: 'btn btn-success',
+          cancelButton: 'btn btn-secondary'
+        },
+        confirmButtonText: 'Sí, activar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.post("{% url 'fee_activate' %}", { id: id }, function (resp) {
+            if (resp.success) {
+              tabla.ajax.reload(null, false);
+              Swal.fire(
+                'Activada',
+                'La tarifa se activó correctamente.',
+                'success'
+              );
+            } else {
+              Swal.fire(
+                'Error',
+                'Ocurrió un problema al activar la tarifa.',
+                'error'
+              );
+            }
+          });
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}
+

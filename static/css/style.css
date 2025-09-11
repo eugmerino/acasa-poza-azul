@@ -250,3 +250,38 @@ body {
   --bs-pagination-font-size: 0.85rem;
 }
 
+
+.table thead th {
+    background-color: var(--azul-oscuro);
+    /* Cambiado a azul oscuro */
+    color: var(--blanco);
+    border-bottom: none;
+    font-weight: 600;
+    padding: 12px 15px;
+}
+
+.popover-sm.popover {
+    max-width: 300px; 
+    font-size: 0.8em; 
+    padding: 4px 8px; 
+}
+
+.popover-sm .popover-body {
+    padding: 4px 8px; 
+}
+
+/* Modal header con colores institucionales */
+.modal-header {
+    background-color: var(--azul-oscuro);
+    color: var(--blanco);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.modal-header .modal-title {
+    color: var(--blanco);
+}
+
+.modal-header .btn-close {
+    filter: invert(1) grayscale(1);
+}

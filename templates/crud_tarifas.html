@@ -1,0 +1,521 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Agregar Tarifa | ACASA Poza Azul
+{% endblock %}
+
+{% block content %}
+  <div class="mt-4 mb-4 text-center">
+    <h1 class="h3">Formulario de Tarifa</h1>
+  </div>
+  <div class="card mb-4">
+    <div class="card-header card-header-custom">
+      <h5 class="mb-0 d-inline">Detalles de la Tarifa</h5>
+      <a href="#ayudaModal" class="btn btn-link btn-sm order-1 order-lg-0 me-2" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda"><i class="fa-solid fa-circle-info"></i></a>
+    </div>
+    <div class="card-body">
+      <form id="form-crud-tarifa">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-4 mb-3">
+            <label for="fecha-aprobacion" class="form-label">Fecha de Aprobación: <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="fecha-aprobacion" name="fecha-aprobacion" />
+            <span id="errorFecha" class="text-danger small"></span>
+          </div>
+          <div class="col-md-8 mb-3">
+            <label for="descripcion-tarifa" class="form-label">Descripción: <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="descripcion-tarifa" name="descripcion-tarifa" placeholder="Descripción corta..." />
+            <span id="errorDescripcion" class="text-danger small"></span>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label d-block">Tramos: <span class="text-danger">*</span></label>
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tramosModal"><i class="fas fa-plus me-1"></i> Agregar Tramo</button>
+          <div class="table-responsive mt-3 rounded-3">
+            <table class="table table-striped table-hover table-azul-oscuro align-middle rounded-bottom rounded-3">
+              <thead class="">
+                <tr>
+                  <th scope="col">Metro Inicial</th>
+                  <th scope="col">Metro Final</th>
+                  <th scope="col">Monto Fijo</th>
+                  <th scope="col">Monto Adicional</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-tramos"></tbody>
+            </table>
+          </div>
+          <span id="errorTramos" class="text-danger small d-block mt-2"></span>
+        </div>
+
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="activa" checked />
+          <label class="form-check-label" for="activa">Activa</label>
+        </div>
+
+        <div class="mb-3 text-muted">
+          <span class="text-danger">*</span><span class="small">Campos obligatorios</span>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <div class="w-100 d-flex justify-content-between gap-2">
+            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar Tarifa</button>
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'fee_list' %}'">
+              <i class="fas fa-times me-1"></i> Cancelar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="tramosModal" tabindex="-1" aria-labelledby="tramosModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tramosModalLabel">Agregar Nuevo Tramo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="form-tramo">
+            <div class="mb-3">
+              <label for="metro-inicial" class="form-label">
+                Metro Inicial
+                <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Este campo se llena automáticamente." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
+              </label>
+              <input type="number" class="form-control" id="metro-inicial" required disabled />
+            </div>
+            <div class="mb-3">
+              <label for="metro-final" class="form-label">
+                Metro Final
+                <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Si no ingresa un valor, se tomara como intervalo abierto." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
+              </label>
+              <input type="number" class="form-control" id="metro-final" />
+              <span id="errorMetroFinal" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+              <label for="monto-fijo" class="form-label">
+                Monto Fijo <span class="text-danger">*</span>
+                <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Monto mínimo a pagar en el tramo." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
+              </label>
+              <div>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" class="form-control" id="monto-fijo" required />
+                </div>
+                <span id="errorMontoFijo" class="text-danger small"></span>
+              </div>
+              
+            </div>
+            <div class="mb-3">
+              <label for="monto-adicional" class="form-label">
+                Monto Adicional
+                <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Monto a pagar extra, además del monto fijo, por cada metro que sobrepase al metro inicial." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
+              </label>
+              <div>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" class="form-control" id="monto-adicional" />
+                </div>
+                <span id="errorMontoAdicional" class="text-danger small"></span>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100 d-flex justify-content-between">
+            <button type="button" class="btn btn-success" id="btn-guardar-tramo">Guardar Tramo</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="ayudaModal" tabindex="-1" aria-labelledby="ayudaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ayudaModalLabel">Información</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            <span class="text-danger">*</span> Los campos marcados con asterisco rojo son obligatorios.<br />
+            Por favor, completa todos los campos requeridos antes de guardar la tarifa.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+ <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const formTramo = document.getElementById('form-tramo')
+      const tablaTramos = document.getElementById('tabla-tramos')
+      const btnGuardarTramo = document.getElementById('btn-guardar-tramo')
+      const metroInicialInput = document.getElementById('metro-inicial')
+      const metroFinalInput = document.getElementById('metro-final')
+      const montoFijoInput = document.getElementById('monto-fijo')
+      const montoAdicionalInput = document.getElementById('monto-adicional')
+      const tramosModal = new bootstrap.Modal(document.getElementById('tramosModal'))
+      const fechaInput = document.getElementById('fecha-aprobacion')
+      const errorFecha = document.getElementById('errorFecha')
+      const errorMontoFijo = document.getElementById('errorMontoFijo')
+    
+      // Establecer fecha máxima = hoy
+      const hoy = "{{ hoy|date:'Y-m-d' }}";
+      fechaInput.setAttribute('max', hoy)
+    
+      document.getElementById('tramosModal').addEventListener('show.bs.modal', function (event) {
+        const tramosExistentes = tablaTramos.querySelectorAll('tr')
+    
+        // Si no hay tramos → primer tramo, metro inicial = 0
+        if (tramosExistentes.length === 0) {
+          metroInicialInput.value = 0
+          montoFijoInput.removeAttribute('disabled') // Primer tramo: editable
+          return
+        }
+    
+        const ultimoTramo = tramosExistentes[tramosExistentes.length - 1]
+        const ultimoMetroFinalText = ultimoTramo.cells[1].textContent
+    
+        // 🚫 Bloquear si el último tramo tiene intervalo abierto ("-")
+        if (ultimoMetroFinalText === '-') {
+          Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'El último tramo tiene un intervalo abierto (sin metro final). No se pueden agregar más tramos.',
+          confirmButtonText: 'Aceptar'
+          })
+          event.preventDefault() // cancela la apertura del modal
+          return
+        }
+    
+        // Calcular metro inicial para el nuevo tramo
+        metroInicialInput.value = parseInt(ultimoMetroFinalText) + 1
+    
+        // Desde el segundo tramo en adelante → monto fijo calculado, no editable
+        montoFijoInput.setAttribute('disabled', true)
+      })
+    
+      btnGuardarTramo.addEventListener('click', function () {
+        // Limpiar errores previos
+        montoFijoInput.classList.remove('is-invalid')
+        errorMontoFijo.textContent = ''
+        metroFinalInput.classList.remove('is-invalid')
+        errorMetroFinal.textContent = ''
+        montoAdicionalInput.classList.remove('is-invalid')
+        errorMontoAdicional.textContent = ''
+
+        let error = false
+
+        
+
+        // --- Validar metro final (opcional, pero entero si existe) ---
+        if (metroFinalInput.value && !/^\d+$/.test(metroFinalInput.value)) {
+          metroFinalInput.classList.add('is-invalid')
+          if (parseFloat(metroFinalInput.value) < 0) {
+            errorMetroFinal.textContent = 'El metro final no puede ser negativo.'
+          }else{
+            errorMetroFinal.textContent = 'El metro final debe ser un número entero.'
+          }
+          error = true
+        }
+
+        // --- Validar monto adicional (opcional, con 2 decimales máx.) ---
+        if (montoAdicionalInput.value && !/^\d+$/.test(montoAdicionalInput.value)) {
+          montoAdicionalInput.classList.add('is-invalid')
+          if (parseFloat(montoAdicionalInput.value) < 0) {
+            errorMontoAdicional.textContent = 'El monto adicional no puede ser negativo.'
+          }else{
+            errorMontoAdicional.textContent = 'El monto adicional solo puede tener 2 decimales.'
+          }
+          error = true
+        }
+
+        // --- Validación especial: primer tramo debe tener monto fijo ---
+        if (tablaTramos.rows.length === 0) {
+          if (!montoFijoInput.value){
+            montoFijoInput.classList.add('is-invalid')
+            errorMontoFijo.textContent = 'El monto fijo es obligatorio en el primer tramo.'
+            return
+          } else if (parseFloat(montoFijoInput.value) < 0) {
+            montoFijoInput.classList.add('is-invalid')
+            errorMontoFijo.textContent = 'El monto fijo no puede ser negativo.'
+            error = true
+          } else if (!/^\d+(\.\d{1,2})?$/.test(montoFijoInput.value)) {
+            montoFijoInput.classList.add('is-invalid')
+            errorMontoFijo.textContent = 'El monto fijo solo puede tener 2 decimales.'
+            error = true
+          }
+        }
+        
+        if (error) {
+          return
+        }
+
+        const metroInicial = parseInt(metroInicialInput.value)
+        const metroFinal = metroFinalInput.value.trim() === '' ? '-' : parseInt(metroFinalInput.value)
+        let montoFijo = montoFijoInput.value
+        let montoAdicional = montoAdicionalInput.value || '0.00'
+    
+        // Validación de rango
+        if (metroFinal !== '-' && metroInicial >= metroFinal) {
+          Swal.fire({
+          icon: 'error',
+          title: 'Datos inválidos',
+          text: 'El Metro Final debe ser mayor que el Metro Inicial.',
+          confirmButtonText: 'Aceptar'
+        })
+          return
+        }
+    
+        // --- Cálculo automático del monto fijo desde el segundo tramo ---
+        if (tablaTramos.rows.length > 0) {
+          const ultimoTramo = tablaTramos.rows[tablaTramos.rows.length - 1]
+          const montoFijoAnterior = parseFloat(ultimoTramo.cells[2].textContent.replace('$', ''))
+          const metroInicialAnterior = parseInt(ultimoTramo.cells[0].textContent)
+          const metroFinalAnterior = ultimoTramo.cells[1].textContent === '-' ? null : parseInt(ultimoTramo.cells[1].textContent)
+          const montoAdicionalAnterior = parseFloat(ultimoTramo.cells[3].textContent.replace('$', ''))
+    
+          // Cálculo del incremento en base al tramo anterior
+          let incremento = 0
+          if (metroFinalAnterior !== null) {
+            incremento = (metroFinalAnterior - metroInicialAnterior) * (montoAdicionalAnterior || 0)
+          }
+    
+          // Pre-cálculo del monto fijo actual
+          let montoCalculado = montoFijoAnterior + incremento
+    
+          // Si el usuario ingresó un monto adicional en este tramo → lo sumamos una vez
+          if (parseFloat(montoAdicional) > 0) {
+            montoCalculado += parseFloat(montoAdicional)
+          }
+    
+          montoFijo = montoCalculado.toFixed(2)
+        }
+    
+        // Crear fila (Agregar Tramo)
+        const newRow = document.createElement('tr')
+        newRow.innerHTML = `
+                      <td>${metroInicial}</td>
+                      <td>${metroFinal}</td>
+                      <td>$${parseFloat(montoFijo).toFixed(2)}</td>
+                      <td>$${parseFloat(montoAdicional).toFixed(2)}</td>
+                      <td>
+                          <div class="text-center">
+                              <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-tramo" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                          </div>
+                      </td>
+                  `
+        tablaTramos.appendChild(newRow)
+    
+        tramosModal.hide()
+        formTramo.reset()
+        
+      })
+    
+      tablaTramos.addEventListener('click', function (e) {
+        const row = e.target.closest('tr')
+        if (!row) return
+    
+        const tramos = Array.from(tablaTramos.querySelectorAll('tr'))
+        const rowIndex = tramos.indexOf(row)
+        const isLastRow = rowIndex === tramos.length - 1
+    
+        if (e.target.closest('.btn-eliminar-tramo')) {
+          if (!isLastRow) {
+            Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No puedes eliminar este tramo porque hay registros posteriores. Elimina el último tramo primero.',
+              confirmButtonText: 'Aceptar'
+          })
+            return
+          }
+          row.remove()
+        }
+      })
+    
+      document.getElementById('tramosModal').addEventListener('hide.bs.modal', function () {
+        formTramo.reset()
+      })
+    })
+    
+    document.addEventListener('DOMContentLoaded', function () {
+      const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+      popoverTriggerList.forEach(function (popoverTriggerEl) {
+        new bootstrap.Popover(popoverTriggerEl, {
+          customClass: 'popover-sm'
+        })
+      })
+    })
+    
+    document.getElementById('form-crud-tarifa').addEventListener('submit', function (e) {
+      e.preventDefault()
+
+      const descripcionInput = document.getElementById('descripcion-tarifa')
+      const fechaInput = document.getElementById('fecha-aprobacion')
+      const descripcion = descripcionInput.value.trim()
+      const fecha_aprobacion = fechaInput.value.trim()
+      const activa = document.getElementById('activa').checked
+      const tramos = Array.from(document.getElementById('tabla-tramos').querySelectorAll('tr')).map((row) => ({
+        metro_inicial: parseInt(row.cells[0].textContent),
+        metro_final: row.cells[1].textContent === '-' ? '-' : parseInt(row.cells[1].textContent),
+        monto_fijo: parseFloat(row.cells[2].textContent.replace('$', '')),
+        monto_adicional: parseFloat(row.cells[3].textContent.replace('$', ''))
+      }))
+
+      // Limpiar errores previos
+      descripcionInput.classList.remove('is-invalid')
+      fechaInput.classList.remove('is-invalid')
+      document.getElementById('errorTramos').textContent = ''
+      document.getElementById('errorFecha').textContent = ''
+      document.getElementById('errorDescripcion').textContent = ''
+      let error = false
+
+      // Validar campos vacíos
+      if (!descripcion) {
+        descripcionInput.classList.add('is-invalid')
+        document.getElementById('errorDescripcion').textContent = 'La descripción es obligatoria.'
+        error = true
+      } else {
+        document.getElementById('errorDescripcion').textContent = ''
+      }
+      if (!fecha_aprobacion) {
+        fechaInput.classList.add('is-invalid')
+        document.getElementById('errorFecha').textContent = 'La fecha de aprobación es obligatoria.'
+        error = true
+      } else {
+        document.getElementById('errorFecha').textContent = ''
+      }
+
+      // Validar tramos
+      if (tramos.length === 0) {
+        document.getElementById('errorTramos').textContent = 'Debe agregar al menos un tramo.'
+        error = true
+      } else {
+        const ultimoTramo = tramos[tramos.length - 1]
+        if (ultimoTramo.metro_final !== '-') {
+          document.getElementById('errorTramos').textContent = 'El último tramo debe tener intervalo abierto (sin metro final).'
+          error = true
+        }
+      }
+
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Datos inválidos',
+          text: 'Por favor corrige los errores antes de guardar.',
+          confirmButtonText: 'Aceptar'
+        })
+        return
+      }
+
+      // Alerta de confirmación
+      let confirmationText = "¿Estás seguro de que quieres guardar esta tarifa?";
+      if (activa) {
+        confirmationText = "Esta acción activará la tarifa seleccionada y desactivará cualquier otra tarifa activa. ¿Estás seguro?";
+      }
+
+      Swal.fire({
+          title: '¿Estás seguro?',
+          text: confirmationText,
+          icon: 'warning',
+          showCancelButton: true,
+          customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-secondary'
+          },
+          confirmButtonText: 'Sí, guardar',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              fetch('/fees/create/', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                  },
+                  body: JSON.stringify({
+                      descripcion,
+                      fecha_aprobacion,
+                      activa,
+                      tramos
+                  })
+              })
+              .then((response) => response.json())
+              .then((data) => {
+                  if (data.success) {
+                      Swal.fire(
+                          'Guardado',
+                          'La tarifa se guardó correctamente.',
+                          'success'
+                      ).then(() => {
+                          window.location.href = '/tarifas/'
+                      });
+                  } else {
+                    descripcionInput.classList.remove('is-invalid')
+                    fechaInput.classList.remove('is-invalid')
+                    let errorMessage = '';
+                    if (data.error === 'UNIQUE constraint failed: collection_fee.approval_date') {
+                      errorMessage = 'Ya existe una tarifa con la misma fecha de aprobación.';
+                      fechaInput.classList.add('is-invalid')
+                    } else if (data.error === 'UNIQUE constraint failed: collection_fee.short_description') {
+                      errorMessage = 'Ya existe una tarifa con la misma descripción.';
+                      descripcionInput.classList.add('is-invalid')
+                    } else {
+                      errorMessage = 'Ocurrió un problema al guardar la tarifa: ' + (data.error || 'Por favor, inténtalo de nuevo.');
+                    }
+                    
+                    Swal.fire(
+                          'Error',
+                          errorMessage,
+                          'error'
+                      );
+
+                  }
+              })
+              .catch((error) => {
+                  Swal.fire(
+                      'Error',
+                      'Ocurrió un error inesperado. Por favor, revisa tu conexión e inténtalo de nuevo.',
+                      'error'
+                  );
+              });
+          }
+      });
+    })
+    
+    // Validación en tiempo real para descripción
+    const descripcionInput = document.getElementById('descripcion-tarifa')
+    descripcionInput.addEventListener('input', function () {
+      if (!descripcionInput.value.trim()) {
+        descripcionInput.classList.add('is-invalid')
+        document.getElementById('errorDescripcion').textContent = 'La descripción es obligatoria.'
+      } else {
+        descripcionInput.classList.remove('is-invalid')
+        document.getElementById('errorDescripcion').textContent = ''
+      }
+    })
+    // Validación en tiempo real para fecha
+    const fechaInput = document.getElementById('fecha-aprobacion')
+    fechaInput.addEventListener('change', function () {
+      if (!fechaInput.value.trim()) {
+        fechaInput.classList.add('is-invalid')
+        document.getElementById('errorFecha').textContent = 'La fecha de aprobación es obligatoria.'
+      } else {
+        fechaInput.classList.remove('is-invalid')
+        document.getElementById('errorFecha').textContent = ''
+      }
+    })
+  </script>
+{% endblock %}
