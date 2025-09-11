@@ -25,7 +25,7 @@
           </div>
           <div class="col-md-8 mb-3">
             <label for="descripcion-tarifa" class="form-label">Descripción: <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="descripcion-tarifa" name="descripcion-tarifa" placeholder="Descripción corta" />
+            <input type="text" class="form-control" id="descripcion-tarifa" name="descripcion-tarifa" placeholder="Descripción corta..." />
             <span id="errorDescripcion" class="text-danger small"></span>
           </div>
         </div>
@@ -55,10 +55,16 @@
           <label class="form-check-label" for="activa">Activa</label>
         </div>
 
+        <div class="mb-3 text-muted">
+          <span class="text-danger">*</span><span class="small">Campos obligatorios</span>
+        </div>
+
         <div class="d-flex justify-content-end gap-2">
           <div class="w-100 d-flex justify-content-between gap-2">
             <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar Tarifa</button>
-            <button type="button" class="btn btn-secondary" onclick="window.close()"><i class="fas fa-times me-1"></i> Cancelar</button>
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'fee_list' %}'">
+              <i class="fas fa-times me-1"></i> Cancelar
+            </button>
           </div>
         </div>
       </form>
@@ -87,25 +93,33 @@
                 <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Si no ingresa un valor, se tomara como intervalo abierto." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
               </label>
               <input type="number" class="form-control" id="metro-final" />
+              <span id="errorMetroFinal" class="text-danger small"></span>
             </div>
             <div class="mb-3">
               <label for="monto-fijo" class="form-label">
                 Monto Fijo <span class="text-danger">*</span>
                 <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Monto mínimo a pagar en el tramo." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
               </label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" step="0.01" class="form-control" id="monto-fijo" required />
+              <div>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" class="form-control" id="monto-fijo" required />
+                </div>
+                <span id="errorMontoFijo" class="text-danger small"></span>
               </div>
+              
             </div>
             <div class="mb-3">
               <label for="monto-adicional" class="form-label">
                 Monto Adicional
                 <a href="#" class="btn btn-link p-0 align-baseline" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right" data-bs-content="Monto a pagar extra, además del monto fijo, por cada metro que sobrepase al metro inicial." title=""><i class="fa-solid fa-circle-info fa-xs text-primary"></i></a>
               </label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" step="0.01" class="form-control" id="monto-adicional" />
+              <div>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" class="form-control" id="monto-adicional" />
+                </div>
+                <span id="errorMontoAdicional" class="text-danger small"></span>
               </div>
             </div>
           </form>
@@ -154,6 +168,7 @@
       const tramosModal = new bootstrap.Modal(document.getElementById('tramosModal'))
       const fechaInput = document.getElementById('fecha-aprobacion')
       const errorFecha = document.getElementById('errorFecha')
+      const errorMontoFijo = document.getElementById('errorMontoFijo')
     
       // Establecer fecha máxima = hoy
       const hoy = "{{ hoy|date:'Y-m-d' }}";
@@ -176,7 +191,7 @@
         if (ultimoMetroFinalText === '-') {
           Swal.fire({
           icon: 'error',
-          title: 'Alerta',
+          title: 'Error',
           text: 'El último tramo tiene un intervalo abierto (sin metro final). No se pueden agregar más tramos.',
           confirmButtonText: 'Aceptar'
           })
@@ -192,16 +207,61 @@
       })
     
       btnGuardarTramo.addEventListener('click', function () {
-        if (!montoFijoInput.value && tablaTramos.rows.length === 0) {
-          Swal.fire({
-          icon: 'error',
-          title: 'Alerta',
-          text: 'Por favor, completa el campo de Monto Fijo para el primer tramo.',
-          confirmButtonText: 'Aceptar'
-          })
+        // Limpiar errores previos
+        montoFijoInput.classList.remove('is-invalid')
+        errorMontoFijo.textContent = ''
+        metroFinalInput.classList.remove('is-invalid')
+        errorMetroFinal.textContent = ''
+        montoAdicionalInput.classList.remove('is-invalid')
+        errorMontoAdicional.textContent = ''
+
+        let error = false
+
+        
+
+        // --- Validar metro final (opcional, pero entero si existe) ---
+        if (metroFinalInput.value && !/^\d+$/.test(metroFinalInput.value)) {
+          metroFinalInput.classList.add('is-invalid')
+          if (parseFloat(metroFinalInput.value) < 0) {
+            errorMetroFinal.textContent = 'El metro final no puede ser negativo.'
+          }else{
+            errorMetroFinal.textContent = 'El metro final debe ser un número entero.'
+          }
+          error = true
+        }
+
+        // --- Validar monto adicional (opcional, con 2 decimales máx.) ---
+        if (montoAdicionalInput.value && !/^\d+$/.test(montoAdicionalInput.value)) {
+          montoAdicionalInput.classList.add('is-invalid')
+          if (parseFloat(montoAdicionalInput.value) < 0) {
+            errorMontoAdicional.textContent = 'El monto adicional no puede ser negativo.'
+          }else{
+            errorMontoAdicional.textContent = 'El monto adicional solo puede tener 2 decimales.'
+          }
+          error = true
+        }
+
+        // --- Validación especial: primer tramo debe tener monto fijo ---
+        if (tablaTramos.rows.length === 0) {
+          if (!montoFijoInput.value){
+            montoFijoInput.classList.add('is-invalid')
+            errorMontoFijo.textContent = 'El monto fijo es obligatorio en el primer tramo.'
+            return
+          } else if (parseFloat(montoFijoInput.value) < 0) {
+            montoFijoInput.classList.add('is-invalid')
+            errorMontoFijo.textContent = 'El monto fijo no puede ser negativo.'
+            error = true
+          } else if (!/^\d+(\.\d{1,2})?$/.test(montoFijoInput.value)) {
+            montoFijoInput.classList.add('is-invalid')
+            errorMontoFijo.textContent = 'El monto fijo solo puede tener 2 decimales.'
+            error = true
+          }
+        }
+        
+        if (error) {
           return
         }
-    
+
         const metroInicial = parseInt(metroInicialInput.value)
         const metroFinal = metroFinalInput.value.trim() === '' ? '-' : parseInt(metroFinalInput.value)
         let montoFijo = montoFijoInput.value
@@ -403,11 +463,25 @@
                           window.location.href = '/tarifas/'
                       });
                   } else {
-                      Swal.fire(
+                    descripcionInput.classList.remove('is-invalid')
+                    fechaInput.classList.remove('is-invalid')
+                    let errorMessage = '';
+                    if (data.error === 'UNIQUE constraint failed: collection_fee.approval_date') {
+                      errorMessage = 'Ya existe una tarifa con la misma fecha de aprobación.';
+                      fechaInput.classList.add('is-invalid')
+                    } else if (data.error === 'UNIQUE constraint failed: collection_fee.short_description') {
+                      errorMessage = 'Ya existe una tarifa con la misma descripción.';
+                      descripcionInput.classList.add('is-invalid')
+                    } else {
+                      errorMessage = 'Ocurrió un problema al guardar la tarifa: ' + (data.error || 'Por favor, inténtalo de nuevo.');
+                    }
+                    
+                    Swal.fire(
                           'Error',
-                          'Ocurrió un problema al guardar la tarifa: ' + (data.error || 'Por favor, inténtalo de nuevo.'),
+                          errorMessage,
                           'error'
                       );
+
                   }
               })
               .catch((error) => {
