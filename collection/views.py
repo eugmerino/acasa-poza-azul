@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import Fee
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -105,17 +105,13 @@ def fees_json(request):
     ]
     return JsonResponse({'data': data})
 
-@csrf_exempt
-@require_POST
-def fee_activate(request):
-    fee_id = request.POST.get('id')
-    try:
-        fee = Fee.objects.get(pk=fee_id)
-        fee.isActive = True
-        fee.save()
-        return JsonResponse({'success': True})
-    except Fee.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Tarifa no encontrada'})
+
+def fee_activate(request, pk):
+    fee = get_object_or_404(Fee, pk=pk)
+    fee.isActive = True
+    fee.save()
+    return redirect("fee_list")
+
 
 @csrf_exempt
 @require_POST

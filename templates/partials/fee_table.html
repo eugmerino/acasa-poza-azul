@@ -41,13 +41,8 @@
                             </li>
                             {% if not row.isActive %}
                             <li>
-                                <a
-                                    class="dropdown-item"
-                                    data-id="${row.id}"
-                                    href="{% url 'fee_activate' %}"
-                                >
-                                    <i class="fas fa-check-circle me-1"></i>
-                                    Activar
+                                <a class="dropdown-item" href="{% url 'fee_activate' row.id %}">
+                                    <i class="fas fa-check-circle me-1"></i> Activar
                                 </a>
                             </li>
                             {% endif %}
