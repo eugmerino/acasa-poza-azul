@@ -13,14 +13,15 @@
   <hr class="mb-4 m-0" />
 
   <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-6 mb-3">
       <div class="mb-3 mt-3">
         {{ form.title.label_tag }}
         {{ form.title }}
         <div class="invalid-feedback" id="title-error"></div>
       </div>
-      <div class="mb-3">{{ form.logo.label_tag }}
+      <div>{{ form.logo.label_tag }}
         {{ form.logo }}</div>
+        <span class="small">Recomendación: Peso máximo 1 MB y imagen sin fondo.</span>
     </div>
 
     <div class="col-md-6 d-flex justify-content-center align-items-center">
