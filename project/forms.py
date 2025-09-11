@@ -51,7 +51,7 @@ class CommunityForm(forms.ModelForm):
             raise forms.ValidationError("El nombre debe tener al menos 3 caracteres.")
 
         # Validar que solo contenga letras, números y espacios
-        if not re.match(r'^[A-Za-z0-9 ]+$', name):
+        if not re.match(r'^[A-Za-z0-9ñÑ ]+$', name):
             raise forms.ValidationError("El nombre solo puede contener letras, números y espacios.")
 
         # Validar unicidad ignorando mayúsculas/minúsculas
