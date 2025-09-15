@@ -43,7 +43,7 @@ def meet_search(request):
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
     meet_list = Meeting.objects.filter(
-        Q(title__icontains=query)
+        Q(title__icontains=query) | Q(date__icontains=query)
     ).order_by('-isActive')
 
     paginator = Paginator(meet_list, per_page)
