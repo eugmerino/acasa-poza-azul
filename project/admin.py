@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Project, Community, Partner
+from .models import Project, Community, Partner, Directive
 from django.contrib.auth.admin import UserAdmin
 
 @admin.register(Project)
@@ -30,4 +30,14 @@ class PartnerAdmin(UserAdmin):
         ("Información adicional", {
             "fields": ("community", "dui", "tel", "foto")
         }),
+    )
+
+@admin.register(Directive)
+class DirectiveAdmin(admin.ModelAdmin):
+    list_display = ("partner", "role", "start_date")
+    list_filter = ("role", "start_date")
+    search_fields = (
+        "partner__first_name",
+        "partner__last_name",
+        "role",
     )
