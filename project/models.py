@@ -59,3 +59,34 @@ class Partner(AbstractUser):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
+    
+
+from django.db import models
+from project.models import Partner  # ajusta la importación según tu estructura
+
+
+class Directive(models.Model):
+    class Roles(models.TextChoices):
+        PRESIDENTE = "PRESIDENTE", "Presidente"
+        VICEPRESIDENTE = "VICEPRESIDENTE", "Vicepresidente"
+        SINDICO = "SINDICO", "Síndico"
+        SECRETARIO = "SECRETARIO", "Secretario"
+        TESORERO = "TESORERO", "Tesorero"
+        VOCAL = "VOCAL", "Vocal"
+
+    partner = models.ForeignKey(
+        Partner,
+        on_delete=models.CASCADE,
+        related_name="directives"
+    )
+    role = models.CharField(
+        "Cargo",
+        max_length=20,
+        choices=Roles.choices
+    )
+    start_date = models.DateField("Fecha de inicio del período")
+
+    def __str__(self):
+        return f"{self.partner} - {self.get_role_display()} ({self.start_date})"
+
+    

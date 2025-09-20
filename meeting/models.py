@@ -15,3 +15,18 @@ class Meeting(models.Model):
     def __str__(self):
         return f"{self.title} - {self.date}"
     
+
+class Attendance(models.Model):
+    meeting = models.ForeignKey(
+        Meeting,
+        on_delete=models.CASCADE,
+        related_name='attendances'
+    )
+    partner = models.ForeignKey(
+        'project.Partner',
+        on_delete=models.CASCADE,
+        related_name='attendances'
+    )
+
+    def __str__(self):
+        return f"{self.partner} - {self.meeting}"
