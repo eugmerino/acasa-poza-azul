@@ -34,10 +34,12 @@ class PartnerAdmin(UserAdmin):
 
 @admin.register(Directive)
 class DirectiveAdmin(admin.ModelAdmin):
-    list_display = ("partner", "role", "start_date")
-    list_filter = ("role", "start_date")
+    list_display = ("partner", "role", "isActive", "start_date", "end_date")
+    list_filter = ("role", "isActive", "start_date", "end_date")
     search_fields = (
         "partner__first_name",
         "partner__last_name",
+        "partner__username",
         "role",
     )
+

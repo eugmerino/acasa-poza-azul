@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class Project(models.Model):
@@ -59,10 +60,6 @@ class Partner(AbstractUser):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
-    
-
-from django.db import models
-from project.models import Partner  # ajusta la importación según tu estructura
 
 
 class Directive(models.Model):
@@ -84,9 +81,37 @@ class Directive(models.Model):
         max_length=20,
         choices=Roles.choices
     )
+    isActive = models.BooleanField("Activo", default=True)
     start_date = models.DateField("Fecha de inicio del período")
+    end_date = models.DateField(
+        "Fecha de fin del período",
+        null=True,
+        blank=True
+    )
+
+    def save(self, *args, **kwargs):
+        today = timezone.localtime().date()
+
+        # Si se marca como inactivo y no tiene fecha final → poner hoy
+        if not self.isActive and self.end_date is None:
+            self.end_date = today
+
+        # Si es un cargo distinto de Vocal y se guarda como activo
+        if self.isActive and self.role != self.Roles.VOCAL:
+            # Buscar registros activos anteriores con el mismo cargo
+            previous = Directive.objects.filter(
+                role=self.role,
+                isActive=True
+            ).exclude(pk=self.pk).first()
+            if previous:
+                previous.isActive = False
+                previous.end_date = today
+                previous.save()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.partner} - {self.get_role_display()} ({self.start_date})"
+        return f"{self.partner} - {self.get_role_display()} ({'Activo' if self.isActive else 'Inactivo'})"
+
 
     
