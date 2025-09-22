@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import timezone
+from datetime import datetime
 
 
 class Meeting(models.Model):
@@ -14,6 +16,21 @@ class Meeting(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.date}"
+
+    @property
+    def status(self):
+        """Devuelve el estado actual de la reunión."""
+        now = timezone.localtime()  # Fecha y hora actual
+        meeting_end = timezone.make_aware(
+            datetime.combine(self.date, self.end_time),
+            timezone.get_current_timezone()
+        )
+
+        if not self.isActive:
+            return "Suspendida"
+        elif now >= meeting_end:
+            return "Finalizada"
+        return "Programada"
     
 
 class Attendance(models.Model):
