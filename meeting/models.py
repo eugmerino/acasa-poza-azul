@@ -28,9 +28,12 @@ class Meeting(models.Model):
 
         if not self.isActive:
             return "Suspendida"
-        elif now >= meeting_end:
+        elif now < meeting_start:
+            return "Programada"
+        elif meeting_start <= now < meeting_end:
+            return "En Proceso"
+        else:
             return "Finalizada"
-        return "Programada"
     
 
 class Attendance(models.Model):

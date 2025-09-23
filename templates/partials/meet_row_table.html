@@ -6,12 +6,15 @@
     <td>
     {% if meeting.status == "Programada" %}
         <span class="badge bg-success">Programada</span>
+    {% elif meeting.status == "En proceso" %}
+        <span class="badge bg-warning text-dark">En Proceso</span>
     {% elif meeting.status == "Suspendida" %}
         <span class="badge bg-secondary">Suspendida</span>
     {% else %}
         <span class="badge bg-dark">Finalizada</span>
     {% endif %}
     </td>
+
 
     <td class="text-center">
         <div class="btn-group">
