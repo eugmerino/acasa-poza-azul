@@ -1,0 +1,24 @@
+<tr id="executive-{{ executive.id }}">
+    <td>{{ executive.role }}</td>
+    <td>{{ executive.partner.first_name }} {{ executive.partner.last_name }}</td>
+    <td>{{ executive.partner.dui}}</td>
+    <td>
+        {% if executive.isActive %}
+        <span class="badge bg-success">Vigente</span>
+        {% else %}
+        <span class="badge bg-secondary">No vigente</span>   
+        {% endif %}
+    </td>
+    <td>{{ executive.start_date|date:"d-m-Y" }}</td>
+    <td>{{ executive.end_date|date:"d-m-Y" }}</td>
+    <td class="text-center">
+        <div class="btn-group">
+            <button
+                type="button"
+                class="btn btn-outline-primary"
+            >
+                <i class="fas fa-edit"></i>
+            </button>
+        </div>
+    </td>
+</tr>

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Project, Community, Community
+from .models import Project, Community, Directive
 from .forms import ProjectForm, CommunityForm
 from django.db.models import Q
 from django.core.paginator import Paginator
@@ -142,3 +142,56 @@ def community_edit(request, pk):
         "partials/community_form.html",
         {"form": form, "community": community}
     )
+
+
+def directive_list(request):
+    project = Project.objects.first()
+    query = request.GET.get('q', '') 
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    directive_list = Directive.objects.all().order_by('-isActive')
+    paginator = Paginator(directive_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'directive/directives.html',
+        {
+            'directive_search_url': reverse('directive_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+            'project': project,
+        }
+    )
+
+def directive_search(request):
+    query = request.GET.get('q', '') 
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    directive_list = Directive.objects.filter(
+        Q(partner__first_name__icontains=query) |
+        Q(partner__last_name__icontains=query) |
+        Q(partner__dui__icontains=query)
+    ).order_by('-isActive')
+
+    paginator = Paginator(directive_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'partials/directive/directive_table.html',
+        {
+            'directive_search_url': reverse('directive_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+        }
+    )
+
+def directive_create(request):
+    return render(request, "partials/directive/directive_form.html")
