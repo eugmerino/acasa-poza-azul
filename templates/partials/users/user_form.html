@@ -1,0 +1,28 @@
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    <h1 class="h3">Nuevo usuario</h1>
+  </div>
+</div>
+
+<div class="card shadow rounded-4 p-4">
+  <h2 class="h4 mb-3">Formulario de prueba - Nuevo Usuario</h2>
+  <form>
+    <div class="mb-3">
+      <label for="username" class="form-label">Nombre de usuario</label>
+      <input type="text" id="username" class="form-control" placeholder="Ingrese un usuario" />
+    </div>
+    <div class="mb-3">
+      <label for="email" class="form-label">Correo electrónico</label>
+      <input type="email" id="email" class="form-control" placeholder="Ingrese un correo" />
+    </div>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-save me-1"></i> Guardar
+    </button>
+    <button type="button" class="btn btn-secondary" 
+            hx-get="{% url 'users_list' %}" 
+            hx-target="#main-container" 
+            hx-swap="innerHTML">
+        <i class="fas fa-arrow-left me-1"></i> Cancelar
+    </button>
+  </form>
+</div>

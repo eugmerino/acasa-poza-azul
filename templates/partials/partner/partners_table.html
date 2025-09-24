@@ -1,0 +1,28 @@
+<div
+    class="table-responsive rounded-3"
+    id="table-content"
+>
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Comunidad</th>
+            <th>Dui</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody id="table-body">
+        {% for partner in page_obj %}
+            {% include "partials/partner/partners_row_table.html" %}
+        {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No hay resultados</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "partials/paginator.html" with hx_url=partners_search_url hx_target="#table-content" per_page_options=per_page_options %}
+</div>

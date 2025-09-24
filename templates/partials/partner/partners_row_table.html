@@ -1,0 +1,18 @@
+<tr id="partner-{{ partner.id }}">
+    <td>{{ partner.first_name }} {{ partner.last_name }}</td>
+    <td>{{ partner.community.name  }}</td>
+    <td>{{ partner.dui  }}</td>
+    <td>{{ partner.tel  }}</td>
+    <td>
+        {% if user.is_active %}
+        <span class="badge bg-success">Activo</span>
+        {% else %}
+        <span class="badge bg-secondary">Inactivo</span>   
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="btn-group">
+            <button class="btn btn-outline-primary"><i class="fas fa-edit"></i></button>
+        </div>
+    </td>
+</tr>

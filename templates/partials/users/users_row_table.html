@@ -1,0 +1,16 @@
+<tr id="user-{{ user.id }}">
+    <td>{{ user.username  }}</td>
+    <td>{{ user.first_name }} {{ user.last_name }}</td>
+    <td>
+        {% if user.is_staff %}
+        <span class="badge bg-success">Activo</span>
+        {% else %}
+        <span class="badge bg-secondary">Inactivo</span>   
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="btn-group">
+            <button class="btn btn-outline-primary"><i class="fas fa-edit"></i></button>
+        </div>
+    </td>
+</tr>
