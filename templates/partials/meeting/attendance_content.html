@@ -1,0 +1,17 @@
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    <h1 class="h3">Registro de asistencia</h1>
+  </div>
+</div>
+
+<div class="table-container rounded-4 shadow p-4">
+    {% if active_meeting %}
+        <h3>
+            Asistencia para la reunión: "{{ active_meeting.title }}" 
+            el día {{ active_meeting.date|date:"d-m-Y" }} 
+            de {{ active_meeting.start_time }} a {{ active_meeting.end_time }}
+        </h3>
+    {% else %}
+        <h3>No hay ninguna reunión activa en este momento.</h3>
+    {% endif %}
+</div>

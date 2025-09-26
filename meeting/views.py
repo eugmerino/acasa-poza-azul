@@ -10,8 +10,9 @@ from django.shortcuts import get_object_or_404
 import json
 from meeting.models import Attendance
 from meeting.forms import AttendanceForm
-from django.utils.timezone import now
 from django.utils import timezone
+from django.utils.timezone import localtime, now
+
 
 
 per_page_options = [5, 10, 20, 50]
@@ -255,24 +256,20 @@ def attendance_create(request):
 
 def attendance(request):
     project = Project.objects.first()
-    today = now().date()
-    current_time = now().time().replace(microsecond=0)
-    print(Meeting.objects.filter(
-            date=today, 
-            start_time__lte=current_time,
-            end_time__gte=current_time,
-            isActive=True
-        ).first()
-    )
-
+    today = localtime().date()
+    now_time = localtime().time().replace(microsecond=0)
 
     # Buscar reunión activa en este momento
     active_meeting = Meeting.objects.filter(
         date=today,
-        start_time__lte=current_time,
-        end_time__gte=current_time,
+        start_time__lte=now_time,
+        end_time__gte=now_time,
         isActive=True
     ).first()
+
+    print("Reunión encontrada:", active_meeting)
+    print("Hora actual:", now_time)
+    
 
     return render(
         request,
