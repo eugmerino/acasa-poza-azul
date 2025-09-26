@@ -1,0 +1,45 @@
+<tr id="meeting-{{ meeting.id }}">
+    <td>{{ meeting.title }}</td>
+    <td>{{ meeting.date|date:"d-m-Y" }}</td>
+    <td>{{ meeting.start_time }}</td>
+    <td>{{ meeting.end_time }}</td>
+    <td>
+  {# En proceso: mismo día y hora actual entre inicio y fin #}
+  {% if meeting.date == today and meeting.start_time <= current_time and meeting.end_time >= current_time %}
+      <span class="badge bg-warning text-dark">En proceso</span>
+
+  {# Finalizada: terminó hoy #}
+  {% elif meeting.date == today and meeting.end_time < current_time %}
+      <span class="badge bg-dark">Finalizada</span>
+
+  {# Finalizada: terminó días anteriores #}
+  {% elif meeting.date < today %}
+      <span class="badge bg-dark">Finalizada</span>
+
+  {# Programada o Suspendida según isActive #}
+  {% else %}
+      {% if meeting.isActive %}
+          <span class="badge bg-success">Programada</span>
+      {% else %}
+          <span class="badge bg-secondary">Suspendida</span>
+      {% endif %}
+  {% endif %}
+</td>
+
+
+    <td class="text-center">
+        <div class="btn-group">
+            <button
+                type="button"
+                class="btn btn-outline-primary"
+                hx-get="{% url 'meet_edit' meeting.id %}"
+                hx-target="#meet-content-modal"
+                hx-trigger="click"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+            >
+                <i class="fas fa-edit"></i>
+            </button>
+        </div>
+    </td>
+</tr>
