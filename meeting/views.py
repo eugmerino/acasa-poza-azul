@@ -12,6 +12,7 @@ from meeting.models import Attendance
 from meeting.forms import AttendanceForm
 from django.utils import timezone
 from django.utils.timezone import localtime, now
+from project.models import Partner
 
 
 
@@ -270,6 +271,32 @@ def attendance(request):
     print("Reunión encontrada:", active_meeting)
     print("Hora actual:", now_time)
     
+    
+    # Crear un set de IDs de socios que ya tienen asistencia
+    attended_partner_ids = set()
+    if active_meeting:
+        attended_partner_ids = set(
+            active_meeting.attendances.values_list('partner_id', flat=True)
+        )
+
+    if request.method == "POST" and active_meeting:
+        for partner in project.partners.all():
+            checkbox_name = f"attendance_{partner.id}"
+            attended = checkbox_name in request.POST
+
+            attendance_obj, created = Attendance.objects.get_or_create(
+                meeting=active_meeting,
+                partner=partner
+            )
+
+            if attended:
+                if not created:
+                    attendance_obj.save()
+            else:
+                if not created:
+                    attendance_obj.delete()
+
+        return redirect("attendance")
 
     return render(
         request,
@@ -277,5 +304,6 @@ def attendance(request):
         {
             'project': project,
             'active_meeting': active_meeting,
+            'attended_partner_ids': attended_partner_ids,
         }
     )

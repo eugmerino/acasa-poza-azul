@@ -12,7 +12,7 @@
 {% block content %}
     <div class="row mt-4 mb-2 text-center">
         <div class="col-12">
-        <h1 class="h3">Gestión de Reuniones</h1>
+        <h1 class="h3">Gestión de Asistencia</h1>
         </div>
     </div>
 
@@ -27,14 +27,14 @@
                 hx-target="#meet-content-modal"
                 hx-trigger="click"
             >
-                <i class="fas fa-plus me-1"></i> Agregar Nueva reunión
+                <i class="fas fa-plus me-1"></i> Agregar Nueva asistencia
             </button>
-            {% include "partials/search_table.html" with hx_url=meet_search_url hx_target="#table-content" placeholder="Buscar Reuniones..." %}
+            {% include "partials/search_table.html" with hx_url=meet_search_url hx_target="#table-content" placeholder="Buscar Asistencia..." %}
         </div>
-        {% include "partials/meet/meet_table.html" %}
+        {% include "partials/attendance/attendance_table.html" %}
     </div>
 
-    {% include "partials/meet/meet_create_modal.html" %}
+   
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {

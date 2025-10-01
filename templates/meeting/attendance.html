@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Asistencia |{% if project and project.title %}
+    {{ project.title }}
+  {% else %}
+    ACASA Poza Azul
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% include "partials/meeting/attendance_content.html" %}
+{% endblock %}

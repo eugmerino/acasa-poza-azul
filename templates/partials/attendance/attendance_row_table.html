@@ -1,0 +1,28 @@
+<tr id="attendance-{{ attendance.id }}">
+    <td>{{ attendance.partner.name }}</td>
+    <td>{{ attendance.partner.dui }}</td>
+    <td>{{ attendance.partner.community }}</td>
+    <td>{{ attendance.check_in|date:"d-m-Y H:i" }}</td>
+    <td>
+        {% if attendance.check_out %}
+            {{ attendance.check_out|date:"d-m-Y H:i" }}
+        {% else %}
+            No registrado
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="btn-group">
+            <button
+                type="button"
+                class="btn btn-outline-primary"
+                hx-get="{% url 'attendance_edit' attendance.id %}"
+                hx-target="#attendance-content-modal"
+                hx-trigger="click"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+            >
+                <i class="fas fa-edit"></i>
+            </button>
+        </div>
+    </td>
+</tr>

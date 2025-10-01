@@ -17,23 +17,7 @@ class Meeting(models.Model):
     def __str__(self):
         return f"{self.title} - {self.date}"
 
-    @property
-    def status(self):
-        """Devuelve el estado actual de la reunión."""
-        now = timezone.localtime()  # Fecha y hora actual
-        meeting_end = timezone.make_aware(
-            datetime.combine(self.date, self.end_time),
-            timezone.get_current_timezone()
-        )
 
-        if not self.isActive:
-            return "Suspendida"
-        elif now < meeting_start:
-            return "Programada"
-        elif meeting_start <= now < meeting_end:
-            return "En Proceso"
-        else:
-            return "Finalizada"
     
 
 class Attendance(models.Model):
