@@ -6,22 +6,22 @@
     <td>
   {# En proceso: mismo día y hora actual entre inicio y fin #}
   {% if meeting.date == today and meeting.start_time <= current_time and meeting.end_time >= current_time %}
-      <span class="badge bg-warning text-dark">En proceso</span>
+      <span class="badge bg-primary">En proceso</span>
 
   {# Finalizada: terminó hoy #}
   {% elif meeting.date == today and meeting.end_time < current_time %}
-      <span class="badge bg-dark">Finalizada</span>
+      <span class="badge bg-secondary">Finalizada</span>
 
   {# Finalizada: terminó días anteriores #}
   {% elif meeting.date < today %}
-      <span class="badge bg-dark">Finalizada</span>
+      <span class="badge bg-secondary">Finalizada</span>
 
   {# Programada o Suspendida según isActive #}
   {% else %}
       {% if meeting.isActive %}
           <span class="badge bg-success">Programada</span>
       {% else %}
-          <span class="badge bg-secondary">Suspendida</span>
+          <span class="badge bg-danger">Suspendida</span>
       {% endif %}
   {% endif %}
 </td>

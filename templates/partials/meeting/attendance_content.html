@@ -1,54 +1,149 @@
-<div class="row mt-4 mb-2 text-center">
-  <div class="col-12">
-    <h1 class="h3">Registro de asistencia</h1>
-  </div>
-</div>
-
-<div class="table-container rounded-4 shadow p-4">
+<div id="table-content">
+    <div class="row mt-4 mb-2 text-center">
+      <div class="col-12">
+        <h1 class="h3">Registro de asistencia</h1>
+      </div>
+    </div>
     {% if active_meeting %}
-        <h3 class="mb-4">
+        <h3 class="mb-4 text-center">
             Asistencia para la reunión: "{{ active_meeting.title }}" 
             el día {{ active_meeting.date|date:"d-m-Y" }} 
             de {{ active_meeting.start_time }} a {{ active_meeting.end_time }}
         </h3>
 
-        <form method="post">
+        <form 
+            method="POST"
+            hx-post="{% url 'attendance' %}"
+            hx-target="#table-content"
+            hx-swap="innerHTML"
+        >
             {% csrf_token %}
-            <table class="table table-striped table-bordered text-center">
-                <thead class="table-primary">
-                    <tr>
-                        <th>#</th>
-                        <th>Socio</th>
-                        <th>DUI</th>
-                        <th>Comunidad</th>
-                        <th>Asistencia</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for partner in active_meeting.project.partners.all %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ partner.first_name }} {{ partner.last_name }}</td>
-                        <td>{{ partner.dui }}</td>
-                        <td>{{ partner.community.name }}</td>
-                        <td>
-                            <input type="checkbox" name="attendance_{{ partner.id }}"
-                            {% if partner.id in attended_partner_ids %} checked {% endif %}>
+            <div class="table-container rounded-4 shadow p-4">
+                <div class="header-controls">
+                    <!-- Botón que guarda asistencias -->
+                    <button
+                        id="btn-guardar-asistencia"
+                        type="submit"
+                        class="btn btn-success"
+                    >
+                        <i class="fas fa-plus me-1"></i> Guardar Asistencias
+                    </button>
 
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    {% include "partials/search_table.html" with hx_url=attendance_search_url hx_target="#table-content" placeholder="Buscar Socios..." %}
+                </div>
 
-            <div class="text-center mt-3">
-                <button type="submit" class="btn btn-primary btn-lg">Guardar Asistencias</button>
+                <!-- Contador dinámico -->
+                <div class="alert alert-info text-center mb-3">
+                    Asistencias marcadas: <span id="attendance-count">{{ attended_partner_ids|length }}</span> / {{ partners|length }}
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Socio</th>
+                                <th>DUI</th>
+                                <th>Comunidad</th>
+                                <th>Asistencia</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for partner in partners %}
+                            <tr id="attendance-{{ partner.id }}" class="{% if partner.id in attended_partner_ids %}table-success{% endif %}">
+                                <td>{{ partner.first_name }} {{ partner.last_name }}</td>
+                                <td>{{ partner.dui }}</td>
+                                <td>{{ partner.community.name }}</td>
+                                <td>
+                                    <div class="form-check d-flex justify-content-center">
+                                        <input class="form-check-input attendance-checkbox" 
+                                               type="checkbox"
+                                               name="attendance_{{ partner.id }}"
+                                               {% if partner.id in attended_partner_ids %} checked {% endif %}>
+                                    </div>
+                                </td>
+                                <td class="attendance-status">
+                                    {% if partner.id in attended_partner_ids %}
+                                        Registrado
+                                    {% else %}
+                                        No registrado
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </form>
-
     {% else %}
         <div class="alert alert-info text-center">
             No hay ninguna reunión activa en este momento.
         </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const btnGuardar = document.getElementById("btn-guardar-asistencia");
+
+    function updateAttendanceUI() {
+        const checkboxes = document.querySelectorAll(".attendance-checkbox");
+        let count = 0;
+
+        checkboxes.forEach(cb => {
+            const row = cb.closest("tr");
+            const statusCell = row.querySelector(".attendance-status");
+
+            if (cb.checked) {
+                row.classList.add("table-success");
+                if (statusCell) statusCell.textContent = "Registrado";
+                count++;
+            } else {
+                row.classList.remove("table-success");
+                if (statusCell) statusCell.textContent = "No registrado";
+            }
+        });
+
+        document.getElementById("attendance-count").textContent = count;
+    }
+
+    document.body.addEventListener("change", function (event) {
+        if (event.target.classList.contains("attendance-checkbox")) {
+            updateAttendanceUI();
+        }
+    });
+
+    updateAttendanceUI();
+
+    document.body.addEventListener("htmx:afterOnLoad", function (event) {
+        const triggerHeader = event.detail.xhr.getResponseHeader("HX-Trigger");
+        if (triggerHeader) {
+            try {
+                const data = JSON.parse(triggerHeader);
+                if (data.state === "success") {
+                    // Mostrar SweetAlert
+                    Swal.fire({
+                        icon: "success",
+                        title: "¡Éxito!",
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    // Cambiar texto del botón temporalmente
+                    if (btnGuardar) {
+                        const originalText = btnGuardar.innerHTML;
+                        btnGuardar.innerHTML = '<i class="fas fa-check me-1"></i> Guardado';
+                        setTimeout(() => {
+                            btnGuardar.innerHTML = originalText;
+                        }, 2000);
+                    }
+                }
+            } catch (e) {
+                console.warn("HX-Trigger no era JSON válido:", e);
+            }
+        }
+    });
+});
+</script>
