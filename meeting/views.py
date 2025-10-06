@@ -131,137 +131,82 @@ def meet_edit(request, pk):
 
  
 # ---------------------------------------------------------
-# LISTA DE ASISTENCIAS (solo reunión en proceso)
+# LISTA DE ASISTENCIAS
 # ---------------------------------------------------------
 def attendance_list(request):
     project = Project.objects.first()
-    current_time = now().time()
-    today = now().date()
+    query = request.GET.get('q', '')
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
 
-    # Buscar reunión activa en este momento
-    active_meeting = Meeting.objects.filter(
-        date=today,
-        start_time__lte=current_time,
-        end_time__gte=current_time,
-        isActive=True
-    ).first()
+    # 🔹 Obtener todas las asistencias, incluyendo datos relacionados
+    attendance_list = Attendance.objects.select_related('meeting', 'partner').filter(
+        Q(meeting__title__icontains=query) |
+        Q(partner__first_name__icontains=query) |
+        Q(partner__last_name__icontains=query)
+    ).order_by('-meeting__date', '-meeting__start_time')
 
-    if active_meeting:
-        partners = Partner.objects.filter(
-            community__project=project,
-            is_superuser=False
-        ).order_by('first_name', 'last_name')
+    paginator = Paginator(attendance_list, per_page)
+    page_obj = paginator.get_page(page_number)
 
-        attended_partner_ids = set(
-            active_meeting.attendances.values_list('partner_id', flat=True)
-        )
-    else:
-        partners = Partner.objects.none()
-        attended_partner_ids = set()
+    now_local = localtime()
 
     return render(
         request,
-        'attendance.html',
-        {
-            'attendance_search_url': reverse('attendance_search'),
-            'project': project,
-            'active_meeting': active_meeting,
-            'partners': partners,
-            'attended_partner_ids': attended_partner_ids,
-        }
-    )
-
-
-# ---------------------------------------------------------
-# BÚSQUEDA DE ASISTENCIAS (solo reunión en proceso)
-# ---------------------------------------------------------
-def attendance_search(request):
-    query = request.GET.get('q', '').strip()
-    current_time = now().time()
-    today = now().date()
-
-    # Buscar reunión activa en este momento
-    active_meeting = Meeting.objects.filter(
-        date=today,
-        start_time__lte=current_time,
-        end_time__gte=current_time,
-        isActive=True
-    ).first()
-
-    if active_meeting:
-        # Buscar por nombre completo, DUI o comunidad
-        attendance_list = Attendance.objects.filter(meeting=active_meeting).filter(
-            Q(partner__first_name__icontains=query) |
-            Q(partner__last_name__icontains=query) |
-            Q(partner__dui__icontains=query) |
-            Q(partner__community__name__icontains=query)
-        ).order_by('-id')
-    else:
-        attendance_list = Attendance.objects.none()
-
-    # Paginación
-    paginator = Paginator(attendance_list, 10)  # ajustar cantidad por página si quieres
-    page_obj = paginator.get_page(request.GET.get('page', 1))
-
-    return render(
-        request,
-        'partials/attendance/attendance_table.html',
+        'meeting/attendance.html',
         {
             'attendance_search_url': reverse('attendance_search'),
             'page_obj': page_obj,
             'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+            'form': AttendanceForm(),
+            'project': project,
+            'today': now_local.date(),
+            'current_time': now_local.time(),
         }
     )
-# ---------------------------------------------------------
-# CREAR ASISTENCIA (solo reunión en proceso)
-# ---------------------------------------------------------
-def attendance_create(request):
-    current_time = now().time()
-    today = now().date()
 
-    # Buscar reunión activa en este momento
+# ---------------------------------------------------------
+# BÚSQUEDA DE ASISTENCIAS
+# ---------------------------------------------------------
+def attendance_search(request):
+    project = Project.objects.first()
+    today = localtime().date()
+    now_time = localtime().time().replace(microsecond=0)
+
     active_meeting = Meeting.objects.filter(
         date=today,
-        start_time__lte=current_time,
-        end_time__gte=current_time,
+        start_time__lte=now_time,
+        end_time__gte=now_time,
         isActive=True
     ).first()
 
-    if not active_meeting:
-        # No hay reunión en proceso, no se muestra el form
-        return render(request, "partials/attendance/attendance_empty.html")
+    partners = Partner.objects.filter(community__project=project, is_superuser=False)
+    query = request.GET.get('q', '').strip()
 
-    if request.method == "POST":
-        form = AttendanceForm(request.POST)
-        if form.is_valid():
-            attendance = form.save(commit=False)
-            attendance.meeting = active_meeting
-            attendance.save()
+    if query:
+        partners = partners.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(dui__icontains=query) |
+            Q(community__name__icontains=query)
+        )
 
-            response = render(
-                request,
-                "partials/attendance/attendance_row_table.html",
-                {"attendance": attendance}
-            )
-            response["HX-Trigger"] = json.dumps({
-                "state": "success",
-                "message": f"Asistencia registrada en la reunión: {active_meeting.title}"
-            })
-            return response
-        else:
-            response = render(request, "partials/attendance/attendance_form.html", {"form": form})
-            response['HX-Retarget'] = 'form'
-            response['HX-Reswap'] = 'outerHTML'
-            response['HX-Trigger-After-Settle'] = 'fail'
-            return response
-    else:
-        form = AttendanceForm()
+    attended_partner_ids = set()
+    if active_meeting:
+        attended_partner_ids = set(active_meeting.attendances.values_list('partner_id', flat=True))
 
-    return render(
-        request,
-        "partials/attendance/attendance_form.html",
-        {"form": form, "meeting": active_meeting}
-    )
+    return render(request, "partials/meeting/attendance_content.html", {
+        "project": project,
+        "active_meeting": active_meeting,
+        "partners": partners,
+        "attended_partner_ids": attended_partner_ids,
+        "attendance_search_url": reverse('attendance_search'),
+        "query": query,
+    })
+
+
 
 def attendance(request):
     project = Project.objects.first()
