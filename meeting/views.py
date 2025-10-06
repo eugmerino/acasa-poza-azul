@@ -70,6 +70,8 @@ def meet_search(request):
             'query': query,
             'per_page': per_page,
             'per_page_options': per_page_options,
+            'today': timezone.localdate(),
+            'current_time': timezone.localtime().time(),
         }
     )
 
