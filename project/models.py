@@ -60,6 +60,32 @@ class Partner(AbstractUser):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
+    
+    def save(self, *args, **kwargs):
+        # Generar username si no existe
+        if not self.username:
+            first_part = self.first_name.split(" ")[0].lower() if self.first_name else ""
+            last_part = self.last_name.split(" ")[0].lower() if self.last_name else ""
+            base_username = f"{first_part}{last_part}"
+
+            username = base_username
+            counter = 1
+            while Partner.objects.filter(username=username).exists():
+                counter += 1
+                username = f"{base_username}{counter}"
+
+            self.username = username
+
+        # Generar contraseña por defecto en formato "key:<dui>"
+        if self.dui and not self.pk:  # solo al crear
+            raw_password = f"key:{self.dui}"
+            self.set_password(raw_password)
+
+        # Si is_active = False → también is_staff = False
+        if not self.is_active and self.is_staff:
+            self.is_staff = False
+
+        super().save(*args, **kwargs)
 
 
 class Directive(models.Model):

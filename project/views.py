@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect
 from .models import Project, Community, Partner
-from .forms import ProjectForm, CommunityForm
+from .forms import ProjectForm, CommunityForm, PartnerForm
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST
 import json
 
 
@@ -204,6 +204,19 @@ def user_create_view(request):
         {"project": project}
     )
 
+@require_POST
+def user_deactivate(request, pk):
+    partner = get_object_or_404(Partner, pk=pk)
+
+    partner.is_staff = False
+    partner.save()
+
+    if request.headers.get("HX-Request"):
+        response = users_list(request)
+        response["HX-Trigger"] = "userDeactivated"
+        return response
+
+    return redirect("users_list")
 
 def partners_list(request):
     project = Project.objects.first()
@@ -270,9 +283,95 @@ def partners_search(request):
     )
 
 def partner_create_view(request):
-    project = Project.objects.first()
+    if request.method == "POST":
+        form = PartnerForm(request.POST, request.FILES)
+        if form.is_valid():
+            partner = form.save()
+            if request.headers.get('HX-Request'):
+                response = partners_list(request)
+                response["HX-Trigger"] = "partnerCreated"
+                return response
+            return redirect('partners_list')
+        else:
+            response = render(
+                request,
+                "partials/partner/partner_form.html",
+                {"form": form, "mode": "create"}
+            )
+            response['HX-Target'] = '#main-container'
+            response['HX-Swap'] = 'innerHTML'
+            response['HX-Trigger-After-Settle'] = 'fail'
+            return response
+    else: 
+        form = PartnerForm()
     return render(
         request,
-        "partials/partner/partner_form.html",  # parcial con el formulario
-        {"project": project}
+        "partials/partner/partner_form.html",
+        {"form": form, "mode": "create"}
     )
+
+def partner_view(request, pk):
+    partner = get_object_or_404(Partner, pk=pk)
+    form = PartnerForm(instance=partner)
+    for field in form.fields.values():
+        field.disabled = True
+    return render(request, "partials/partner/partner_form.html", {"form": form, "mode": "view", "partner": partner})
+
+def partner_edit(request, pk):
+    partner = get_object_or_404(Partner, pk=pk)
+
+    if request.method == "POST":
+        form = PartnerForm(request.POST, request.FILES, instance=partner)
+
+        if form.is_bound:
+            form.data = form.data.copy()
+            form.data['dui'] = partner.dui
+
+        if form.is_valid():
+            form.save()
+            if request.headers.get("HX-Request"):
+                response = partners_list(request)
+                response["HX-Trigger"] = "partnerEdited"
+                return response
+            return redirect("partners_list")
+        else:
+            response = render(
+                request,
+                "partials/partner/partner_form.html",
+                {"form": form, "mode": "edit", "partner": partner},
+            )
+            response['HX-Target'] = '#main-container'
+            response['HX-Swap'] = 'innerHTML'
+            response['HX-Trigger-After-Settle'] = 'fail'
+            return response
+    else:
+        form = PartnerForm(instance=partner)
+
+    return render(
+        request,
+        "partials/partner/partner_form.html",
+        {"form": form, "mode": "edit", "partner": partner},
+    )
+
+
+@require_POST
+def partner_toggle_active(request, pk):
+    partner = get_object_or_404(Partner, pk=pk)
+
+    partner.is_active = not partner.is_active
+
+    # Si se desactiva, quitar is_staff
+    if not partner.is_active:
+        partner.is_staff = False
+
+    partner.save()
+
+    if request.headers.get("HX-Request"):
+        response = partners_list(request)
+        response["HX-Trigger"] = (
+            "partnerActivated" if partner.is_active else "partnerDeactivated"
+        )
+        return response
+
+    return redirect("partners_list")
+

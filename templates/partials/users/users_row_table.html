@@ -1,6 +1,7 @@
 <tr id="user-{{ user.id }}">
     <td>{{ user.username  }}</td>
     <td>{{ user.first_name }} {{ user.last_name }}</td>
+    <td>{% if user.email %} {{ user.email  }} {% else %} -Sin proporcionar- {% endif %}</td>
     <td>
         {% if user.is_staff %}
         <span class="badge bg-success">Activo</span>
@@ -10,7 +11,82 @@
     </td>
     <td class="text-center">
         <div class="btn-group">
-            <button class="btn btn-outline-primary"><i class="fas fa-edit"></i></button>
+            <button
+                type="button"
+                class="btn btn-outline-primary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+                <span class="visually-hidden">Acciones</span>
+            </button>
+            <ul class="dropdown-menu">
+                {% if user.is_staff %}
+                <li>
+                    <a href="#" 
+                        class="dropdown-item" 
+                        onclick="confirmDeactivate({{ user.pk }}, '{{ csrf_token }}')">
+                        <i class="fas fa-user-slash me-2"></i> Desactivar
+                    </a>
+                </li>
+                {% endif %}
+
+                <li>
+                    <a class="dropdown-item"
+                        href="#"
+                        hx-get=""
+                        hx-target="#main-container"
+                        hx-swap="innerHTML">
+                        <i class="fas fa-eye me-1"></i> Ver
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item"
+                        href="#"
+                        hx-get=""
+                        hx-target="#main-container"
+                        hx-swap="innerHTML">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Editar
+                    </a>
+                </li>
+            </ul>
         </div>
     </td>
 </tr>
+
+<script>
+    function confirmDeactivate(pk, csrfToken) {
+    Swal.fire({
+      title: "¿Seguro que deseas desactivar este usuario?",
+      text: "Esta acción desactiva al usuario y bloquea su acceso al sistema.",
+      icon: "question",
+      showCancelButton: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-secondary'
+      },
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        htmx.ajax('POST', `estado/${pk}`, {
+          target: '#main-container',
+          swap: 'innerHTML',
+          headers: {
+            "X-CSRFToken": csrfToken
+          }
+        });
+      }
+    });
+  }
+
+  document.body.addEventListener("userDeactivated", () => {
+    Swal.fire({
+      title: "¡Desactivado!",
+      text: "El usuario ha sido desactivado correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false
+    });
+  });
+</script>
