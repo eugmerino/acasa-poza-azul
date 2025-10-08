@@ -1,28 +1,138 @@
+{% load static %}
 <div class="row mt-4 mb-2 text-center">
   <div class="col-12">
-    <h1 class="h3">Nuevo usuario</h1>
+    <h1 class="h3">Editar usuario</h1>
   </div>
 </div>
 
-<div class="card shadow rounded-4 p-4">
-  <h2 class="h4 mb-3">Formulario de prueba - Nuevo Usuario</h2>
-  <form>
-    <div class="mb-3">
-      <label for="username" class="form-label">Nombre de usuario</label>
-      <input type="text" id="username" class="form-control" placeholder="Ingrese un usuario" />
+<div class="card mb-4">
+  <div class="card-header card-header-custom">
+    <h5 class="mb-0 d-inline">Información del usuario</h5>
+    <a href="#ayudaModal" class="btn btn-link btn-sm order-1 order-lg-0 me-2" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda">
+      <i class="fa-solid fa-circle-info"></i>
+    </a>
+  </div>
+
+  <div class="card-body">
+    <div class="row align-items-center p-3">
+      <!-- Información actual -->
+      <fieldset class="border rounded-3 p-3 mb-4">
+        <legend class="w-auto px-2 mb-3">Información del registro</legend>
+        <div class="row align-items-center">
+          <div class="col-md-4 text-center mb-3 mb-md-0">
+            <div class="rounded-circle overflow-hidden mx-auto shadow" style="width: 140px; height: 140px;">
+              <img
+                src="{% if user.foto %}{{ user.foto.url }}{% else %}{% static 'img/not_found.jpg' %}{% endif %}"
+                alt="Foto del usuario"
+                class="img-fluid"
+                style="width: 100%; height: 100%; object-fit: cover;"
+              >
+            </div>
+          </div>
+
+          <div class="col-md-8">
+            <div class="mb-2">
+              <strong>Nombre:</strong>
+              <span class="text-muted">{{ user.first_name }} {{ user.last_name }}</span>
+            </div>
+            <div class="mb-2">
+              <strong>Nombre de usuario:</strong>
+              <span class="text-muted">{{ user.username }}</span>
+            </div>
+            <div class="mb-2">
+              <strong>Correo electrónico:</strong>
+              <span class="text-muted">{{ user.email|default:"No registrado" }}</span>
+            </div>
+            <div class="mb-2">
+              <strong>Usuario activo:</strong>
+              {% if user.is_active %}
+                <span class="badge bg-success">Sí</span>
+              {% else %}
+                <span class="badge bg-secondary">No</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Formulario HTMX -->
+      <fieldset class="border rounded-3 p-3 mb-4">
+        <legend class="w-auto px-2">Editar datos del usuario</legend><hr>
+        <form
+          method="post"
+          hx-post="{% url 'user_edit' user.id %}"
+          hx-target="#main-container"
+          hx-swap="innerHTML"
+          class="mt-3"
+          novalidate
+        >
+          {% csrf_token %}
+
+            <div class="row mt-3">
+              <div class="col-md-8 mb-3">
+                <label for="{{ form.email.id_for_label }}" class="form-label">Correo electrónico: <span class="text-danger">*</span></label>
+                {{ form.email }}
+                {% for error in form.email.errors %}
+                  <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-4 mb-3">
+                <label for="{{ form.groups.id_for_label }}" class="form-label">Rol: <span class="text-danger">*</span></label>
+                {{ form.groups }}
+                {% for error in form.groups.errors %}
+                  <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+              {{ form.is_staff }}
+              <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">Activar</label>
+            </div>
+
+            <div class="mb-3 text-muted mb-4">
+              <span class="text-danger">*</span><span class="small"> Campos obligatorios</span>
+            </div>
+            
+            
+            <div class="d-flex justify-content-end gap-2">
+              <div class="w-100 d-flex justify-content-between gap-2">
+                <button type="submit" class="btn btn-success">
+                  <i class="fa-solid fa-pen-to-square me-2"></i></i>Editar Usuario
+                </button>
+                <button type="button" class="btn btn-secondary" 
+                hx-get="{% url 'users_list' %}" 
+                hx-target="#main-container" 
+                hx-swap="innerHTML">
+                <i class="fas fa-times me-2"></i>Cancelar</button
+                >
+              </div>
+            </div>
+          </form>
+        </fieldset>
     </div>
-    <div class="mb-3">
-      <label for="email" class="form-label">Correo electrónico</label>
-      <input type="email" id="email" class="form-control" placeholder="Ingrese un correo" />
-    </div>
-    <button type="submit" class="btn btn-primary">
-      <i class="fas fa-save me-1"></i> Guardar
-    </button>
-    <button type="button" class="btn btn-secondary" 
-            hx-get="{% url 'users_list' %}" 
-            hx-target="#main-container" 
-            hx-swap="innerHTML">
-        <i class="fas fa-arrow-left me-1"></i> Cancelar
-    </button>
-  </form>
+  </div>
 </div>
+
+<script>
+document.body.addEventListener("htmx:configRequest", function(event) {
+    const form = event.target;
+    if (!form.matches("form[hx-post]")) return;
+
+    const isStaffCheckbox = form.querySelector("input[name='is_staff']");
+    // Pasamos como string para JS
+    const isActive = "{{ user.is_active|yesno:'true,false' }}" === "true";
+
+    if (isStaffCheckbox.checked && !isActive) {
+        event.preventDefault(); // detiene HTMX
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "No se puede activar al usuario porque está inactivo",
+        });
+    }
+});
+</script>
+
+

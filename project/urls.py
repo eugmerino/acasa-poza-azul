@@ -9,6 +9,7 @@ urlpatterns = [
     path('comunidades/editar/<int:pk>/', views.community_edit, name='community_edit'),
     path('seguridad/usuarios/', views.users_list, name='users_list'),
     path('seguridad/usuarios/buscar/', views.users_search, name='users_search'),
+    path('seguridad/usuarios/editar/<int:pk>/', views.user_edit, name='user_edit'),
     path("seguridad/usuarios/nuevo/", views.user_create_view, name="user_create"),
     path("seguridad/usuarios/estado/<int:pk>", views.user_deactivate, name="user_deactivate"),
     path('proyecto/socios/', views.partners_list, name='partners_list'),

@@ -1,5 +1,6 @@
 from django import forms
 from .models import Project, Community, Partner
+from django.contrib.auth.models import Group
 import re
 from django.core.exceptions import ValidationError
 
@@ -160,3 +161,69 @@ class PartnerForm(forms.ModelForm):
         if not community:
             raise forms.ValidationError("Debe seleccionar una comunidad.")
         return community
+    
+
+class UsersForm(forms.ModelForm):
+    groups = forms.ModelChoiceField(
+        queryset=Group.objects.all(),
+        required=True,  # <- obligatorio
+        label="Rol de usuario",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    email = forms.CharField(
+        label="Correo electrónico",
+        widget=forms.EmailInput(attrs={
+            "class": "form-control",
+            "placeholder": "Ingrese el correo electrónico"
+        })
+    )
+
+    class Meta:
+        model = Partner
+        fields = ["email", "groups", "is_staff"]
+        labels = {
+            "email": "Correo electrónico",
+            "is_staff": "Usuario staff",
+        }
+        widgets = {
+            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "Ingrese el correo electrónico"}),
+            "is_staff": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email", "").strip()
+        if not email:
+            raise forms.ValidationError("El correo es obligatorio.")
+        pattern = r"^[\w\.-]+@gmail\.com$"
+        if not re.fullmatch(pattern, email, re.IGNORECASE):
+            raise forms.ValidationError("El correo debe tener formato válido y ser @gmail.com")
+        return email
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["groups"].empty_label = "Seleccione un rol..."
+
+        # Solo asignar initial si no hay datos POST
+        if self.instance.pk and not self.data:
+            first_group = self.instance.groups.first()
+            if first_group:
+                self.fields["groups"].initial = first_group.pk
+
+        # Agregar clase 'is-invalid' automáticamente a los campos con error
+        for field_name, field in self.fields.items():
+            if self.errors.get(field_name):
+                css_class = field.widget.attrs.get("class", "")
+                field.widget.attrs["class"] = f"{css_class} is-invalid"
+
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if commit:
+            user.save()
+            # Reasigna el grupo único seleccionado
+            group = self.cleaned_data.get("groups")
+            user.groups.clear()
+            if group:
+                user.groups.add(group)
+        return user
+    

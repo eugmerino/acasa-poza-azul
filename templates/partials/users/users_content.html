@@ -5,13 +5,7 @@
 </div>
 
 <div class="table-container rounded-4 shadow p-4">    
-  <div class="header-controls">
-    <button class="btn btn-success"
-            hx-get="{% url 'user_create' %}"
-            hx-target="#main-container"
-            hx-swap="innerHTML">
-      <i class="fas fa-plus me-1"></i> Agregar Nuevo Usuario
-    </button>
+  <div class="header-controls d-flex justify-content-end">
     {% include "partials/search_table.html" with hx_url=users_search_url hx_target="#table-content" placeholder="Buscar Usuario..." %}
   </div>
   {% include "partials/users/users_table.html" %}

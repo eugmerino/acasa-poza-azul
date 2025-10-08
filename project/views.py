@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Project, Community, Partner
-from .forms import ProjectForm, CommunityForm, PartnerForm
+from .forms import ProjectForm, CommunityForm, PartnerForm, UsersForm
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.urls import reverse
@@ -200,7 +200,7 @@ def user_create_view(request):
     project = Project.objects.first()
     return render(
         request,
-        "partials/users/user_form.html",  # parcial con el formulario
+        "partials/users/user_form.html",
         {"project": project}
     )
 
@@ -217,6 +217,48 @@ def user_deactivate(request, pk):
         return response
 
     return redirect("users_list")
+
+def user_edit(request, pk):
+    user = get_object_or_404(Partner, pk=pk)
+
+    # Si es POST, pasamos request.POST
+    if request.method == "POST":
+        form = UsersForm(request.POST, instance=user)
+    else:
+        # Si es GET, asignamos initial para el grupo actual
+        initial_data = {}
+        first_group = user.groups.first()
+        if first_group:
+            initial_data["groups"] = first_group.pk
+        form = UsersForm(instance=user, initial=initial_data)
+
+    if request.method == "POST":
+        if form.is_valid():
+            form.save()
+
+            if request.headers.get("HX-Request"):
+                response = users_list(request)
+                response["HX-Trigger"] = "userEdited"
+                return response
+
+            return redirect("users_list")
+        else:
+            response = render(
+                request,
+                "partials/users/user_form.html",
+                {"form": form, "mode": "edit", "user": user},
+            )
+            response["HX-Target"] = "#main-container"
+            response["HX-Swap"] = "innerHTML"
+            response["HX-Trigger-After-Settle"] = "fail"
+            return response
+
+    return render(
+        request,
+        "partials/users/user_form.html",
+        {"form": form, "mode": "edit", "user": user},
+    )
+
 
 def partners_list(request):
     project = Project.objects.first()
