@@ -1,15 +1,15 @@
-{# 1) Agrega la nueva fila al <tbody id="table-body"> #}
-<tbody id="table-body" hx-swap-oob="beforeend">
-  {% include "partials/directive/directive_row_table.html" with executive=executive only %}
-</tbody>
 
-{# 2) Cierra el modal y muestra alerta #}
+{# 2) Cierra el modal, muestra alerta y recarga página #}
 <script>
   (function(){
     try {
-      Swal.fire('Guardado', 'El directivo se guardó correctamente.', 'success');
+      Swal.fire('Guardado', 'El directivo se guardó correctamente.', 'success').then(() => {
+        // Recarga la página después de cerrar la alerta
+        location.reload();
+      });
     } catch(_) {}
 
+    // Cierra el modal actual si está abierto
     const modalEl = document.querySelector('.modal.show');
     if (modalEl) {
       const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
@@ -18,7 +18,7 @@
   })();
 </script>
 
-{# 3) Reemplaza el contenido del modal (target del hx/htmx.ajax) por algo liviano #}
+{# 3) Reemplaza el contenido del modal por algo liviano #}
 <div class="p-3">
   <div class="alert alert-success mb-0">El directivo se guardó correctamente.</div>
 </div>

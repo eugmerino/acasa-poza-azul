@@ -79,5 +79,11 @@ class DirectiveForm(forms.ModelForm):
         fields = ['role', 'partner']
         widgets = {
             'role': forms.Select(attrs={'class': 'form-select'}),
-            'partner': forms.HiddenInput(),  # aquí quedará el ID seleccionado
+            'partner': forms.HiddenInput(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        roles_choices = [(choice.value, choice.label) for choice in Directive.Roles]
+        self.fields['role'].choices = [('', 'Seleccione un cargo...')] + roles_choices
+
