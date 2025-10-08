@@ -140,4 +140,56 @@ class Directive(models.Model):
         return f"{self.partner} - {self.get_role_display()} ({'Activo' if self.isActive else 'Inactivo'})"
 
 
-    
+
+def today_local():
+    """Devuelve la fecha local actual."""
+    return timezone.localtime().date()
+
+class WaterConnection(models.Model):
+    owner = models.ForeignKey(
+        'Partner',
+        on_delete=models.CASCADE,
+        related_name='owned_connections',
+        verbose_name='Propietario'
+    )
+    responsible = models.ForeignKey(
+        'Partner',
+        on_delete=models.CASCADE,
+        related_name='responsible_connections',
+        verbose_name='Responsable'
+    )
+    date = models.DateField(
+        "Fecha de adquisición",
+        default=today_local,
+    )
+    description = models.CharField(
+        "Descripción",
+        max_length=200,
+        help_text="Descripción corta",
+        unique=True,
+    )
+    is_active = models.BooleanField(
+        "Activa",
+        default=False,
+    )
+    acquisition_price = models.DecimalField(
+        "Precio de adquisición",
+        max_digits=12,
+        decimal_places=2,
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.responsible:
+            self.responsible = self.owner
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.description} - {self.responsible.first_name} {self.responsible.last_name}"
+
+
+    class Meta:
+        verbose_name = "Acometida"
+        verbose_name_plural = "Acometidas"
+        ordering = ['-date']
+
+

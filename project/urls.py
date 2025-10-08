@@ -18,5 +18,11 @@ urlpatterns = [
     path("proyecto/socios/ver/<int:pk>/", views.partner_view, name="partner_view"),
     path("proyecto/socios/editar/<int:pk>/", views.partner_edit, name="partner_edit"),
     path("proyecto/socios/estado/<int:pk>", views.partner_toggle_active, name="partner_toggle_active"),
+    path('proyecto/acometidas/', views.connections_list, name='connections_list'),
+    path('proyecto/acometidas/buscar/', views.connections_search, name='connections_search'),
+    path("proyecto/acometidas/nuevo/", views.partner_create_view, name="partner_create"),
+    path("proyecto/acometidas/ver/<int:pk>/", views.partner_view, name="partner_view"),
+    path("proyecto/acometidas/editar/<int:pk>/", views.partner_edit, name="partner_edit"),
+    path("proyecto/acometidas/estado/<int:pk>", views.connection_toggle_active, name="connection_toggle_active"),
 
 ]
