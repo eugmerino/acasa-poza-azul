@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Project, Community, Partner, WaterConnection
-from .forms import ProjectForm, CommunityForm, PartnerForm, UsersForm
+from .forms import ProjectForm, CommunityForm, PartnerForm, UsersForm, ConnectionForm
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.urls import reverse
@@ -395,7 +395,6 @@ def partner_edit(request, pk):
         {"form": form, "mode": "edit", "partner": partner},
     )
 
-
 @require_POST
 def partner_toggle_active(request, pk):
     partner = get_object_or_404(Partner, pk=pk)
@@ -486,3 +485,31 @@ def connection_toggle_active(request, pk):
         return response
 
     return redirect("connections_list")
+
+def connection_create_view(request):
+    if request.method == "POST":
+        form = ConnectionForm(request.POST, request.FILES)
+        if form.is_valid():
+            partner = form.save()
+            if request.headers.get('HX-Request'):
+                response = partners_list(request)
+                response["HX-Trigger"] = "partnerCreated"
+                return response
+            return redirect('partners_list')
+        else:
+            response = render(
+                request,
+                "partials/partner/partner_form.html",
+                {"form": form, "mode": "create"}
+            )
+            response['HX-Target'] = '#main-container'
+            response['HX-Swap'] = 'innerHTML'
+            response['HX-Trigger-After-Settle'] = 'fail'
+            return response
+    else: 
+        form = ConnectionForm()
+    return render(
+        request,
+        "partials/partner/partner_form.html",
+        {"form": form,}
+    )

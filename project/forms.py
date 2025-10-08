@@ -1,8 +1,9 @@
 from django import forms
-from .models import Project, Community, Partner
+from .models import Project, Community, Partner, WaterConnection
 from django.contrib.auth.models import Group
 import re
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 class ProjectForm(forms.ModelForm):
     class Meta:
@@ -227,3 +228,57 @@ class UsersForm(forms.ModelForm):
                 user.groups.add(group)
         return user
     
+
+class ConnectionForm(forms.Form):
+    class Meta:
+        model = WaterConnection
+        fields = ["owner", "responsible", "date", "description", "acquisition_price"]
+        labels = {
+            "owner": "Propietario",
+            "responsible": "Responsable",
+            "date": "Fecha de adquisición",
+            "description": "Descripción",
+            "acquisition_price": "Precio de adquisición",
+        }
+
+        help_texts = {
+            "description": "Descripción corta de la acometida",
+        }
+        widgets = {
+            "owner": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "required": True,
+                }
+            ),
+            "responsible": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "required": False,
+                }
+            ),
+            "date": forms.DateInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                    "value": timezone.localtime().date(),
+                }
+            ),
+            "description": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej. Conexión principal casa #4",
+                    "maxlength": 200,
+                    "required": True,
+                }
+            ),
+            "acquisition_price": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "0.00",
+                    "step": "0.01",
+                    "min": "0",
+                    "required": True,
+                }
+            ),
+        }
