@@ -1,13 +1,5 @@
 <div id="table-content">
-    
     {% if active_meeting %}
-        <h3 class="mb-4 text-center">
-            Asistencia para la reunión: "{{ active_meeting.title }}" 
-            el día {{ active_meeting.date|date:"d-m-Y" }} 
-            de {{ active_meeting.start_time }} a {{ active_meeting.end_time }}
-        </h3>
-
-
         <form 
             method="POST"
             hx-post="{% url 'attendance' %}"
@@ -15,21 +7,22 @@
             hx-swap="innerHTML"
         >
             {% csrf_token %}
-             <!-- Contador dinámico -->
-                <div class="alert alert-info text-center mb-3">
-                    Asistencias marcadas: <span id="attendance-count">{{ attended_partner_ids|length }}</span> / {{ partners|length }}
-                </div>
+            
+            <!-- Contador dinámico -->
+            <div class="alert alert-info text-center mb-3">
+                Asistencias marcadas: <span id="attendance-count">{{ attended_partner_ids|length }}</span> / {{ partners|length }}
+            </div>
+
             <div class="table-container rounded-4 shadow p-4">
-               
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle text-center">
+                    <table class="table table-hover align-middle text-left">
                         <thead class="table-dark">
                             <tr>
                                 <th>Socio</th>
                                 <th>DUI</th>
                                 <th>Comunidad</th>
-                                <th>Asistencia</th>
                                 <th>Estado</th>
+                                <th>Asistencia</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -37,7 +30,14 @@
                             <tr id="attendance-{{ partner.id }}" class="{% if partner.id in attended_partner_ids %}table-success{% endif %}">
                                 <td>{{ partner.first_name }} {{ partner.last_name }}</td>
                                 <td>{{ partner.dui }}</td>
-                                <td>{{ partner.community.name }}</td>
+                                <td>{{ partner.community.name }}</td>    
+                                <td class="attendance-status">
+                                    {% if partner.id in attended_partner_ids %}
+                                        Registrado
+                                    {% else %}
+                                        No registrado
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <div class="form-check d-flex justify-content-center">
                                         <input class="form-check-input attendance-checkbox" 
@@ -45,13 +45,6 @@
                                                name="attendance_{{ partner.id }}"
                                                {% if partner.id in attended_partner_ids %} checked {% endif %}>
                                     </div>
-                                </td>
-                                <td class="attendance-status">
-                                    {% if partner.id in attended_partner_ids %}
-                                        Registrado
-                                    {% else %}
-                                        No registrado
-                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
