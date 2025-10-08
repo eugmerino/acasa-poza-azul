@@ -1,5 +1,6 @@
 from django import forms
-from .models import Project, Community, Partner, WaterConnection
+from .models import Project, Community, Directive, Partner, WaterConnection
+from django.urls import reverse
 from django.contrib.auth.models import Group
 import re
 from django.core.exceptions import ValidationError
@@ -64,6 +65,54 @@ class CommunityForm(forms.ModelForm):
             raise forms.ValidationError("Ya existe una comunidad con este nombre.")
 
         return name
+
+class DirectiveForm(forms.ModelForm):
+    partner_search = forms.CharField(
+        label='Buscar Directivo (por nombre o DUI)',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Escribe para buscar...',
+        })
+    )
+
+    class Meta:
+        model = Directive
+        fields = ['role', 'partner']
+        widgets = {
+            'role': forms.Select(attrs={'class': 'form-select'}),
+            'partner': forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        roles_choices = [(choice.value, choice.label) for choice in Directive.Roles]
+        self.fields['role'].choices = [('', 'Seleccione un cargo...')] + roles_choices
+
+
+class DirectiveForm(forms.ModelForm):
+    partner_search = forms.CharField(
+        label='Buscar Directivo (por nombre o DUI)',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Escribe para buscar...',
+        })
+    )
+
+    class Meta:
+        model = Directive
+        fields = ['role', 'partner']
+        widgets = {
+            'role': forms.Select(attrs={'class': 'form-select'}),
+            'partner': forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        roles_choices = [(choice.value, choice.label) for choice in Directive.Roles]
+        self.fields['role'].choices = [('', 'Seleccione un cargo...')] + roles_choices
+
 
 
 class PartnerForm(forms.ModelForm):

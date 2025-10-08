@@ -1,0 +1,183 @@
+<form id="directive-form"
+      class="modal-content needs-validation"
+      action="{% url 'directive_create' %}"
+      method="post"
+      novalidate>
+  {% csrf_token %}
+
+  <div class="modal-header">
+    <h5 class="modal-title">Agregar Directivo</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body">
+    <!-- CARGO -->
+    <div class="mb-3">
+      <label for="{{ form.role.id_for_label }}" class="form-label">
+        Cargo <span class="text-danger">*</span>
+      </label>
+      {{ form.role }}
+      <div class="invalid-feedback">Seleccione un cargo.</div>
+      {% if form.role.errors %}
+        <div class="text-danger small mt-1">{{ form.role.errors|first }}</div>
+      {% endif %}
+    </div>
+
+    <!-- DIRECTIVO -->
+    <div class="mb-3 position-relative" id="partner-search-wrap">
+      <label for="partner_search_input" class="form-label">
+        Directivo <span class="text-danger">*</span>
+      </label>
+
+      <div class="input-group">
+        <input type="text"
+               name="partner_search"
+               id="partner_search_input"
+               class="form-control"
+               placeholder="Escribe para buscar..."
+               autocomplete="off"
+               role="combobox" aria-expanded="false"
+               hx-get="{% url 'partner_search' %}"
+               hx-trigger="keyup changed delay:200ms, search"
+               hx-target="#partner-results"
+               hx-swap="innerHTML"
+               hx-include="#partner_search_input">
+
+        {{ form.partner }}
+
+        <button class="btn btn-outline-secondary" type="button"
+                id="partner-clear-btn"
+                hidden
+                onclick="(function(){
+                  const input = document.getElementById('partner_search_input');
+                  const hidden = document.querySelector('input[name=&quot;partner&quot;]');
+                  const box = document.getElementById('partner-results');
+                  hidden.value = '';
+                  input.value = '';
+                  input.disabled = false;
+                  input.classList.remove('is-invalid');
+                  this.hidden = true;
+                  if (box) box.innerHTML = '';
+                  input.focus();
+                })();">
+          ✕
+        </button>
+
+         <div class="invalid-feedback">Debes buscar un directivo y seleccionar.</div>
+
+      </div>
+
+      <div id="partner-results"
+           class="w-100 position-absolute"
+           style="z-index:1000; top:100%; left:0;"></div>
+    </div>
+
+    <!-- leyenda SIEMPRE visible: * rojo + texto gris -->
+    <p id="required-note" class="small mb-0">
+      <span class="text-danger">*</span>
+      <span class="text-muted">Campos obligatorios</span>
+    </p>
+  </div>
+
+  <div class="modal-footer justify-content-between">
+    <button type="button" id="btn-save-directive" class="btn btn-success">Guardar</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+  </div>
+</form>
+
+<script>
+(function(){
+  // 1) Bloquear cualquier submit nativo (incluye Enter dentro del form)
+  document.addEventListener('submit', function(e){
+    if(e.target && e.target.id === 'directive-form'){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && e.target.closest('#directive-form')){
+      e.preventDefault();
+    }
+  }, true);
+
+  // 2) Click en Guardar => validar y enviar
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('#btn-save-directive');
+    if(!btn) return;
+
+    const form = document.getElementById('directive-form');
+    if(!form) return;
+
+    const role = form.querySelector('select[name="role"]');
+    const partnerHidden = form.querySelector('input[name="partner"]');
+    const partnerInput  = form.querySelector('#partner_search_input');
+
+    // limpiar errores previos
+    role?.classList.remove('is-invalid');
+    partnerInput?.classList.remove('is-invalid');
+
+    let valido = true;
+    if(!role || !role.value){ 
+      role?.classList.add('is-invalid'); 
+      valido = false; 
+    }
+    if(!partnerHidden || !partnerHidden.value){ 
+      partnerInput?.classList.add('is-invalid'); 
+      valido = false; 
+    }
+
+  
+    if(!valido){
+      (role?.classList.contains('is-invalid') ? role : partnerInput)?.focus();
+      return;
+    }
+
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Se guardará el directivo seleccionado.',
+      icon: 'question',
+      showCancelButton: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-secondary'
+      },
+      confirmButtonText: 'Sí, guardar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if(!result.isConfirmed) return;
+
+      const url  = form.action;
+      const csrf = form.querySelector('[name=csrfmiddlewaretoken]')?.value;
+      const vals = Object.fromEntries(new FormData(form).entries());
+
+      if(window.htmx && typeof htmx.ajax === 'function'){
+        const xhr = htmx.ajax('POST', url, {
+          target: form,
+          swap: 'outerHTML',
+          headers: { 'X-CSRFToken': csrf },
+          values: vals
+        });
+        xhr.addEventListener('loadend', function(){
+          if(xhr.status >= 200 && xhr.status < 300){
+            Swal.fire('Guardado', 'El directivo se guardó correctamente.', 'success');
+          }else{
+            Swal.fire('Error', 'No se pudo guardar. Intenta nuevamente.', 'error');
+          }
+        });
+      } else {
+        // Fallback sin HTMX
+        fetch(url, { method:'POST', headers:{'X-CSRFToken': csrf}, body: new FormData(form) })
+          .then(r => r.text())
+          .then(html => {
+            const tmp = document.createElement('div'); tmp.innerHTML = html;
+            const node = tmp.firstElementChild || tmp;
+            form.replaceWith(node);
+            Swal.fire('Guardado', 'El directivo se guardó correctamente.', 'success');
+          })
+          .catch(() => Swal.fire('Error','No se pudo guardar. Intenta nuevamente.','error'));
+      }
+    });
+  });
+})();
+</script>

@@ -7,6 +7,11 @@ urlpatterns = [
     path('comunidades/buscar/', views.community_search, name='community_search'),
     path('comunidades/crear/', views.community_create, name='community_create'),
     path('comunidades/editar/<int:pk>/', views.community_edit, name='community_edit'),
+    path('proyecto/directiva', views.directive_list, name='directive_list'),
+    path('proyecto/directiva/buscar/', views.directive_search, name='directive_search'),
+    path('proyecto/directiva/crear/', views.directive_create, name='directive_create'),
+    path('proyecto/directiva/buscar-socio/', views.partner_search, name='partner_search'),
+    path("directives/<int:pk>/deactivate/",views.directive_deactivate,name="directive_deactivate"),
     path('seguridad/usuarios/', views.users_list, name='users_list'),
     path('seguridad/usuarios/buscar/', views.users_search, name='users_search'),
     path('seguridad/usuarios/editar/<int:pk>/', views.user_edit, name='user_edit'),
@@ -26,3 +31,4 @@ urlpatterns = [
     path("proyecto/acometidas/estado/<int:pk>", views.connection_toggle_active, name="connection_toggle_active"),
 
 ]
+

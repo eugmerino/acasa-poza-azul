@@ -1,0 +1,29 @@
+<div
+    class="table-responsive rounded-3"
+    id="table-content"
+>
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+        <tr>
+            <th>Cargo</th>
+            <th>Directivo</th>
+            <th>Dui</th>
+            <th>Estado</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+       <tbody id="table-body">
+  {% for executive in page_obj %}
+    {% include "partials/directive/directive_row_table.html" with executive=executive only %}
+  {% empty %}
+    <tr>
+      <td colspan="7" class="text-center">No hay resultados</td>
+    </tr>
+  {% endfor %}
+</tbody>
+    </table>
+
+    {% include "partials/paginator.html" with hx_url=directive_search_url hx_target="#table-content" per_page_options=per_page_options %}
+</div>

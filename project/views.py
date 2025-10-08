@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect
-from .models import Project, Community, Partner, WaterConnection
-from .forms import ProjectForm, CommunityForm, PartnerForm, UsersForm, ConnectionForm
+from .models import Project, Community, Directive, Partner, WaterConnection
+from .forms import ProjectForm, CommunityForm, DirectiveForm, PartnerForm, UsersForm, ConnectionForm
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.cache import never_cache
+from django.http import HttpResponse
+from django.utils import timezone
 import json
 
 
@@ -143,6 +146,127 @@ def community_edit(request, pk):
         {"form": form, "community": community}
     )
 
+
+def directive_list(request):
+    project = Project.objects.first()
+    query = request.GET.get('q', '') 
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    directive_list = Directive.objects.all().order_by('-isActive')
+    paginator = Paginator(directive_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'directive/directives.html',
+        {
+            'directive_search_url': reverse('directive_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+            'project': project,
+        }
+    )
+
+def directive_search(request):
+    query = request.GET.get('q', '') 
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    directive_list = Directive.objects.filter(
+        Q(partner__first_name__icontains=query) |
+        Q(partner__last_name__icontains=query) |
+        Q(partner__dui__icontains=query)
+    ).order_by('-isActive')
+
+    paginator = Paginator(directive_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'partials/directive/directive_table.html',
+        {
+            'directive_search_url': reverse('directive_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+        }
+    )
+
+def directive_create(request):
+    if request.method == "POST":
+        form = DirectiveForm(request.POST)
+        if form.is_valid():
+            directive = form.save()
+            response = render(
+                request,
+                "partials/directive/directive_create_success.html",
+                {"executive": directive},
+            )
+            response["HX-Trigger"] = json.dumps({"directive:added": {"id": directive.id}})
+            return response
+
+        return render(request, "partials/directive/directive_form.html", {"form": form})
+
+    # GET
+    form = DirectiveForm()
+    return render(request, "partials/directive/directive_form.html", {"form": form})
+    
+@never_cache
+def partner_search(request):
+    q = (request.GET.get('partner_search') or '').strip()
+
+    # Si está vacío, no toques el DOM (HTMX no hace swap)
+    if not q:
+        return HttpResponse(status=204)
+
+    qs = Partner.objects.all()
+    fields = {f.name for f in Partner._meta.get_fields()}
+    if 'is_active' in fields:
+        qs = qs.filter(is_active=True)
+    elif 'isActive' in fields:
+        qs = qs.filter(isActive=True)
+
+    # Usa icontains (coincidencias en cualquier parte), más tolerante
+    filtro = Q()
+    if 'first_name' in fields:
+        filtro |= Q(first_name__icontains=q)
+    if 'last_name' in fields:
+        filtro |= Q(last_name__icontains=q)
+    if 'name' in fields:
+        filtro |= Q(name__icontains=q)
+    if 'dui' in fields:
+        filtro |= Q(dui__icontains=q)
+
+    partners = qs.filter(filtro).order_by('first_name', 'last_name', 'id')[:10]
+
+    ctx = {'partners': partners, 'typed': True}
+    resp = render(request, 'partials/directive/partner_search_results.html', ctx)
+    # blindaje anti-caché
+    resp['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp['Pragma'] = 'no-cache'
+    return resp
+
+@require_POST
+def directive_deactivate(request, pk):
+        executive = get_object_or_404(Directive, pk=pk)
+        if not executive.isActive:
+            # nada que hacer; no cambies el DOM
+            return HttpResponse(status=204)
+
+        executive.isActive = False
+        executive.end_date = timezone.localdate()
+        executive.save(update_fields=['isActive', 'end_date'])
+
+        # Renderiza SOLO la fila para reemplazarla
+        return render(
+            request,
+            "partials/directive/directive_row_table.html",
+            {"executive": executive}
+        )
 
 def users_list(request):
     project = Project.objects.first()
