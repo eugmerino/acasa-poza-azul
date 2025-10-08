@@ -92,26 +92,22 @@ class Directive(models.Model):
     def save(self, *args, **kwargs):
         today = timezone.localtime().date()
 
-        # Si se marca como inactivo y no tiene fecha final → poner hoy
-        if not self.isActive and self.end_date is None:
-            self.end_date = today
+        is_create = self.pk is None
 
-        # Si es un cargo distinto de Vocal y se guarda como activo
-        if self.isActive and self.role != self.Roles.VOCAL:
-            # Buscar registros activos anteriores con el mismo cargo
-            previous = Directive.objects.filter(
-                role=self.role,
-                isActive=True
-            ).exclude(pk=self.pk).first()
-            if previous:
-                previous.isActive = False
-                previous.end_date = today
-                previous.save()
+        # Solo al crear: queda activo y sin fecha fin
+        if is_create:
+            self.isActive = True
+            self.end_date = None
+            if not self.start_date:
+                self.start_date = today
 
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.partner} - {self.get_role_display()} ({'Activo' if self.isActive else 'Inactivo'})"
-
+        # Solo al crear: desactivar anteriores del mismo cargo (si aplica)
+        if is_create and self.role != self.Roles.VOCAL:
+            (Directive.objects
+                .filter(role=self.role, isActive=True)
+                .exclude(pk=self.pk)
+                .update(isActive=False, end_date=today))
 
     

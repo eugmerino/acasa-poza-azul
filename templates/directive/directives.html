@@ -23,7 +23,7 @@
                 class="btn btn-success"
                 data-bs-toggle="modal"
                 data-bs-target="#exampleModal"
-                hx-get=""
+                hx-get="{% url 'directive_create' %}"
                 hx-target="#directive-content-modal"
                 hx-trigger="click"
             >
@@ -85,6 +85,12 @@
             }
         });*/
     });
+    document.body.addEventListener('directive:added', function () {
+    const modalEl = document.querySelector('#exampleModal');
+    if (!modalEl) return;
+    const instance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    instance.hide();
+  });
     </script>
 
 

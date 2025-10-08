@@ -1,5 +1,6 @@
 from django import forms
-from .models import Project, Community
+from .models import Project, Community, Directive, Partner
+from django.urls import reverse
 import re
 
 class ProjectForm(forms.ModelForm):
@@ -62,3 +63,21 @@ class CommunityForm(forms.ModelForm):
             raise forms.ValidationError("Ya existe una comunidad con este nombre.")
 
         return name
+
+class DirectiveForm(forms.ModelForm):
+    partner_search = forms.CharField(
+        label='Buscar Directivo (por nombre o DUI)',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Escribe para buscar...',
+        })
+    )
+
+    class Meta:
+        model = Directive
+        fields = ['role', 'partner']
+        widgets = {
+            'role': forms.Select(attrs={'class': 'form-select'}),
+            'partner': forms.HiddenInput(),  # aquí quedará el ID seleccionado
+        }

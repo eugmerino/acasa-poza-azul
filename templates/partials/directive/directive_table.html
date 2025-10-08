@@ -14,15 +14,15 @@
             <th>Acciones</th>
         </tr>
         </thead>
-        <tbody id="table-body">
-        {% for executive in page_obj %}
-            {% include "partials/directive/directive_row_table.html" %}
-        {% empty %}
-            <tr>
-                <td colspan="7" class="text-center">No hay resultados</td>
-            </tr>
-        {% endfor %}
-        </tbody>
+       <tbody id="table-body">
+  {% for executive in page_obj %}
+    {% include "partials/directive/directive_row_table.html" with executive=executive only %}
+  {% empty %}
+    <tr>
+      <td colspan="7" class="text-center">No hay resultados</td>
+    </tr>
+  {% endfor %}
+</tbody>
     </table>
 
     {% include "partials/paginator.html" with hx_url=directive_search_url hx_target="#table-content" per_page_options=per_page_options %}
