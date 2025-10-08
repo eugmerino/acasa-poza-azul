@@ -62,9 +62,10 @@
                 })();">
           ✕
         </button>
-      </div>
 
-      <div class="invalid-feedback">Debes seleccionar un directivo de la lista.</div>
+         <div class="invalid-feedback">Debes buscar un directivo y seleccionar.</div>
+
+      </div>
 
       <div id="partner-results"
            class="w-100 position-absolute"
@@ -79,7 +80,6 @@
   </div>
 
   <div class="modal-footer justify-content-between">
-    <!-- 👇 evita submit automático -->
     <button type="button" id="btn-save-directive" class="btn btn-success">Guardar</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
   </div>
@@ -94,13 +94,14 @@
       e.stopPropagation();
     }
   }, true);
+
   document.addEventListener('keydown', function(e){
     if(e.key === 'Enter' && e.target.closest('#directive-form')){
       e.preventDefault();
     }
   }, true);
 
-  // 2) Click en Guardar => validar, confirmar y enviar UNA sola vez
+  // 2) Click en Guardar => validar y enviar
   document.addEventListener('click', function(e){
     const btn = e.target.closest('#btn-save-directive');
     if(!btn) return;
@@ -117,17 +118,17 @@
     partnerInput?.classList.remove('is-invalid');
 
     let valido = true;
-    if(!role || !role.value){ role?.classList.add('is-invalid'); valido = false; }
-    if(!partnerHidden || !partnerHidden.value){ partnerInput?.classList.add('is-invalid'); valido = false; }
+    if(!role || !role.value){ 
+      role?.classList.add('is-invalid'); 
+      valido = false; 
+    }
+    if(!partnerHidden || !partnerHidden.value){ 
+      partnerInput?.classList.add('is-invalid'); 
+      valido = false; 
+    }
 
+  
     if(!valido){
-      Swal.fire({
-        icon: 'warning',
-        title: 'Campos incompletos',
-        text: 'Debes completar todos los campos obligatorios.',
-        customClass: { confirmButton: 'btn btn-success' },
-        confirmButtonText: 'Aceptar'
-      });
       (role?.classList.contains('is-invalid') ? role : partnerInput)?.focus();
       return;
     }
@@ -146,13 +147,12 @@
     }).then((result) => {
       if(!result.isConfirmed) return;
 
-      const url  = form.action; // Enviamos al action del form
+      const url  = form.action;
       const csrf = form.querySelector('[name=csrfmiddlewaretoken]')?.value;
       const vals = Object.fromEntries(new FormData(form).entries());
 
       if(window.htmx && typeof htmx.ajax === 'function'){
         const xhr = htmx.ajax('POST', url, {
-          // El target realmente no importa porque tu respuesta usa OOB (<tbody id="table-body" hx-swap-oob="beforeend">)
           target: form,
           swap: 'outerHTML',
           headers: { 'X-CSRFToken': csrf },
