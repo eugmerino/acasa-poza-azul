@@ -3,7 +3,6 @@ from .models import Project, Community, Directive, Partner, WaterConnection
 from django.urls import reverse
 from django.contrib.auth.models import Group
 import re
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 class ProjectForm(forms.ModelForm):
@@ -88,31 +87,6 @@ class DirectiveForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         roles_choices = [(choice.value, choice.label) for choice in Directive.Roles]
         self.fields['role'].choices = [('', 'Seleccione un cargo...')] + roles_choices
-
-
-class DirectiveForm(forms.ModelForm):
-    partner_search = forms.CharField(
-        label='Buscar Directivo (por nombre o DUI)',
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Escribe para buscar...',
-        })
-    )
-
-    class Meta:
-        model = Directive
-        fields = ['role', 'partner']
-        widgets = {
-            'role': forms.Select(attrs={'class': 'form-select'}),
-            'partner': forms.HiddenInput(),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        roles_choices = [(choice.value, choice.label) for choice in Directive.Roles]
-        self.fields['role'].choices = [('', 'Seleccione un cargo...')] + roles_choices
-
 
 
 class PartnerForm(forms.ModelForm):
@@ -278,7 +252,7 @@ class UsersForm(forms.ModelForm):
         return user
     
 
-class ConnectionForm(forms.Form):
+class ConnectionForm(forms.ModelForm):
     class Meta:
         model = WaterConnection
         fields = ["owner", "responsible", "date", "description", "acquisition_price"]
@@ -289,45 +263,48 @@ class ConnectionForm(forms.Form):
             "description": "Descripción",
             "acquisition_price": "Precio de adquisición",
         }
-
         help_texts = {
             "description": "Descripción corta de la acometida",
         }
         widgets = {
-            "owner": forms.Select(
-                attrs={
-                    "class": "form-select",
-                    "required": True,
-                }
-            ),
+            "owner": forms.HiddenInput(),
             "responsible": forms.Select(
-                attrs={
-                    "class": "form-select",
-                    "required": False,
-                }
+                attrs={"class": "form-select", "required": False}
             ),
             "date": forms.DateInput(
-                attrs={
-                    "class": "form-control",
-                    "type": "date",
-                    "value": timezone.localtime().date(),
-                }
+                attrs={"class": "form-control", "type": "date"}
             ),
             "description": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Ej. Conexión principal casa #4",
-                    "maxlength": 200,
-                    "required": True,
-                }
+                attrs={"class": "form-control", "placeholder": "Ej. Conexión principal casa #4", "maxlength": 200, "required": True}
             ),
             "acquisition_price": forms.NumberInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "0.00",
-                    "step": "0.01",
-                    "min": "0",
-                    "required": True,
-                }
+                attrs={"class": "form-control", "placeholder": "0.00", "step": "0.01", "min": "0", "required": True, "disabled": True,}
             ),
         }
+
+    # --- Validación de owner obligatorio ---
+    def clean_owner(self):
+        owner = self.cleaned_data.get("owner")
+        if not owner:
+            raise forms.ValidationError("Debes seleccionar un propietario.")
+        return owner
+
+    # --- Validación de fecha no mayor a hoy ---
+    def clean_date(self):
+        date = self.cleaned_data.get("date")
+        if date and date > timezone.localtime().date():
+            raise forms.ValidationError("La fecha no puede ser mayor al día de hoy.")
+        return date
+
+    # --- Validación de descripción única (case insensitive) ---
+    def clean_description(self):
+        description = self.cleaned_data.get("description")
+        if description:
+            # Buscar otras acometidas con la misma descripción ignorando mayúsculas/minúsculas
+            qs = WaterConnection.objects.filter(description__iexact=description)
+            # Excluir el objeto actual si se está editando
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("Ya existe otra acometida con esa descripción.")
+        return description

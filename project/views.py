@@ -61,7 +61,6 @@ def community_list(request):
         }
     )
 
-
 def community_search(request):
     query = request.GET.get('q', '') 
     page_number = request.GET.get('page', 1)
@@ -85,7 +84,6 @@ def community_search(request):
             'per_page_options': per_page_options,
         }
     )
-
 
 def community_create(request):
     if request.method == "POST":
@@ -112,7 +110,6 @@ def community_create(request):
         form = CommunityForm()
 
     return render(request, "partials/community_form.html", {"form": form})
-
 
 def community_edit(request, pk):
     community = get_object_or_404(Community, pk=pk)
@@ -214,7 +211,7 @@ def directive_create(request):
     # GET
     form = DirectiveForm()
     return render(request, "partials/directive/directive_form.html", {"form": form})
-    
+
 @never_cache
 def partner_search(request):
     q = (request.GET.get('partner_search') or '').strip()
@@ -574,6 +571,9 @@ def connections_search(request):
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
+    print("DEBUG connections_search: query param q =", repr(query))
+    print("DEBUG connections_search: request.GET =", dict(request.GET))
+
     connections_list = WaterConnection.objects.filter(
         (Q(description__icontains=query) | Q(responsible__first_name__icontains=query) | Q(responsible__last_name__icontains=query))
     )
@@ -610,30 +610,107 @@ def connection_toggle_active(request, pk):
 
     return redirect("connections_list")
 
+def partner_search_view(request):
+    q = (request.GET.get("qq") or "").strip()
+    target = request.GET.get("target")  # ejemplo: 'owner' o 'responsible'
+
+    # Si no hay query, no tocar el DOM
+    if not q:
+        return HttpResponse(status=204)
+
+    partners = (
+        Partner.objects.filter(
+            Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+            | Q(dui__icontains=q)
+        )
+        .filter(is_active=True)
+        .order_by("first_name", "last_name")[:10]
+    )
+
+    ctx = {
+        "partners": partners,
+        "target": target,  # para saber a qué campo asignar
+    }
+    # Corrige la ruta del template:
+    response = render(request, "partials/partner/partner_search_results.html", ctx)
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    return response
+
 def connection_create_view(request):
+    project = Project.objects.first()
     if request.method == "POST":
-        form = ConnectionForm(request.POST, request.FILES)
+        data = request.POST.copy()
+        data["acquisition_price"] = project.connection_price
+        # Si responsible viene vacío, asigna el owner
+        if not data.get("responsible") and data.get("owner"):
+            data["responsible"] = data["owner"]
+        form = ConnectionForm(data)
         if form.is_valid():
-            partner = form.save()
+            form.save() 
             if request.headers.get('HX-Request'):
-                response = partners_list(request)
-                response["HX-Trigger"] = "partnerCreated"
+                response = HttpResponse()
+                response['HX-Redirect'] = reverse('connections_list')
                 return response
-            return redirect('partners_list')
         else:
-            response = render(
+            # Si es HTMX → devolver solo el fragmento del form
+            if request.headers.get("HX-Request"):
+                response = render(
+                    request,
+                    "partials/water_connection/connection_form.html",
+                    {"form": form}
+                )
+                response["HX-Retarget"] = "#connection-form"
+                response["HX-Reswap"] = "outerHTML"
+                response["HX-Trigger-After-Settle"] = "fail"
+                return response
+            # Si no es HTMX → devolver toda la página (para debug o carga normal)
+            return render(
                 request,
-                "partials/partner/partner_form.html",
-                {"form": form, "mode": "create"}
+                "water_connection/connection_page.html",
+                {"form": form}
             )
-            response['HX-Target'] = '#main-container'
-            response['HX-Swap'] = 'innerHTML'
-            response['HX-Trigger-After-Settle'] = 'fail'
-            return response
-    else: 
+    else:
         form = ConnectionForm()
+        form = ConnectionForm(initial={"acquisition_price": project.connection_price})
+
+    return render(request, "partials/water_connection/connection_form.html", {"form": form})
+
+def connection_edit_view(request, pk):
+    connection = get_object_or_404(WaterConnection, pk=pk)
+    if request.method == "POST":
+        data = request.POST.copy()
+        # Setea los campos deshabilitados manualmente
+        data["owner"] = connection.owner.id
+        data["date"] = connection.date.strftime("%Y-%m-%d")
+        data["acquisition_price"] = str(connection.acquisition_price)
+        form = ConnectionForm(data, instance=connection)
+        if form.is_valid():
+            form.save()
+            if request.headers.get("HX-Request"):
+                response = HttpResponse()
+                response['HX-Redirect'] = reverse('connections_list')
+                return response
+            return redirect('connections_list')
+        else:
+            # Si es HTMX → devolver solo el fragmento del form de edición
+            if request.headers.get("HX-Request"):
+                return render(
+                    request,
+                    "partials/water_connection/connection_edit_form.html",
+                    {"form": form, "connection": connection}
+                )
+            # Si no es HTMX → devolver toda la página (para debug o carga normal)
+            return render(
+                request,
+                "water_connection/connection_page.html",
+                {"form": form, "connection": connection}
+            )
+    else:
+        form = ConnectionForm(instance=connection)
     return render(
         request,
-        "partials/partner/partner_form.html",
-        {"form": form,}
+        "partials/water_connection/connection_edit_form.html",
+        {"form": form, "connection": connection}
     )

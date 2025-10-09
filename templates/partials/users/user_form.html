@@ -44,7 +44,7 @@
               <span class="text-muted">{{ user.email|default:"No registrado" }}</span>
             </div>
             <div class="mb-2">
-              <strong>Usuario activo:</strong>
+              <strong>Socio Activo:</strong>
               {% if user.is_active %}
                 <span class="badge bg-success">Sí</span>
               {% else %}
@@ -129,7 +129,7 @@ document.body.addEventListener("htmx:configRequest", function(event) {
         Swal.fire({
             icon: "error",
             title: "Error",
-            text: "No se puede activar al usuario porque está inactivo",
+            text: "No se puede activar al usuario porque está inactivo el socio.",
         });
     }
 });
