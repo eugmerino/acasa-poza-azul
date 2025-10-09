@@ -93,33 +93,134 @@
 </form>
 
 <script>
-function selectPartner(id, name, target) {
-  const input = document.getElementById(`${target}_search_input`);
-  const hidden = document.getElementById(`id_${target}`);
-  const clearBtn = document.getElementById(`${target}-clear-btn`);
-  const results = document.getElementById(`${target}-results`);
-  if (input && hidden) {
-    input.value = name;
-    hidden.value = id;
-    input.disabled = true;
-    clearBtn.hidden = false;
-    input.classList.remove("is-invalid");
+/* 1) Asegura que el alert quede sobre el modal */
+(function ensureZIndex() {
+  const style = document.createElement('style');
+  style.textContent = `.swal2-container{ z-index:20000 !important }`;
+  document.head.appendChild(style);
+})();
+
+/* 2) Lógica de confirmación + alerta de éxito tras guardar */
+(function () {
+  function bindConfirm(form){
+    if (!form || form.__confirmBound) return;
+    form.__confirmBound = true;
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+      // Validación mínima: responsable
+      const responsibleId = document.getElementById('id_responsible')?.value?.trim();
+      const responsibleInput = document.getElementById('responsible_search_input');
+      if (!responsibleId) {
+        responsibleInput?.classList.add('is-invalid');
+        responsibleInput?.focus();
+        return;
+      } else {
+        responsibleInput?.classList.remove('is-invalid');
+      }
+
+      // Validación nativa del form si aplica
+      if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+      }
+
+      if (!window.Swal || typeof Swal.fire !== 'function') {
+        console.error('SweetAlert2 no está disponible en el layout.');
+        return;
+      }
+
+      Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'Se guardará la acometida seleccionada.',
+        icon: 'question',
+        showCancelButton: true,
+        customClass: {
+          confirmButton: 'btn btn-success',
+          cancelButton: 'btn btn-secondary'
+        },
+        confirmButtonText: 'Sí, guardar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        const submitBtn = form.querySelector('[type="submit"]');
+        submitBtn && (submitBtn.disabled = true);
+
+        const url  = form.getAttribute('hx-post') || form.action;
+        const csrf = form.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+        const fd   = new FormData(form);
+
+        // ---- Envío con HTMX si existe
+        if (window.htmx && typeof htmx.ajax === 'function') {
+          const xhr = htmx.ajax('POST', url, {
+            target: '#connection-edit-form',
+            swap: 'outerHTML',
+            headers: { 'X-CSRFToken': csrf },
+            values: Object.fromEntries(fd.entries())
+          });
+
+          xhr.addEventListener('loadend', function(){
+            submitBtn && (submitBtn.disabled = false);
+
+            // Si el servidor respondió JSON con {state:"success", message:"..."} mostramos la alerta
+            try {
+              const ct = xhr.getResponseHeader('Content-Type') || '';
+              if (ct.includes('application/json')) {
+                const data = JSON.parse(xhr.responseText || '{}');
+                if (data && data.state === 'success') {
+                  Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: data.message || 'Guardado exitosamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                  });
+                }
+              }
+            } catch (_) { /* no-op */ }
+          });
+
+        } else {
+          // ---- Fallback sin HTMX
+          fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrf }, body: fd })
+            .then(async (r) => {
+              const ct = r.headers.get('content-type') || '';
+              if (ct.includes('application/json')) {
+                const data = await r.json();
+                if (data && data.state === 'success') {
+                  Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: data.message || 'Guardado exitosamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                  });
+                }
+                return null; // No hay HTML que reemplazar
+              } else {
+                return r.text();
+              }
+            })
+            .then((html) => {
+              if (!html) return;
+              const tmp = document.createElement('div'); tmp.innerHTML = html;
+              const node = tmp.firstElementChild || tmp;
+              form.replaceWith(node);
+            })
+            .catch(err => console.error('Error al guardar:', err))
+            .finally(() => { submitBtn && (submitBtn.disabled = false); });
+        }
+      });
+    }, true); // fase de captura
   }
-  if (results) results.innerHTML = '';
-}
-function clearPartnerField(target) {
-  const input = document.getElementById(`${target}_search_input`);
-  const hidden = document.getElementById(`id_${target}`);
-  const results = document.getElementById(`${target}-results`);
-  const clearBtn = document.getElementById(`${target}-clear-btn`);
-  if (input && hidden) {
-    input.value = '';
-    hidden.value = '';
-    input.disabled = false;
-    input.focus();
-    input.classList.remove("is-invalid");
-  }
-  if (results) results.innerHTML = '';
-  if (clearBtn) clearBtn.hidden = true;
-}
+
+  // Escanea y vincula al cargar y tras swaps de HTMX
+  function scan(){ bindConfirm(document.getElementById('connection-edit-form')); }
+  document.addEventListener('DOMContentLoaded', scan);
+  document.body.addEventListener('htmx:load', scan);
+})();
 </script>
