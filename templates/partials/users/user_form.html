@@ -127,9 +127,9 @@ document.body.addEventListener("htmx:configRequest", function(event) {
     if (isStaffCheckbox.checked && !isActive) {
         event.preventDefault(); // detiene HTMX
         Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "No se puede activar al usuario porque está inactivo el socio.",
+            icon: "warning",
+            title: "No permitido",
+            text: "No se puede activar al usuario porque el socio está inactivo.",
         });
     }
 });

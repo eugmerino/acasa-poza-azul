@@ -7,6 +7,12 @@ from django.utils import timezone
 from datetime import timedelta
 from .forms import UserLoginForm
 from project.models import Project
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django import forms
 
 
 @login_required(login_url='login')
@@ -90,3 +96,64 @@ def get_client_ip(request):
     else:
         ip = request.META.get("REMOTE_ADDR")
     return ip
+
+
+class PasswordResetRequestForm(forms.Form):
+    email = forms.EmailField(label="Correo electrónico", widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Ingrese su correo"}))
+
+
+def password_reset_request(request):
+    project = Project.objects.first()
+    if request.method == "POST":
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            User = get_user_model()
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                messages.error(request, "No existe un usuario con ese correo.")
+                return render(request, "authentication/password_reset_request.html", {"form": form, "project": project})
+
+            token = default_token_generator.make_token(user)
+            reset_url = request.build_absolute_uri(
+                f"/reset-password/{user.pk}/{token}/"
+            )
+            subject = "Restablecimiento de contraseña"
+            message = render_to_string("authentication/password_reset_email.html", {
+                "user": user,
+                "reset_url": reset_url,
+                "project": project,
+            })
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+            messages.success(request, "Se ha enviado un enlace de restablecimiento a tu correo.")
+            return redirect("login")
+    else:
+        form = PasswordResetRequestForm()
+    return render(request, "authentication/password_reset_request.html", {"form": form, "project": project})
+
+
+def password_reset_confirm(request, uid, token):
+    project = Project.objects.first()
+    User = get_user_model()
+    try:
+        user = User.objects.get(pk=uid)
+    except User.DoesNotExist:
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == "POST":
+            password1 = request.POST.get("password1")
+            password2 = request.POST.get("password2")
+            if password1 and password2 and password1 == password2:
+                user.set_password(password1)
+                user.save()
+                messages.success(request, "Contraseña restablecida correctamente. Ahora puedes iniciar sesión.")
+                return redirect("login")
+            else:
+                messages.error(request, "Las contraseñas no coinciden.")
+        return render(request, "authentication/password_reset_confirm.html", {"project": project, "validlink": True})
+    else:
+        messages.error(request, "El enlace de restablecimiento no es válido o ha expirado.")
+        return render(request, "authentication/password_reset_confirm.html", {"project": project, "validlink": False})
+

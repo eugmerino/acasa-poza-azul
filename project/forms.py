@@ -308,3 +308,45 @@ class ConnectionForm(forms.ModelForm):
             if qs.exists():
                 raise forms.ValidationError("Ya existe otra acometida con esa descripción.")
         return description
+    
+
+from django import forms
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class UserCredentialsForm(forms.ModelForm):
+    password = forms.CharField(
+        label="Nueva contraseña",
+        widget=forms.PasswordInput,
+        required=False,
+        help_text="Déjalo en blanco si no deseas cambiar la contraseña."
+    )
+
+    class Meta:
+        model = User
+        fields = ["username", "email"]
+        widgets = {
+            "username": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if email:
+            existing = User.objects.filter(email=email).exclude(pk=self.instance.pk)
+            if existing.exists():
+                raise forms.ValidationError("Este correo electrónico ya está en uso.")
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        password = self.cleaned_data.get("password")
+
+        if password:
+            user.set_password(password)
+
+        if commit:
+            user.save()
+
+        return user

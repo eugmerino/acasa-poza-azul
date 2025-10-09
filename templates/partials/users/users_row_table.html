@@ -1,7 +1,7 @@
 <tr id="user-{{ user.id }}">
     <td>{{ user.username  }}</td>
     <td>{{ user.first_name }} {{ user.last_name }}</td>
-    <td>{% if user.email %} {{ user.email  }} {% else %} -Sin proporcionar- {% endif %}</td>
+    <td>{% if user.email %} {{ user.email  }} {% else %} -Sin registrar- {% endif %}</td>
     <td>
         {% if user.is_staff %}
         <span class="badge bg-success">Activo</span>
@@ -22,13 +22,21 @@
             <ul class="dropdown-menu">
                 {% if user.is_staff %}
                 <li>
-                    <a href="#" 
-                        class="dropdown-item" 
-                        onclick="confirmDeactivate({{ user.pk }}, '{{ csrf_token }}')">
-                        <i class="fas fa-user-slash me-2"></i> Desactivar
-                    </a>
-                </li>
+                  <a href="#" 
+                    class="dropdown-item" 
+                    onclick="confirmDeactivate({{ user.pk }}, '{{ csrf_token }}', {{ request.user.pk }})">
+                    <i class="fas fa-user-slash me-2"></i> Desactivar
+                  </a>
+              </li>
                 {% endif %}
+
+                <li>
+                  <a href="#" 
+                      class="dropdown-item"
+                      onclick="resetUserCredentials({{ user.pk }}, '{{ csrf_token }}')">
+                      <i class="fa-solid fa-rotate-left me-2"></i> Restablecer credenciales
+                  </a>
+                </li>
 
                 <li>
                     <a class="dropdown-item"
@@ -45,7 +53,18 @@
 </tr>
 
 <script>
-    function confirmDeactivate(pk, csrfToken) {
+  function confirmDeactivate(userPk, csrfToken, sessionUserPk) {
+    if (userPk === sessionUserPk) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acción no permitida',
+        text: 'No puedes desactivar tu propio usuario mientras estás en sesión.',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'Aceptar'
+      });
+      return; // sale de la función
+    }
+
     Swal.fire({
       title: "¿Seguro que deseas desactivar este usuario?",
       text: "Esta acción desactiva al usuario y bloquea su acceso al sistema.",
@@ -59,7 +78,7 @@
       cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
-        htmx.ajax('POST', `estado/${pk}`, {
+        htmx.ajax('POST', `estado/${userPk}`, {
           target: '#main-container',
           swap: 'innerHTML',
           headers: {
@@ -79,4 +98,49 @@
       showConfirmButton: false
     });
   });
+
+  function resetUserCredentials(pk, csrfToken) {
+    Swal.fire({
+      title: "¿Restablecer credenciales?",
+      text: "El usuario recibirá nuevas credenciales por defecto.",
+      icon: "question",
+      showCancelButton: true,
+      customClass: {
+        confirmButton: "btn btn-success",
+        cancelButton: "btn btn-secondary"
+      },
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        htmx.ajax('POST', `reset/${pk}`, {
+          target: "#main-container",
+          swap: "none",
+          headers: {
+            "X-CSRFToken": csrfToken
+          }
+        });
+      }
+    });
+  }
+
+  document.body.addEventListener("htmx:afterRequest", function (event) {
+    if (event.detail.xhr.getResponseHeader("content-type")?.includes("application/json")) {
+      try {
+        const data = JSON.parse(event.detail.xhr.responseText);
+        if (data.success) {
+          Swal.fire({
+            icon: "success",
+            title: "¡Hecho!",
+            text: data.message,
+            confirmButtonColor: "#3085d6",
+            confirmButtonText: "Aceptar"
+          });
+        }
+      } catch (e) {
+        console.error("Error procesando respuesta JSON:", e);
+      }
+    }
+  });
+
 </script>

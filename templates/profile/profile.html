@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Usuarios |{% if project and project.title %}
+    {{ project.title }}
+  {% else %}
+    ACASA Poza Azul
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  
+    <div class="row mt-4 mb-2 text-center">
+    <div class="col-12">
+        <h1 class="h3">Mi Perfil</h1>
+    </div>
+    </div>
+
+    <div class="card mb-4">
+    <div class="card-header card-header-custom">
+        <h5 class="mb-0 d-inline">Mi información</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="row align-items-center p-3">
+        <fieldset class="border rounded-3 p-3 mb-4">
+            <legend class="w-auto px-2 mb-3">Información personal</legend>
+            <div class="row align-items-center">
+            <div class="col-md-4 text-center mb-3 mb-md-0">
+                <div class="rounded-circle overflow-hidden mx-auto shadow" style="width: 140px; height: 140px;">
+                <img
+                    src="{% if request.user.foto %}{{ request.user.foto.url }}{% else %}{% static 'img/not_found.jpg' %}{% endif %}"
+                    alt="Foto del usuario"
+                    class="img-fluid"
+                    style="width: 100%; height: 100%; object-fit: cover;"
+                >
+                </div>
+            </div>
+            <div class="col-md-4">  
+                <div class="mb-2">
+                <strong>Nombre:</strong>
+                <span class="text-muted">{{ request.user.first_name }} {{ request.user.last_name }}</span>
+                </div>
+                <div class="mb-2">
+                <strong>Dui:</strong>
+                <span class="text-muted">{{ request.user.dui|default:"No registrado" }}</span>
+                </div>
+                <div class="mb-2">
+                <strong>Teléfono:</strong>
+                <span class="text-muted">{{ request.user.tel|default:"No registrado" }}</span>
+                </div>
+                <div class="mb-2">
+                <strong>Comunidad:</strong>
+                <span class="text-muted">{{ request.user.community|default:"No registrado" }}</span>
+                </div>
+                <div class="mb-2">
+                <strong>Socio Activo:</strong>
+                {% if request.user.is_active %}
+                    <span class="badge bg-success">Sí</span>
+                {% else %}
+                    <span class="badge bg-secondary">No</span>
+                {% endif %}
+                </div>
+            </div>
+             <div class="col-md-4">
+                <h4>Usuario</h4>
+                <div class="mb-2">
+                <strong>Nombre de usuario:</strong>
+                <span class="text-muted">{{ request.user.username }}</span>
+                </div>
+                <div class="mb-2">
+                <strong>Correo electrónico:</strong>
+                <span class="text-muted">{{ request.user.email|default:"No registrado" }}</span>
+                </div>
+                <div class="mb-2">
+                <strong>Usuario Activo:</strong>
+                {% if request.user.is_staff %}
+                    <span class="badge bg-success">Sí</span>
+                {% else %}
+                    <span class="badge bg-secondary">No</span>
+                {% endif %}
+                </div>
+                <div class="mb-2">
+                <strong>Rol:</strong>
+                <span class="text-muted">
+                    {% for group in request.user.groups.all %}
+                    {{ group.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                    Sin rol
+                    {% endfor %}
+                </span>
+                </div>
+            </div>
+
+            </div>
+        </fieldset>
+        <div class="d-flex justify-content-end gap-2 w-100">
+            <button
+                id="btn-abrir-crud"
+                class="btn btn-success"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+                hx-get="{% url 'user_edit_credentials' request.user.id  %}"
+                hx-target="#connection-content-modal"
+                hx-trigger="click"
+            >
+            <i class="fa-solid fa-key me-2"></i>Editar credenciales
+            </button>
+            <a href="{% url 'inicio' %}" class="btn btn-secondary">
+            <i class="fas fa-sign-out-alt me-2"></i>Salir
+            </a>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    {% include "partials/profile/profile_create_modal.html" %}
+
+{% endblock %}
+

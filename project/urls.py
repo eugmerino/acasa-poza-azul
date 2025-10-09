@@ -17,6 +17,9 @@ urlpatterns = [
     path('seguridad/usuarios/editar/<int:pk>/', views.user_edit, name='user_edit'),
     path("seguridad/usuarios/nuevo/", views.user_create_view, name="user_create"),
     path("seguridad/usuarios/estado/<int:pk>", views.user_deactivate, name="user_deactivate"),
+    path("seguridad/usuarios/reset/<int:pk>", views.user_reset_credentials, name="user_reset_credentials"),
+    path("perfil", views.profile_view, name="profile_view"),
+    path("perfil/credenciales/<int:pk>/", views.user_edit_credentials, name="user_edit_credentials"),
     path('proyecto/socios/', views.partners_list, name='partners_list'),
     path('proyecto/socios/buscar/', views.partners_search, name='partners_search'),
     path("proyecto/socios/nuevo/", views.partner_create_view, name="partner_create"),
@@ -27,7 +30,6 @@ urlpatterns = [
     path('proyecto/acometidas/buscar/', views.connections_search, name='connections_search'),
     path("proyecto/acometidas/nuevo/", views.connection_create_view, name="connection_create_view"),
     path("proyecto/acometidas/nuevo/partner/search/", views.partner_search_view, name="partner_search_view"),
-    path("proyecto/acometidas/ver/<int:pk>/", views.partner_view, name="partner_view"),
     path("proyecto/acometidas/editar/<int:pk>/", views.connection_edit_view, name="connection_edit_view"),
     path("proyecto/acometidas/estado/<int:pk>", views.connection_toggle_active, name="connection_toggle_active"),
 ]
