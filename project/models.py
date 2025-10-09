@@ -60,6 +60,32 @@ class Partner(AbstractUser):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})"
+    
+    def save(self, *args, **kwargs):
+        # Generar username si no existe
+        if not self.username:
+            first_part = self.first_name.split(" ")[0].lower() if self.first_name else ""
+            last_part = self.last_name.split(" ")[0].lower() if self.last_name else ""
+            base_username = f"{first_part}{last_part}"
+
+            username = base_username
+            counter = 1
+            while Partner.objects.filter(username=username).exists():
+                counter += 1
+                username = f"{base_username}{counter}"
+
+            self.username = username
+
+        # Generar contraseña por defecto en formato "key:<dui>"
+        if self.dui and not self.pk:  # solo al crear
+            raw_password = f"key:{self.dui}"
+            self.set_password(raw_password)
+
+        # Si is_active = False → también is_staff = False
+        if not self.is_active and self.is_staff:
+            self.is_staff = False
+
+        super().save(*args, **kwargs)
 
 
 class Directive(models.Model):
@@ -92,26 +118,74 @@ class Directive(models.Model):
     def save(self, *args, **kwargs):
         today = timezone.localtime().date()
 
-        # Si se marca como inactivo y no tiene fecha final → poner hoy
-        if not self.isActive and self.end_date is None:
-            self.end_date = today
+        is_create = self.pk is None
 
-        # Si es un cargo distinto de Vocal y se guarda como activo
-        if self.isActive and self.role != self.Roles.VOCAL:
-            # Buscar registros activos anteriores con el mismo cargo
-            previous = Directive.objects.filter(
-                role=self.role,
-                isActive=True
-            ).exclude(pk=self.pk).first()
-            if previous:
-                previous.isActive = False
-                previous.end_date = today
-                previous.save()
+        # Solo al crear: queda activo y sin fecha fin
+        if is_create:
+            self.isActive = True
+            self.end_date = None
+            if not self.start_date:
+                self.start_date = today
 
         super().save(*args, **kwargs)
 
+        # Solo al crear: desactivar anteriores del mismo cargo (si aplica)
+        if is_create and self.role != self.Roles.VOCAL:
+            (Directive.objects
+                .filter(role=self.role, isActive=True)
+                .exclude(pk=self.pk)
+                .update(isActive=False, end_date=today))
+
+
+def today_local():
+    """Devuelve la fecha local actual."""
+    return timezone.localtime().date()
+
+class WaterConnection(models.Model):
+    owner = models.ForeignKey(
+        'Partner',
+        on_delete=models.CASCADE,
+        related_name='owned_connections',
+        verbose_name='Propietario'
+    )
+    responsible = models.ForeignKey(
+        'Partner',
+        on_delete=models.CASCADE,
+        related_name='responsible_connections',
+        verbose_name='Responsable'
+    )
+    date = models.DateField(
+        "Fecha de adquisición",
+        default=today_local,
+    )
+    description = models.CharField(
+        "Descripción",
+        max_length=200,
+        help_text="Descripción corta",
+        unique=True,
+    )
+    is_active = models.BooleanField(
+        "Activa",
+        default=False,
+    )
+    acquisition_price = models.DecimalField(
+        "Precio de adquisición",
+        max_digits=12,
+        decimal_places=2,
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.responsible:
+            self.responsible = self.owner
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.partner} - {self.get_role_display()} ({'Activo' if self.isActive else 'Inactivo'})"
+        return f"{self.description} - {self.responsible.first_name} {self.responsible.last_name}"
 
 
-    
+    class Meta:
+        verbose_name = "Acometida"
+        verbose_name_plural = "Acometidas"
+        ordering = ['-date']
+
+

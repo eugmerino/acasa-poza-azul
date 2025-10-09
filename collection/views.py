@@ -13,6 +13,8 @@ from django.core.paginator import Paginator
 from django.urls import reverse
 from django.db.models import Q
 from datetime import datetime
+from django.utils import timezone
+
 
 
 def fee_list(request):

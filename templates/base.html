@@ -46,8 +46,12 @@
           <div class="ms-auto">
             <div class="dropdown">
               <a href="#" class="nav-link dropdown-toggle" id="usuarioDropdown" data-bs-toggle="dropdown">
-                <img src="{% static 'img/not_found.jpg' %}" alt="Usuario" class="rounded-circle border border-2 border-info me-2 user-photo-session" />
-                <span class="d-none d-sm-inline">username</span>
+                {% if request.user.foto %}
+                  <img src="{{ request.user.foto.url }}" alt="{{ request.user.username }}" class="rounded-circle border border-2 border-info me-2 user-photo-session" />
+                {% else %}
+                  <img src="{% static 'img/not_found.jpg' %}" alt="Usuario" class="rounded-circle border border-2 border-info me-2 user-photo-session" />
+                {% endif %}
+                <span class="d-none d-sm-inline">Bienvenido, {{ request.user.username }}</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-end z-3">
                 <li>
@@ -85,6 +89,14 @@
       <div class="sidebar-menu p-2">
         <a href="{% url 'inicio' %}"><i class="fas fa-home me-2"></i> Inicio</a>
 
+        <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuSeguridad">
+          <span><i class="fa-solid fa-shield-halved me-3"></i>Seguridad</span>
+          <i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse ps-4" id="submenuSeguridad">
+          <a href="{% url 'users_list' %}"><i class="fa-solid fa-circle-user me-3"></i>Usuarios</a>
+        </div>
+
         <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuProyecto">
           <span><i class="fa-solid fa-building me-3"></i>Proyecto</span>
           <i class="fas fa-chevron-down small"></i>
@@ -93,6 +105,9 @@
           <a href="{% url 'project_info' %}"><i class="fa-solid fa-file-invoice me-3"></i>Información</a>
           <a href="{% url 'fee_list' %}"><i class="fa-solid fa-circle-dollar-to-slot me-3"></i>Tarifa</a>
           <a href="{% url 'community_list' %}"><i class="fa-solid fa-map-location-dot me-3"></i>Comunidades</a>
+          <a href="{% url 'directive_list' %}"><i class="fa-solid fa-users-line me-3"></i>Directiva</a>
+          <a href="{% url 'partners_list' %}"><i class="fa-solid fa-users me-3"></i>Socios</a>
+          <a href="{% url 'connections_list' %}"><i class="fa-solid fa-faucet-drip me-3"></i></i>Acometidas</a>
         </div>
 
         <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuReuniones">
@@ -101,14 +116,14 @@
         </a>
         <div class="collapse ps-4" id="submenuReuniones">
           <a href="{% url 'meet_list' %}"><i class="fa-solid fa-plus me-2"></i>Reuniones</a>
-          <a href="#"><i class="fa-solid fa-clipboard-user me-2"></i>Asistencia</a>
+          <a href="{% url 'attendance' %}"><i class="fa-solid fa-clipboard-user me-2"></i>Asistencia</a>
         </div>
       </div>
     </div>
 
     <!-- Contenido principal -->
     <main class="content" id="main-content">
-      <div class="container-fluid pt-1 mt-4">
+      <div class="container-fluid pt-1 mt-4" id="main-container">
         {% block content %}
 
         {% endblock %}
@@ -125,7 +140,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/2.3.3/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.3.3/js/dataTables.bootstrap5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js" integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ" crossorigin="anonymous"></script>

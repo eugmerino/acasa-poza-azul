@@ -6,4 +6,7 @@ urlpatterns = [
     path("buscar/", views.meet_search, name="meet_search"),
     path("crear/", views.meet_create, name="meet_create"),
     path("editar/<int:pk>/", views.meet_edit, name="meet_edit"),
+    path("lista_Asistencias", views.attendance_list, name="attendance_list"),
+    path("buscar_Asistencia/", views.attendance_search, name="attendance_search"),
+    path("Asistencia/", views.attendance, name="attendance"),
 ]

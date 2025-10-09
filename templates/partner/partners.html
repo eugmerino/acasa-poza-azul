@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Socios |{% if project and project.title %}
+    {{ project.title }}
+  {% else %}
+    ACASA Poza Azul
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% include "partials/partner/partners_content.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("change", function (e) {
+    const input = e.target;
+    if (!input.matches("input[type='file'][name='foto']")) return;
+
+    const preview = document.getElementById("foto-preview");
+    if (!preview) return;
+
+    const file = input.files && input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        preview.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.src = "{% static 'img/not_found.jpg' %}";
+    }
+  });
+
+  function togglePartnerStatus(pk, isActive, csrfToken) {
+    const action = isActive === "True" ? "desactivar" : "activar";
+
+    Swal.fire({
+      title: `¿Seguro que deseas ${action} este socio?`,
+      text: "Esta acción desactivara al usuario y acometidas de este socio.",
+      icon: "question",
+      showCancelButton: true,
+      customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-secondary'
+          },
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        htmx.ajax('POST', `estado/${pk}`, {
+          target: "#main-container",
+          swap: "innerHTML",
+          headers: {
+            "X-CSRFToken": csrfToken
+          }
+        });
+      }
+    });
+  }
+
+  document.body.addEventListener("partnerActivated", () => {
+    Swal.fire({
+      title: "¡Activado!",
+      text: "El socio ha sido activado correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false
+    });
+  });
+
+  document.body.addEventListener("partnerDeactivated", () => {
+    Swal.fire({
+      title: "¡Desactivado!",
+      text: "El socio ha sido desactivado correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false
+    });
+  });
+
+  function confirmCreate(event) {
+    event.preventDefault();
+
+    Swal.fire({
+      title: "¿Deseas guardar este socio?",
+      text: "Hay datos que no se podran volver a modificar, revisa los datos antes de confirmar.",
+      icon: "question",
+      showCancelButton: true,
+      customClass: {
+              confirmButton: 'btn btn-success',
+              cancelButton: 'btn btn-secondary'
+            },
+      confirmButtonText: "Sí, guardar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Forzar submit del formulario con htmx
+        const form = event.target.closest("form");
+        htmx.trigger(form, "submit");
+      }
+    });
+  }
+
+  document.body.addEventListener("partnerCreated", () => {
+    Swal.fire({
+      title: "¡Socio guardado!",
+      text: "El nuevo socio fue creado correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false
+    });
+  });
+
+  document.body.addEventListener("partnerEdited", () => {
+    Swal.fire({
+      title: "¡Socio actualizado!",
+      text: "Los cambios del socio fueron guardados correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false
+    });
+  });
+
+</script>
+{% endblock %}

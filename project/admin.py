@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Project, Community, Partner, Directive
+from .models import Project, Community, Partner, Directive, WaterConnection
 from django.contrib.auth.admin import UserAdmin
 
 @admin.register(Project)
@@ -42,4 +42,45 @@ class DirectiveAdmin(admin.ModelAdmin):
         "partner__username",
         "role",
     )
+
+@admin.register(WaterConnection)
+class WaterConnectionAdmin(admin.ModelAdmin):
+    list_display = (
+        'description',
+        'owner',
+        'responsible',
+        'date',
+        'acquisition_price',
+        'is_active',
+    )
+    list_filter = (
+        'is_active',
+        'date',
+    )
+    search_fields = (
+        'description',
+        'owner__name',
+        'responsible__name',
+    )
+    ordering = ('-date',)
+    readonly_fields = ('date',)  # si quieres que la fecha no se edite manualmente
+    fieldsets = (
+        (None, {
+            'fields': (
+                'description',
+                'owner',
+                'responsible',
+                'acquisition_price',
+                'is_active',
+            )
+        }),
+        ('Información del sistema', {
+            'fields': ('date',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def get_queryset(self, request):
+        """Optimiza las consultas para mostrar owner y responsible."""
+        return super().get_queryset(request).select_related('owner', 'responsible')
 

@@ -1,0 +1,211 @@
+{% load static %}
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    {% if mode == "create" %}
+      <h1 class="h3">Nuevo socio</h1>
+    {% elif mode == "edit" %}
+      <h1 class="h3">Editar socio</h1>
+    {% else %}
+      <h1 class="h3">Ver socio</h1>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header card-header-custom">
+    <h5 class="mb-0 d-inline">Formulario de Socio</h5>
+    <a href="#ayudaModal" class="btn btn-link btn-sm order-1 order-lg-0 me-2" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda"><i class="fa-solid fa-circle-info"></i></a>
+  </div>
+  <div class="card-body">
+    <form id="form-socio" method="post" enctype="multipart/form-data" hx-post="{% if partner %}{% url 'partner_edit' partner.id %}{% else %}{% url 'partner_create' %}{% endif %}" hx-target="#main-container" hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="mb-3 text-muted">
+        <span class="text-danger">*</span><span class="small"> Campos obligatorios</span>
+      </div>
+      <fieldset class="border p-3 rounded mb-4" {% if mode == "view" %}disabled{% endif %}>
+        <legend class="w-auto px-2">Datos personales</legend><hr>
+        <div class="row">
+          <!-- Columna izquierda: nombres, apellidos, tel y dui -->
+          <div class="col-md-8">
+
+            <div class="mb-3 mt-3">
+              <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                  {{ form.first_name.label }}: <span class="text-danger">*</span>
+              </label>
+              <input
+                  type="text"
+                  name="{{ form.first_name.name }}"
+                  id="{{ form.first_name.id_for_label }}"
+                  value="{{ form.first_name.value|default_if_none:'' }}"
+                  placeholder="Ingrese los nombres del socio"
+                  class="form-control{% if form.first_name.errors %} is-invalid{% endif %}"
+              >
+              {% if form.first_name.errors %}
+                  {% for error in form.first_name.errors %}
+                      <div class="invalid-feedback">{{ error }}</div>
+                  {% endfor %}
+              {% endif %}
+            </div>
+
+            <div class="mb-3 mt-3">
+              <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                  {{ form.last_name.label }}: <span class="text-danger">*</span>
+              </label>
+              <input
+                  type="text"
+                  name="{{ form.last_name.name }}"
+                  id="{{ form.last_name.id_for_label }}"
+                  value="{{ form.last_name.value|default_if_none:'' }}"
+                  placeholder="Ingrese los apellidos del socio"
+                  class="form-control{% if form.last_name.errors %} is-invalid{% endif %}"
+              >
+              {% if form.last_name.errors %}
+                  {% for error in form.last_name.errors %}
+                      <div class="invalid-feedback">{{ error }}</div>
+                  {% endfor %}
+              {% endif %}
+            </div>
+
+            <!-- DUI -->
+            <div class="mb-3 mt-3">
+                <label for="{{ form.dui.id_for_label }}" class="form-label">
+                    {{ form.dui.label }}: <span class="text-danger">*</span>
+                </label>
+                <input
+                    type="text"
+                    name="{{ form.dui.name }}"
+                    id="{{ form.dui.id_for_label }}"
+                    value="{{ form.dui.value|default_if_none:'' }}"
+                    placeholder="Ingrese el DUI del socio"
+                    class="form-control{% if form.dui.errors %} is-invalid{% endif %}"
+                    {% if mode == "edit" or mode == "view" %}disabled{% endif %}
+                >
+                {% if form.dui.errors %}
+                    {% for error in form.dui.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Teléfono -->
+            <div class="mb-3 mt-3">
+                <label for="{{ form.tel.id_for_label }}" class="form-label">
+                    {{ form.tel.label }}: <span class="text-danger">*</span>
+                </label>
+                <input
+                    type="text"
+                    name="{{ form.tel.name }}"
+                    id="{{ form.tel.id_for_label }}"
+                    value="{{ form.tel.value|default_if_none:'' }}"
+                    placeholder="Ingrese el teléfono del socio"
+                    class="form-control{% if form.tel.errors %} is-invalid{% endif %}"
+                >
+                {% if form.tel.errors %}
+                    {% for error in form.tel.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+          </div>
+
+          <!-- Columna derecha: foto -->
+          <div class="col-md-4">
+            <div class="mb-3 mt-3">
+              {{ form.foto.label_tag }}
+              <span class="small"> (Previsualización)</span>
+            </div>
+            <div class="d-flex flex-column justify-content-center align-items-center">
+              <div style="width:176px; aspect-ratio:1/1; overflow:hidden;">
+                <img id="foto-preview"
+                    src="{% if form.instance.foto %}
+                      {{ form.instance.foto.url }}
+                    {% else %}
+                      {% static 'img/not_found.jpg' %}
+                    {% endif %}"
+                    alt="foto de perfil socio"
+                    class="img-fluid rounded shadow"
+                    style="width:100%; height:100%; object-fit:cover;" />
+              </div>
+            </div>
+            <div class="mb-3 mt-3">
+              <span class="small">Recomendación peso máximo 1 MB y relacion 1:1.</span>
+              {{ form.foto }}
+              <div class="invalid-feedback" id="last_name-error"></div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-8">
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="{{ form.email.id_for_label }}" class="form-label">
+                  {{ form.email.label }}
+              </label>
+              <input
+                  type="text"
+                  name="{{ form.email.name }}"
+                  id="{{ form.email.id_for_label }}"
+                  value="{{ form.email.value|default_if_none:'' }}"
+                  placeholder="Ingrese el correo electrónico del socio"
+                  class="form-control{% if form.email.errors %} is-invalid{% endif %}"
+              >
+              {% if form.email.errors %}
+                  {% for error in form.email.errors %}
+                      <div class="invalid-feedback">{{ error }}</div>
+                  {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-4">
+            <!-- Comunidad -->
+            <div class="mb-3">
+                <label for="{{ form.community.id_for_label }}" class="form-label">
+                    {{ form.community.label }}: <span class="text-danger">*</span>
+                </label>
+                <select
+                    name="{{ form.community.name }}"
+                    id="{{ form.community.id_for_label }}"
+                    class="form-select{% if form.community.errors %} is-invalid{% endif %}"
+                >
+                    <option value="">{{ form.fields.community.empty_label }}</option>
+                    {% for choice in form.fields.community.queryset %}
+                        <option value="{{ choice.pk }}" {% if form.community.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %}>
+                            {{ choice }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if form.community.errors %}
+                    {% for error in form.community.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+      </fieldset>
+
+      <div class="d-flex justify-content-end gap-2">
+        <div class="w-100 d-flex justify-content-between gap-2">
+          {% if mode == "create" %}
+            <button type="submit" class="btn btn-success" onclick="confirmCreate(event)">
+              <i class="fas fa-save me-2"></i>Guardar Socio
+            </button>
+          {% elif mode == "edit" %}
+            <button type="submit" class="btn btn-success">
+              <i class="fa-solid fa-pen-to-square me-2"></i></i>Editar Socio
+            </button>
+          {% else %}
+            <button type="submit" class="btn btn-success" disabled>
+            <i class="fas fa-eye me-2"></i>Modo lectura</button>
+          {% endif %}
+          <button type="button" class="btn btn-secondary" 
+                  hx-get="{% url 'partners_list' %}" 
+                  hx-target="#main-container" 
+                  hx-swap="innerHTML">
+            <i class="fas fa-times me-2"></i>Cancelar</button
+          >
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

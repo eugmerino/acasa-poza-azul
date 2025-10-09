@@ -1,0 +1,33 @@
+{% if partners %}
+<ul class="list-group position-absolute w-100 mt-1" style="z-index:1000; top:100%; left:0;">
+  {% for p in partners %}
+    <li class="list-group-item list-group-item-action" style="cursor:pointer;"
+        role="option"
+        onclick="
+          (function(){
+            const hidden = document.querySelector('input[name=&quot;partner&quot;]');
+            const input  = document.getElementById('partner_search_input');
+            const box    = document.getElementById('partner-results');
+            const clear  = document.getElementById('partner-clear-btn');
+
+            if (hidden) hidden.value = '{{ p.id }}';
+            if (input){
+              input.value = '{{ p.first_name|escapejs }} {{ p.last_name|escapejs }}{% if p.dui %} (DUI: {{ p.dui|escapejs }}){% endif %}';
+              input.disabled = true;
+              input.setAttribute('aria-expanded','false');
+            }
+            if (clear) clear.hidden = false;
+            if (box) box.innerHTML = '';
+          })();
+        ">
+      {{ p.first_name }} {{ p.last_name }}{% if p.dui %} (DUI: {{ p.dui }}){% endif %}
+    </li>
+  {% endfor %}
+</ul>
+{% else %}
+  {% if typed %}
+  <ul class="list-group position-absolute w-100 mt-1" style="z-index:1000; top:100%; left:0;">
+    <li class="list-group-item text-muted">No se encontraron coincidencias.</li>
+  </ul>
+  {% endif %}
+{% endif %}

@@ -1,0 +1,15 @@
+<ul class="list-group shadow-sm">
+  {% if partners %}
+    {% for partner in partners %}
+      <li class="list-group-item list-group-item-action"
+          role="option"
+          onclick="selectPartner('{{ partner.id }}', '{{ partner.first_name }} {{ partner.last_name }}', '{{ target }}')">
+        <strong>{{ partner.first_name }} {{ partner.last_name }}</strong><br>
+        <small class="text-muted">{{ partner.dui }}</small>
+      </li>
+    {% endfor %}
+  {% else %}
+    <li class="list-group-item text-muted">Sin resultados</li>
+  {% endif %}
+</ul>
+

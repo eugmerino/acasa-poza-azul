@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Directiva |{% if project and project.title %}
+    {{ project.title }}
+  {% else %}
+    ACASA Poza Azul
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row mt-4 mb-2 text-center">
+        <div class="col-12">
+        <h1 class="h3">Gestión de Directiva</h1>
+        </div>
+    </div>
+
+    <div class="table-container rounded-4 shadow p-4">    
+        <div class="header-controls">
+            <button
+                id="btn-abrir-crud"
+                class="btn btn-success"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+                hx-get="{% url 'directive_create' %}"
+                hx-target="#directive-content-modal"
+                hx-trigger="click"
+            >
+                <i class="fas fa-plus me-1"></i> Agregar Nuevo Directivo
+            </button>
+            {% include "partials/search_table.html" with hx_url=directive_search_url hx_target="#table-content" placeholder="Buscar Directivo..." %}
+        </div>
+        {% include "partials/directive/directive_table.html" %}
+    </div>
+
+    {% include "partials/directive/directive_create_modal.html" %}
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modalEl = document.getElementById("exampleModal");
+
+        /*function limpiarFormulario() {
+            const form = modalEl.querySelector("form");
+            if (form) {
+                form.reset();
+                form.querySelectorAll("input[type=text], input[type=date], input[type=time]").forEach(el => el.value = "");
+                form.querySelectorAll("input[type=checkbox]").forEach(el => el.checked = false);
+                form.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+            }
+        }*/
+
+        modalEl.addEventListener("hidden.bs.modal", limpiarFormulario);
+
+        /*document.body.addEventListener("htmx:afterOnLoad", function (event) {
+            const triggerHeader = event.detail.xhr.getResponseHeader("HX-Trigger");
+            if (triggerHeader) {
+                try {
+                    const data = JSON.parse(triggerHeader);
+
+                    if (data.state === "success") {
+                        Swal.fire({
+                            icon: "success",
+                            title: "¡Éxito!",
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+
+                        limpiarFormulario();
+                    } else if (data.state === "error") {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: data.message
+                        });
+                    }
+
+                } catch (e) {
+                    console.warn("HX-Trigger no era JSON válido:", e);
+                }
+            }
+        });*/
+    });
+    document.body.addEventListener('directive:added', function () {
+    const modalEl = document.querySelector('#exampleModal');
+    if (!modalEl) return;
+    const instance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    instance.hide();
+  });
+    </script>
+
+
+{% endblock %}
