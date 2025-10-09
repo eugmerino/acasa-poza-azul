@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import timezone
+from datetime import datetime
 
 
 class Meeting(models.Model):
@@ -14,6 +16,8 @@ class Meeting(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.date}"
+
+
     
 
 class Attendance(models.Model):

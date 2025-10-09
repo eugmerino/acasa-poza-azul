@@ -1,5 +1,5 @@
 from django import forms
-from .models import Meeting
+from .models import Meeting, Attendance
 from datetime import date
 
 class MeetingForm(forms.ModelForm):
@@ -52,3 +52,16 @@ class MeetingForm(forms.ModelForm):
                 self.add_error("date", "Ya existe una reunión programada en esta fecha.")
 
         return cleaned_data
+
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        # Ahora solo elegimos el socio, la reunión se asigna automáticamente
+        fields = ["partner"]
+
+        widgets = {
+            "partner": forms.Select(attrs={
+                "class": "form-select",
+                "placeholder": "Seleccione socio"
+            }),
+        }

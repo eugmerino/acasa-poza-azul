@@ -15,7 +15,7 @@
         </thead>
         <tbody id="table-body">
         {% for meeting in page_obj %}
-            {% include "partials/meet_row_table.html" %}
+            {% include "partials/meet/meet_row_table.html" %}
         {% empty %}
             <tr>
                 <td colspan="4">No hay resultados</td>

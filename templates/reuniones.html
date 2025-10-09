@@ -31,10 +31,10 @@
             </button>
             {% include "partials/search_table.html" with hx_url=meet_search_url hx_target="#table-content" placeholder="Buscar Reuniones..." %}
         </div>
-        {% include "partials/meet_table.html" %}
+        {% include "partials/meet/meet_table.html" %}
     </div>
 
-    {% include "partials/meet_create_modal.html" %}
+    {% include "partials/meet/meet_create_modal.html" %}
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {

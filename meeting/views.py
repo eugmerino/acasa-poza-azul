@@ -8,6 +8,14 @@ from meeting.forms import MeetingForm
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
 import json
+from meeting.models import Attendance
+from meeting.forms import AttendanceForm
+from django.utils import timezone
+from django.utils.timezone import localtime, now
+from project.models import Partner
+from django.http import HttpResponse
+
+
 
 
 per_page_options = [5, 10, 20, 50]
@@ -22,6 +30,8 @@ def meet_list(request):
     paginator = Paginator(meet_list, per_page)
     page_obj = paginator.get_page(page_number)
 
+    now = timezone.localtime()
+
     return render(
         request,
         'reuniones.html',
@@ -33,6 +43,8 @@ def meet_list(request):
             'per_page_options': per_page_options,
             'form': MeetingForm(),
             'project': project,
+            'today': now.date(),
+            'current_time': now.time(), 
         }
     )
 
@@ -51,13 +63,15 @@ def meet_search(request):
 
     return render(
         request,
-        'partials/meet_table.html',
+        'partials/meet/meet_table.html',
         {
             'meet_search_url': reverse('meet_search'),
             'page_obj': page_obj,
             'query': query,
             'per_page': per_page,
             'per_page_options': per_page_options,
+            'today': timezone.localdate(),
+            'current_time': timezone.localtime().time(),
         }
     )
 
@@ -66,7 +80,7 @@ def meet_create(request):
         form = MeetingForm(request.POST)
         if form.is_valid():
             meeting = form.save()
-            response = render(request, "partials/meet_row_table.html", {"meeting": meeting})
+            response = render(request, "partials/meet/meet_row_table.html", {"meeting": meeting})
             response["HX-Trigger"] = json.dumps({
                 "state": "success",
                 "message": "La reunión se guardó correctamente"
@@ -74,7 +88,7 @@ def meet_create(request):
 
             return response
         else:
-            response = render(request, "partials/meet_form.html", {"form": form})
+            response = render(request, "partials/meet/meet_form.html", {"form": form})
             response['HX-Retarget'] = 'form'
             response['HX-Reswap'] = 'outerHTML'
             response['HX-Trigger-After-Settle'] = 'fail'
@@ -83,7 +97,7 @@ def meet_create(request):
     else:
         form = MeetingForm()
 
-    return render(request, "partials/meet_form.html", {"form": form})
+    return render(request, "partials/meet/meet_form.html", {"form": form})
 
 
 def meet_edit(request, pk):
@@ -94,14 +108,14 @@ def meet_edit(request, pk):
         if form.is_valid():
             meeting = form.save()
             
-            response = render(request, "partials/meet_row_table.html", {"meeting": meeting})
+            response = render(request, "partials/meet/meet_row_table.html", {"meeting": meeting})
             response["HX-Trigger"] = json.dumps({
                 "state": "success",
                 "message": "La reunión se editó correctamente"
             })
             return response
         else:
-            response = render(request, "partials/meet_form.html", {"form": form})
+            response = render(request, "partials/meet/meet_form.html", {"form": form})
             response['HX-Retarget'] = 'form'
             response['HX-Reswap'] = 'outerHTML'
             response['HX-Trigger-After-Settle'] = 'fail'
@@ -112,6 +126,224 @@ def meet_edit(request, pk):
 
     return render(
         request,
-        "partials/meet_form.html",
+        "partials/meet/meet_form.html",
         {"form": form, "meeting": meeting}
     )
+
+
+ 
+# ---------------------------------------------------------
+# LISTA DE ASISTENCIAS
+# ---------------------------------------------------------
+def attendance_list(request):
+    project = Project.objects.first()
+    query = request.GET.get('q', '')
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    # 🔹 Obtener todas las asistencias, incluyendo datos relacionados
+    attendance_list = Attendance.objects.select_related('meeting', 'partner').filter(
+        Q(meeting__title__icontains=query) |
+        Q(partner__first_name__icontains=query) |
+        Q(partner__last_name__icontains=query)
+    ).order_by('-meeting__date', '-meeting__start_time')
+
+    paginator = Paginator(attendance_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    now_local = localtime()
+
+    return render(
+        request,
+        'meeting/attendance.html',
+        {
+            'attendance_search_url': reverse('attendance_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+            'form': AttendanceForm(),
+            'project': project,
+            'today': now_local.date(),
+            'current_time': now_local.time(),
+        }
+    )
+
+# ---------------------------------------------------------
+# BÚSQUEDA DE ASISTENCIAS
+# ---------------------------------------------------------
+def attendance_search(request):
+    project = Project.objects.first()
+    today = localtime().date()
+    now_time = localtime().time().replace(microsecond=0)
+
+    active_meeting = Meeting.objects.filter(
+        date=today,
+        start_time__lte=now_time,
+        end_time__gte=now_time,
+        isActive=True
+    ).first()
+
+    partners = Partner.objects.filter(community__project=project, is_superuser=False)
+    query = request.GET.get('q', '').strip()
+
+    if query:
+        partners = partners.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(dui__icontains=query) |
+            Q(community__name__icontains=query)
+        )
+
+    attended_partner_ids = set()
+    if active_meeting:
+        attended_partner_ids = set(active_meeting.attendances.values_list('partner_id', flat=True))
+
+    return render(request, "partials/meeting/attendance_content.html", {
+        "project": project,
+        "active_meeting": active_meeting,
+        "partners": partners,
+        "attended_partner_ids": attended_partner_ids,
+        "attendance_search_url": reverse('attendance_search'),
+        "query": query,
+    })
+
+
+
+def attendance(request):
+    project = Project.objects.first()
+    today = localtime().date()
+    now_time = localtime().time().replace(microsecond=0)
+
+    # Buscar reunión activa en este momento
+    active_meeting = Meeting.objects.filter(
+        date=today,
+        start_time__lte=now_time,
+        end_time__gte=now_time,
+        isActive=True
+    ).first()
+
+    # Filtrar solo socios del proyecto que no sean superusuarios
+    partners = Partner.objects.filter(
+        community__project=project,
+        is_superuser=False
+    )
+
+    if request.method == "POST" and active_meeting:
+        for partner in partners:
+            checkbox_name = f"attendance_{partner.id}"
+            attended = checkbox_name in request.POST
+
+            if attended:
+                Attendance.objects.get_or_create(meeting=active_meeting, partner=partner)
+            else:
+                Attendance.objects.filter(meeting=active_meeting, partner=partner).delete()
+
+        # 🔹 Recalcular IDs después de guardar
+        attended_partner_ids = set(
+            active_meeting.attendances.values_list('partner_id', flat=True)
+        )
+
+        # 🔹 Respuesta HTMX con header para SweetAlert2
+        if request.headers.get("Hx-Request") == "true":
+            response = render(request, "partials/meeting/attendance_content.html", {
+                "project": project,
+                "active_meeting": active_meeting,
+                "partners": partners,
+                "attended_partner_ids": attended_partner_ids,
+            })
+            response["HX-Trigger"] = json.dumps({
+                "state": "success",
+                "message": f"Asistencias actualizadas para la reunión: {active_meeting.title}"
+            })
+            return response
+
+        return redirect("attendance")
+
+    # GET o no hay POST
+    attended_partner_ids = set()
+    if active_meeting:
+        attended_partner_ids = set(
+            active_meeting.attendances.values_list('partner_id', flat=True)
+        )
+
+    # Template parcial si HTMX, sino la página completa
+    template = (
+        "partials/meeting/attendance_content.html"
+        if request.headers.get("Hx-Request") == "true"
+        else "meeting/attendance.html"
+    )
+
+    return render(request, template, {
+        "project": project,
+        "active_meeting": active_meeting,
+        "partners": partners,
+        "attended_partner_ids": attended_partner_ids,
+    })
+    project = Project.objects.first()
+    today = localtime().date()
+    now_time = localtime().time().replace(microsecond=0)
+
+    # Buscar reunión activa en este momento
+    active_meeting = Meeting.objects.filter(
+        date=today,
+        start_time__lte=now_time,
+        end_time__gte=now_time,
+        isActive=True
+    ).first()
+
+     # Crear set de IDs de socios que ya tienen asistencia
+    attended_partner_ids = set()
+    if active_meeting:
+        attended_partner_ids = set(
+            active_meeting.attendances.values_list('partner_id', flat=True)
+        )
+
+    # Filtrar solo socios del proyecto y que no sean superusuarios
+    partners = Partner.objects.filter(
+        community__project=project,
+        is_superuser=False
+    )
+
+    if request.method == "POST" and active_meeting:
+        for partner in partners:
+            checkbox_name = f"attendance_{partner.id}"
+            attended = checkbox_name in request.POST
+
+            if attended:
+                # Solo guardar asistencia si fue marcado
+                Attendance.objects.get_or_create(
+                    meeting=active_meeting,
+                    partner=partner
+                )
+            else:
+                # Si estaba guardado y se desmarca, eliminarlo
+                Attendance.objects.filter(
+                    meeting=active_meeting,
+                    partner=partner
+                ).delete()
+
+        # 🔹 Devolver solo el fragmento si es HTMX
+        if request.headers.get("Hx-Request") == "true":
+            return render(request, "partials/meeting/attendance_content.html", {
+                "project": project,
+                "active_meeting": active_meeting,
+                "attended_partner_ids": attended_partner_ids,
+                "partners": partners,
+            })
+
+        return redirect("attendance")
+
+    # 🔹 Si es HTMX también devolver solo el fragmento
+    template = (
+        "partials/meeting/attendance_content.html"
+        if request.headers.get("Hx-Request") == "true"
+        else "meeting/attendance.html"
+    )
+
+    return render(request, template, {
+        "project": project,
+        "active_meeting": active_meeting,
+        "attended_partner_ids": attended_partner_ids,
+        "partners": partners,
+    })
