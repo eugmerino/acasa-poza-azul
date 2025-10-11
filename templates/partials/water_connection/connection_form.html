@@ -99,11 +99,11 @@ function selectPartner(id, name, target) {
   const results = document.getElementById(`${target}-results`);
 
   if (input && hidden) {
-    input.value = name;          // Muestra el nombre en el input
-    hidden.value = id;           // Guarda el id en el hidden
-    input.disabled = true;       // Bloquea el input
-    clearBtn.hidden = false;     // Muestra botón de limpiar
-    input.classList.remove("is-invalid"); // Quita error si estaba
+    input.value = name;
+    hidden.value = id;
+    input.disabled = true;
+    if (clearBtn) clearBtn.hidden = false;
+    input.classList.remove("is-invalid");
   }
   if (results) results.innerHTML = '';
 }
@@ -120,10 +120,130 @@ function clearPartnerField(target) {
     hidden.value = '';
     input.disabled = false;
     input.focus();
-    input.classList.remove("is-invalid"); // Quita error al limpiar
+    input.classList.remove("is-invalid");
   }
   if (results) results.innerHTML = '';
   if (clearBtn) clearBtn.hidden = true;
 }
-</script>
 
+/* --- Validar y confirmar antes de enviar --- */
+(function () {
+  const form = document.getElementById('connection-form');
+  if (!form) return;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    // Validación básica
+    const ownerInput = document.getElementById('owner_search_input');
+    const ownerHidden = document.getElementById('id_owner');
+    const dateField = form.querySelector('input[name="date"], #id_date');
+    const descriptionField = form.querySelector('textarea[name="description"], #id_description');
+
+    ownerInput?.classList.remove('is-invalid');
+    dateField?.classList.remove('is-invalid');
+    descriptionField?.classList.remove('is-invalid');
+
+    let valido = true;
+    if (!ownerHidden?.value) { ownerInput?.classList.add('is-invalid'); valido = false; }
+    if (!dateField?.value) { dateField?.classList.add('is-invalid'); valido = false; }
+    if (!descriptionField?.value?.trim()) { descriptionField?.classList.add('is-invalid'); valido = false; }
+
+    if (!valido) {
+      (ownerInput?.classList.contains('is-invalid') ? ownerInput :
+        dateField?.classList.contains('is-invalid') ? dateField : descriptionField)?.focus();
+      return;
+    }
+
+    // Confirmación: Guardar 
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Se guardará la acomedita seleccionada.',
+      icon: 'question',
+      showCancelButton: true,
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-secondary'
+      },
+      confirmButtonText: 'Sí, guardar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      // Si cancela: no mostrar nada
+      if (!result.isConfirmed) return;
+
+      const url = form.getAttribute('hx-post') || form.action;
+      const csrf = form.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+      const formData = new FormData(form);
+
+      // Con HTMX
+      if (window.htmx && typeof htmx.ajax === 'function') {
+        const xhr = htmx.ajax('POST', url, {
+          target: form,
+          swap: 'outerHTML',
+          headers: { 'X-CSRFToken': csrf },
+          values: Object.fromEntries(formData.entries())
+        });
+
+        xhr.addEventListener('loadend', function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            // ÉXITO: solo un mensaje como en tu captura
+            Swal.fire({
+              title: 'Guardado',
+              text: 'La acometida se guardó correctamente.',
+              icon: 'success',
+              buttonsStyling: false,
+              customClass: {
+                actions: 'mt-4',        // separa el botón OK del contenido
+                confirmButton: 'btn btn-primary' // cambia el OK (pon tu clase/estilo preferido)
+              }
+            });
+          } else {
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo guardar. Intenta nuevamente.',
+              icon: 'error',
+              buttonsStyling: false,
+              customClass: {
+                actions: 'mt-4',
+                confirmButton: 'btn btn-danger'
+              }
+            });
+          }
+        });
+      } else {
+        // Fallback sin HTMX
+        fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrf }, body: formData })
+          .then(r => r.text())
+          .then(html => {
+            const tmp = document.createElement('div'); tmp.innerHTML = html;
+            const node = tmp.firstElementChild || tmp;
+            form.replaceWith(node);
+            Swal.fire({
+              title: 'Guardado',
+              text: 'La acometida se guardó correctamente.',
+              icon: 'success',
+              buttonsStyling: false,
+              customClass: {
+                actions: 'mt-4',
+                confirmButton: 'btn btn-primary'
+              }
+            });
+          })
+          .catch(() => {
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo guardar. Intenta nuevamente.',
+              icon: 'error',
+              buttonsStyling: false,
+              customClass: {
+                actions: 'mt-4',
+                confirmButton: 'btn btn-danger'
+              }
+            });
+          });
+      }
+    });
+  });
+})();
+</script>

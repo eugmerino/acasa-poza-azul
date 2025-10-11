@@ -51,20 +51,24 @@
                 {% else %}
                   <img src="{% static 'img/not_found.jpg' %}" alt="Usuario" class="rounded-circle border border-2 border-info me-2 user-photo-session" />
                 {% endif %}
-                <span class="d-none d-sm-inline">Bienvenido, {{ request.user.username }}</span>
+                <span class="d-none d-sm-inline">Bienvenid@, {{ request.user.username }}</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-end z-3">
                 <li>
-                  <span class="dropdown-item disabled"><i class="fas fa-user-shield me-2"></i> <strong>ADMINISTRADOR</strong></span>
+                  <span class="dropdown-item disabled">
+                    <i class="fas fa-user-shield me-2"></i>
+                    <strong>{{ request.user.groups.first.name }}</strong>
+                  </span>
                 </li>
-                <li>
-                  <a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Perfil</a>
+                  <a class="dropdown-item" href="{% url 'profile_view' %}"><i class="fas fa-user me-2"></i> Perfil</a>
                 </li>
                 <li>
                   <hr class="dropdown-divider" />
                 </li>
                 <li>
-                  <a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión</a>
+                  <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión
+                  </a>
                 </li>
               </ul>
             </div>
@@ -89,6 +93,7 @@
       <div class="sidebar-menu p-2">
         <a href="{% url 'inicio' %}"><i class="fas fa-home me-2"></i> Inicio</a>
 
+        {% if request.user.groups.first and request.user.groups.first.name == "ADMINISTRADOR" %}
         <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuSeguridad">
           <span><i class="fa-solid fa-shield-halved me-3"></i>Seguridad</span>
           <i class="fas fa-chevron-down small"></i>
@@ -96,6 +101,7 @@
         <div class="collapse ps-4" id="submenuSeguridad">
           <a href="{% url 'users_list' %}"><i class="fa-solid fa-circle-user me-3"></i>Usuarios</a>
         </div>
+        {% endif %}
 
         <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuProyecto">
           <span><i class="fa-solid fa-building me-3"></i>Proyecto</span>

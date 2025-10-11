@@ -1,7 +1,7 @@
 <tr id="connection-{{ connection.id }}">
     <td>{{ connection.description  }}</td>
     <td>{{ connection.responsible.first_name }} {{ connection.responsible.last_name }}</td>
-    <td>{{ connection.date}}</td>
+    <td>{{ connection.date|date:"d-m-y"}}</td>
     <td>$ {{ connection.acquisition_price}}</td>
     <td>
         {% if connection.is_active %}

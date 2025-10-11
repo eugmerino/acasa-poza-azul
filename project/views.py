@@ -1,15 +1,18 @@
 from django.shortcuts import render, redirect
 from .models import Project, Community, Directive, Partner, WaterConnection
-from .forms import ProjectForm, CommunityForm, DirectiveForm, PartnerForm, UsersForm, ConnectionForm
+from .forms import ProjectForm, CommunityForm, DirectiveForm, PartnerForm, UsersForm, ConnectionForm, UserCredentialsForm
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_http_methods, require_POST
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.http import HttpResponse
 from django.utils import timezone
 import json
+from django.http import JsonResponse
+from django.contrib.auth import logout
 
 
 def project_info_view(request):
@@ -380,6 +383,65 @@ def user_edit(request, pk):
         {"form": form, "mode": "edit", "user": user},
     )
 
+@login_required
+@require_POST
+def user_reset_credentials(request, pk):
+    user = get_object_or_404(Partner, pk=pk)
+
+    # Regenerar username
+    first_part = user.first_name.split(" ")[0].lower() if user.first_name else ""
+    last_part = user.last_name.split(" ")[0].lower() if user.last_name else ""
+    base_username = f"{first_part}{last_part}"
+
+    username = base_username
+    counter = 1
+    while Partner.objects.filter(username=username).exclude(pk=user.pk).exists():
+        counter += 1
+        username = f"{base_username}{counter}"
+
+    user.username = username
+
+    # Regenerar contraseña por defecto
+    if user.dui:
+        raw_password = f"key:{user.dui}"
+        user.set_password(raw_password)
+
+    user.save()
+
+    return JsonResponse({
+        "success": True,
+        "message": "Credenciales restablecidas correctamente."
+    })
+
+def profile_view(request):
+    return render(request, "profile/profile.html")
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def user_edit_credentials(request, pk):
+    user = get_object_or_404(Partner, pk=pk)
+
+    if request.method == "POST":
+        form = UserCredentialsForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            logout(request)
+            if request.headers.get("HX-Request"):  # petición HTMX
+                response = JsonResponse({"hx-trigger": "redirect"})
+                response["HX-Redirect"] = "/"  # o usa reverse("login")
+                return response
+            else:
+                return redirect("")
+        else:
+            # Si hay errores, devolvemos el modal con los errores
+            context = {"form": form, "user": user}
+            return render(request, "partials/profile/user_credentials_form.html", context)
+
+    # GET: devolver formulario vacío para cargar en el modal
+    form = UserCredentialsForm(instance=user)
+    context = {"form": form, "user": user}
+    return render(request, "partials/profile/user_credentials_form.html", context)
+
 
 def partners_list(request):
     project = Project.objects.first()
@@ -519,6 +581,19 @@ def partner_edit(request, pk):
 @require_POST
 def partner_toggle_active(request, pk):
     partner = get_object_or_404(Partner, pk=pk)
+
+    # Validar si es responsable de alguna acometida activa
+    active_connections = partner.responsible_connections.filter(is_active=True)
+    if partner.is_active and active_connections.exists():
+        if request.headers.get("HX-Request"):
+            return JsonResponse({
+                "success": False,
+                "message": "No se puede desactivar al socio porque es responsable de una acometida activa. Asigne otro responsable antes de desactivar."
+            }, status=400)
+        else:
+            from django.contrib import messages
+            messages.error(request, "No se puede desactivar al socio porque es responsable de una acometida activa. Asigne otro responsable antes de desactivar.")
+            return redirect("partners_list")
 
     partner.is_active = not partner.is_active
 

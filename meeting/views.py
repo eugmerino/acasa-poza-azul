@@ -143,9 +143,11 @@ def attendance_list(request):
 
     # 🔹 Obtener todas las asistencias, incluyendo datos relacionados
     attendance_list = Attendance.objects.select_related('meeting', 'partner').filter(
-        Q(meeting__title__icontains=query) |
-        Q(partner__first_name__icontains=query) |
-        Q(partner__last_name__icontains=query)
+        Q(partner__is_active=True) & (
+            Q(meeting__title__icontains=query) |
+            Q(partner__first_name__icontains=query) |
+            Q(partner__last_name__icontains=query)
+        )
     ).order_by('-meeting__date', '-meeting__start_time')
 
     paginator = Paginator(attendance_list, per_page)
@@ -184,15 +186,17 @@ def attendance_search(request):
         isActive=True
     ).first()
 
-    partners = Partner.objects.filter(community__project=project, is_superuser=False)
+    partners = Partner.objects.filter(community__project=project, is_superuser=False, is_active=True)
     query = request.GET.get('q', '').strip()
 
     if query:
         partners = partners.filter(
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query) |
-            Q(dui__icontains=query) |
-            Q(community__name__icontains=query)
+            Q(is_active=True) & (
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query) |
+                Q(dui__icontains=query) |
+                Q(community__name__icontains=query)
+            )
         )
 
     attended_partner_ids = set()
@@ -226,7 +230,8 @@ def attendance(request):
     # Filtrar solo socios del proyecto que no sean superusuarios
     partners = Partner.objects.filter(
         community__project=project,
-        is_superuser=False
+        is_superuser=False,
+        is_active=True
     )
 
     if request.method == "POST" and active_meeting:
