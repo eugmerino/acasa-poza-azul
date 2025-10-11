@@ -21,34 +21,31 @@
       el día {{ active_meeting.date|date:"d-m-Y" }} 
       de {{ active_meeting.start_time }} a {{ active_meeting.end_time }}
     </h3>
+  
+    <!-- Controles de encabezado -->
+    <div class="header-controls d-flex justify-content-between mb-3">
+      <!-- Botón de guardar fuera del form -->
+      <button id="btn-guardar-asistencia" type="button" class="btn btn-success">
+        <i class="fas fa-plus me-1"></i> Guardar Asistencias
+      </button>
+
+      <!-- Buscador con HTMX -->
+      <div class="input-group search-input-group">
+        <span class="input-group-text" id="addon-wrapping">
+            <i class="fas fa-search me-1"></i>
+        </span>
+        <input type="text"
+            class="form-control w-50"
+            placeholder="Buscar..."
+            hx-get="{% url 'attendance_search' %}"
+            hx-target="#table-content"
+            hx-trigger="keyup changed delay:300ms"
+            name="q"
+            value="{{ query }}">
+      </div>
+    </div>
   {% else %}
-    <div class="alert alert-info text-center mb-3">
-      No hay ninguna reunión activa en este momento.
-    </div>
   {% endif %}
-
-  <!-- Controles de encabezado -->
-  <div class="header-controls d-flex justify-content-between mb-3">
-    <!-- Botón de guardar fuera del form -->
-    <button id="btn-guardar-asistencia" type="button" class="btn btn-success">
-      <i class="fas fa-plus me-1"></i> Guardar Asistencias
-    </button>
-
-    <!-- Buscador con HTMX -->
-    <div class="input-group search-input-group">
-      <span class="input-group-text" id="addon-wrapping">
-          <i class="fas fa-search me-1"></i>
-      </span>
-      <input type="text"
-           class="form-control w-50"
-           placeholder="Buscar..."
-           hx-get="{% url 'attendance_search' %}"
-           hx-target="#table-content"
-           hx-trigger="keyup changed delay:300ms"
-           name="q"
-           value="{{ query }}">
-    </div>
-  </div>
 
   <!-- Contenedor que HTMX actualizará -->
   <div id="table-content">
