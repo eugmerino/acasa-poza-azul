@@ -18,7 +18,7 @@ from django import forms
 @login_required(login_url='login')
 def inicio(request):
     project = Project.objects.first()
-    return render(request, "home.html", {"project": project})
+    return render(request, "home/home.html", {"project": project})
 
 
 # Diccionario en memoria para rastrear intentos por IP

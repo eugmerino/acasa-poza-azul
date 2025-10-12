@@ -28,7 +28,7 @@
             </a>
             {% include "partials/search_table.html" with hx_url=fee_search_url hx_target="#fee-list" placeholder="Buscar tarifas..." %}
         </div>
-        {% include "partials/fee_table.html" %}
+        {% include "partials/fee/fee_table.html" %}
     </div>
 {% endblock %}
 {% block extra_js %}

@@ -34,7 +34,7 @@ def meet_list(request):
 
     return render(
         request,
-        'reuniones.html',
+        'meeting/reuniones.html',
         {
             'meet_search_url': reverse('meet_search'),
             'page_obj': page_obj,

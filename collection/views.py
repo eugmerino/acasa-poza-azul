@@ -31,7 +31,7 @@ def fee_list(request):
 
     return render(
         request,
-        'tarifas.html',
+        'fee/tarifas.html',
         {
             'fee_search_url': reverse('fee_search'),
             'page_obj': page_obj,
@@ -65,7 +65,7 @@ def fee_search(request):
 
     return render(
         request,
-        'partials/fee_table.html',
+        'partials/fee/fee_table.html',
         {
             'fee_search_url': reverse('fee_search'),
             'page_obj': page_obj,
@@ -81,7 +81,7 @@ def fee_create_form(request):
         'hoy': localtime(),
         'project': project,
     }
-    return render(request, 'crud_tarifas.html', contexto)    
+    return render(request, 'fee/crud_tarifas.html', contexto)    
 
 def ver_tarifa(request, tarifa_id):
     tarifa = get_object_or_404(Fee, pk=tarifa_id)
@@ -104,7 +104,7 @@ def ver_tarifa(request, tarifa_id):
         "tramos_json": tramos_json,
         "hoy": localtime()
     }
-    return render(request, "ver_tarifa.html", contexto)
+    return render(request, "fee/ver_tarifa.html", contexto)
 
 def fees_json(request):
     fees = Fee.objects.all()

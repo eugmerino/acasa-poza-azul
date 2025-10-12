@@ -29,12 +29,12 @@ def project_info_view(request):
         # Si la petición es AJAX (fetch)
         # Retorna solo el template parcial con el indicador de éxito.
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return render(request, 'partials/project_form_partial.html', {'project': project, 'form': form, 'success': success})
+            return render(request, 'project/partials/project_form_partial.html', {'project': project, 'form': form, 'success': success})
         return redirect('project_info')
     # NO es POST (por ejemplo, al cancelar o recargar el bloque), retorna el template parcial sin indicador de éxito.
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'partials/project_form_partial.html', {'project': project, 'form': form})
-    return render(request, 'project.html', {'project': project, 'form': form})
+        return render(request, 'project/partials/project_form_partial.html', {'project': project, 'form': form})
+    return render(request, 'project/project.html', {'project': project, 'form': form})
 
 
 # Opciones de paginación
@@ -52,7 +52,7 @@ def community_list(request):
 
     return render(
         request,
-        'communities.html',
+        'communities/communities.html',
         {
             'community_search_url': reverse('community_search'),
             'page_obj': page_obj,
@@ -95,7 +95,7 @@ def community_create(request):
             community = form.save()
             response = render(
                 request,
-                "partials/community_row_table.html",
+                "partials/communities/community_row_table.html",
                 {"community": community}
             )
             response["HX-Trigger"] = json.dumps({
@@ -104,7 +104,7 @@ def community_create(request):
             })
             return response
         else:
-            response = render(request, "partials/community_form.html", {"form": form})
+            response = render(request, "partials/communities/community_form.html", {"form": form})
             response['HX-Retarget'] = 'form'
             response['HX-Reswap'] = 'outerHTML'
             response['HX-Trigger-After-Settle'] = 'fail'
@@ -112,7 +112,7 @@ def community_create(request):
     else:
         form = CommunityForm()
 
-    return render(request, "partials/community_form.html", {"form": form})
+    return render(request, "partials/communities/community_form.html", {"form": form})
 
 def community_edit(request, pk):
     community = get_object_or_404(Community, pk=pk)
@@ -123,7 +123,7 @@ def community_edit(request, pk):
             community = form.save()
             response = render(
                 request,
-                "partials/community_row_table.html",
+                "partials/communities/community_row_table.html",
                 {"community": community}
             )
             response["HX-Trigger"] = json.dumps({
@@ -132,7 +132,7 @@ def community_edit(request, pk):
             })
             return response
         else:
-            response = render(request, "partials/community_form.html", {"form": form})
+            response = render(request, "partials/communities/community_form.html", {"form": form})
             response['HX-Retarget'] = 'form'
             response['HX-Reswap'] = 'outerHTML'
             response['HX-Trigger-After-Settle'] = 'fail'
@@ -142,7 +142,7 @@ def community_edit(request, pk):
 
     return render(
         request,
-        "partials/community_form.html",
+        "partials/communities/community_form.html",
         {"form": form, "community": community}
     )
 
@@ -414,7 +414,8 @@ def user_reset_credentials(request, pk):
     })
 
 def profile_view(request):
-    return render(request, "profile/profile.html")
+    project = Project.objects.first()
+    return render(request, "profile/profile.html", {'project': project})
 
 @login_required
 @require_http_methods(["GET", "POST"])
