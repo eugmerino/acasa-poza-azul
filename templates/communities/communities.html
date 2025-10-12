@@ -31,10 +31,10 @@
         </button>
         {% include "partials/search_table.html" with hx_url=community_search_url hx_target="#community-table-content" placeholder="Buscar Comunidades..." %}
     </div>
-    {% include "partials/community_table.html" %}
+    {% include "partials/communities/community_table.html" %}
 </div>
 
-{% include "partials/community_create_modal.html" %}
+{% include "partials/communities/community_create_modal.html" %}
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {

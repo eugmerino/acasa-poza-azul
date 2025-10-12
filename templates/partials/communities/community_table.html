@@ -9,7 +9,7 @@
         </thead>
         <tbody id="community-table-body">
             {% for community in page_obj %}
-                {% include "partials/community_row_table.html" %}
+                {% include "partials/communities/community_row_table.html" %}
             {% empty %}
                 <tr>
                     <td colspan="4">No hay resultados</td>
