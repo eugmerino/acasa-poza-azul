@@ -291,7 +291,7 @@ def users_list(request):
 
     # Si la petición viene de HTMX => renderiza solo el contenido parcial
     if request.headers.get('HX-Request'):
-        return render(request, "partials/users/users_content.html", context)
+        return render(request, "users/partials/users_content.html", context)
 
     # Si es petición normal => renderiza toda la página
     return render(request, "users/users.html", context)
@@ -310,7 +310,7 @@ def users_search(request):
 
     return render(
         request,
-        'partials/users/users_table.html',
+        'users/partials/users_table.html',
         {
             'users_search_url': reverse('users_search'),
             'page_obj': page_obj,
@@ -324,7 +324,7 @@ def user_create_view(request):
     project = Project.objects.first()
     return render(
         request,
-        "partials/users/user_form.html",
+        "users/partials/user_form.html",
         {"project": project}
     )
 
@@ -369,7 +369,7 @@ def user_edit(request, pk):
         else:
             response = render(
                 request,
-                "partials/users/user_form.html",
+                "users/partials/user_form.html",
                 {"form": form, "mode": "edit", "user": user},
             )
             response["HX-Target"] = "#main-container"
@@ -379,7 +379,7 @@ def user_edit(request, pk):
 
     return render(
         request,
-        "partials/users/user_form.html",
+        "users/partials/user_form.html",
         {"form": form, "mode": "edit", "user": user},
     )
 
@@ -467,7 +467,7 @@ def partners_list(request):
 
     # Si la petición viene de HTMX => renderiza solo el contenido parcial
     if request.headers.get('HX-Request'):
-        return render(request, "partials/partner/partners_content.html", context)
+        return render(request, "partner/partials/partners_content.html", context)
 
     # Si es petición normal => renderiza toda la página
     return render(request, "partner/partners.html", context)
@@ -498,7 +498,7 @@ def partners_search(request):
 
     return render(
         request,
-        'partials/partner/partners_table.html',
+        'partner/partials/partners_table.html',
         {
             'partners_search_url': reverse('partners_search'),
             'page_obj': page_obj,
@@ -521,7 +521,7 @@ def partner_create_view(request):
         else:
             response = render(
                 request,
-                "partials/partner/partner_form.html",
+                "partner/partials/partner_form.html",
                 {"form": form, "mode": "create"}
             )
             response['HX-Target'] = '#main-container'
@@ -532,7 +532,7 @@ def partner_create_view(request):
         form = PartnerForm()
     return render(
         request,
-        "partials/partner/partner_form.html",
+        "partner/partials/partner_form.html",
         {"form": form, "mode": "create"}
     )
 
@@ -541,7 +541,7 @@ def partner_view(request, pk):
     form = PartnerForm(instance=partner)
     for field in form.fields.values():
         field.disabled = True
-    return render(request, "partials/partner/partner_form.html", {"form": form, "mode": "view", "partner": partner})
+    return render(request, "partner/partials/partner_form.html", {"form": form, "mode": "view", "partner": partner})
 
 def partner_edit(request, pk):
     partner = get_object_or_404(Partner, pk=pk)
@@ -563,7 +563,7 @@ def partner_edit(request, pk):
         else:
             response = render(
                 request,
-                "partials/partner/partner_form.html",
+                "partner/partials/partner_form.html",
                 {"form": form, "mode": "edit", "partner": partner},
             )
             response['HX-Target'] = '#main-container'
@@ -575,7 +575,7 @@ def partner_edit(request, pk):
 
     return render(
         request,
-        "partials/partner/partner_form.html",
+        "partner/partials/partner_form.html",
         {"form": form, "mode": "edit", "partner": partner},
     )
 
