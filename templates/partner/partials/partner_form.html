@@ -209,3 +209,38 @@
     </form>
   </div>
 </div>
+
+<script>
+  let lastSelectedImage = null; // Guardará la imagen en base64 temporalmente
+
+  document.addEventListener("change", function (e) {
+    const input = e.target;
+    if (!input.matches("input[type='file'][name='foto']")) return;
+
+    const file = input.files && input.files[0];
+    const preview = document.getElementById("foto-preview");
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        lastSelectedImage = evt.target.result; // Guarda la imagen en memoria
+        preview.src = lastSelectedImage;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.src = "{% static 'img/not_found.jpg' %}";
+      lastSelectedImage = null;
+    }
+  });
+
+  // Cuando HTMX reemplace el contenido del formulario tras un error de validación
+  document.addEventListener("htmx:afterSwap", function (e) {
+    if (e.detail.target.id === "main-container" && lastSelectedImage) {
+      const preview = document.getElementById("foto-preview");
+      if (preview) {
+        preview.src = lastSelectedImage; // Restauramos la imagen seleccionada
+      }
+    }
+  });
+</script>
+
