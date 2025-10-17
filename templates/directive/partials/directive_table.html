@@ -16,7 +16,7 @@
         </thead>
        <tbody id="table-body">
   {% for executive in page_obj %}
-    {% include "partials/directive/directive_row_table.html" with executive=executive only %}
+    {% include "directive/partials/directive_row_table.html" with executive=executive only %}
   {% empty %}
     <tr>
       <td colspan="7" class="text-center">No hay resultados</td>
