@@ -186,7 +186,7 @@ def directive_search(request):
 
     return render(
         request,
-        'partials/directive/directive_table.html',
+        'directive/partials/directive_table.html',
         {
             'directive_search_url': reverse('directive_search'),
             'page_obj': page_obj,
@@ -203,17 +203,17 @@ def directive_create(request):
             directive = form.save()
             response = render(
                 request,
-                "partials/directive/directive_create_success.html",
+                "directive/partials/directive_create_success.html",
                 {"executive": directive},
             )
             response["HX-Trigger"] = json.dumps({"directive:added": {"id": directive.id}})
             return response
 
-        return render(request, "partials/directive/directive_form.html", {"form": form})
+        return render(request, "directive/partials/directive_form.html", {"form": form})
 
     # GET
     form = DirectiveForm()
-    return render(request, "partials/directive/directive_form.html", {"form": form})
+    return render(request, "directive/partials/directive_form.html", {"form": form})
 
 @never_cache
 def partner_search(request):
@@ -244,7 +244,7 @@ def partner_search(request):
     partners = qs.filter(filtro).order_by('first_name', 'last_name', 'id')[:10]
 
     ctx = {'partners': partners, 'typed': True}
-    resp = render(request, 'partials/directive/partner_search_results.html', ctx)
+    resp = render(request, 'directive/partials/partner_search_results.html', ctx)
     # blindaje anti-caché
     resp['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     resp['Pragma'] = 'no-cache'
@@ -264,7 +264,7 @@ def directive_deactivate(request, pk):
         # Renderiza SOLO la fila para reemplazarla
         return render(
             request,
-            "partials/directive/directive_row_table.html",
+            "directive/partials/directive_row_table.html",
             {"executive": executive}
         )
 
@@ -637,7 +637,7 @@ def connections_list(request):
 
     # Si la petición viene de HTMX => renderiza solo el contenido parcial
     if request.headers.get('HX-Request'):
-        return render(request, "partials/water_connection/connection_content.html", context)
+        return render(request, "water_connection/partials/connection_content.html", context)
 
     # Si es petición normal => renderiza toda la página
     return render(request, "water_connection/water_connection.html", context)
@@ -659,7 +659,7 @@ def connections_search(request):
 
     return render(
         request,
-        'partials/water_connection/connection_table.html',
+        'water_connection/partials/connection_table.html',
         {
             'connections_search_url': reverse('connections_search'),
             'page_obj': page_obj,
@@ -734,24 +734,18 @@ def connection_create_view(request):
             if request.headers.get("HX-Request"):
                 response = render(
                     request,
-                    "partials/water_connection/connection_form.html",
+                    "water_connection/partials/connection_form.html",
                     {"form": form}
                 )
                 response["HX-Retarget"] = "#connection-form"
                 response["HX-Reswap"] = "outerHTML"
                 response["HX-Trigger-After-Settle"] = "fail"
                 return response
-            # Si no es HTMX → devolver toda la página (para debug o carga normal)
-            return render(
-                request,
-                "water_connection/connection_page.html",
-                {"form": form}
-            )
     else:
         form = ConnectionForm()
         form = ConnectionForm(initial={"acquisition_price": project.connection_price})
 
-    return render(request, "partials/water_connection/connection_form.html", {"form": form})
+    return render(request, "water_connection/partials/connection_form.html", {"form": form})
 
 def connection_edit_view(request, pk):
     connection = get_object_or_404(WaterConnection, pk=pk)
@@ -774,19 +768,13 @@ def connection_edit_view(request, pk):
             if request.headers.get("HX-Request"):
                 return render(
                     request,
-                    "partials/water_connection/connection_edit_form.html",
+                    "water_connection/partials/connection_edit_form.html",
                     {"form": form, "connection": connection}
                 )
-            # Si no es HTMX → devolver toda la página (para debug o carga normal)
-            return render(
-                request,
-                "water_connection/connection_page.html",
-                {"form": form, "connection": connection}
-            )
     else:
         form = ConnectionForm(instance=connection)
     return render(
         request,
-        "partials/water_connection/connection_edit_form.html",
+        "water_connection/partials/connection_edit_form.html",
         {"form": form, "connection": connection}
     )

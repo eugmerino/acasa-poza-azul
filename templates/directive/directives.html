@@ -31,10 +31,10 @@
             </button>
             {% include "partials/search_table.html" with hx_url=directive_search_url hx_target="#table-content" placeholder="Buscar Directivo..." %}
         </div>
-        {% include "partials/directive/directive_table.html" %}
+        {% include "directive/partials/directive_table.html" %}
     </div>
 
-    {% include "partials/directive/directive_create_modal.html" %}
+    {% include "directive/partials/directive_create_modal.html" %}
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {

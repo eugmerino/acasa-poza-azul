@@ -19,7 +19,7 @@
     </button>
       {% include "partials/search_table.html" with hx_url=connections_search_url hx_target="#table-content" placeholder="Buscar Acometida..." %}
   </div>
-  {% include "partials/water_connection/connection_table.html" %}
+  {% include "water_connection/partials/connection_table.html" %}
 </div>
 
-{% include "partials/water_connection/connection_create_modal.html" %}
+{% include "water_connection/partials/connection_create_modal.html" %}
