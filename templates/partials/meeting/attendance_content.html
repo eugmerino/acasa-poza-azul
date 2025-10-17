@@ -59,3 +59,67 @@
         </div>
     {% endif %}
 </div>
+<script>
+    // Conjunto para mantener IDs de socios marcados
+    let markedPartners = new Set();
+
+    // Aplicar las marcas guardadas a los checkbox después de recargar contenido
+    function restoreCheckboxes() {
+        document.querySelectorAll('.attendance-checkbox').forEach(cb => {
+            const partnerId = parseInt(cb.name.replace('attendance_', ''));
+            if (markedPartners.has(partnerId)) {
+                cb.checked = true;
+                const row = cb.closest('tr');
+                row.classList.add('table-success');
+                row.querySelector('.attendance-status').textContent = 'Registrado';
+            }
+        });
+        updateAttendanceCount();
+    }
+
+    // Contador dinámico de asistencias
+    function updateAttendanceCount() {
+        const count = markedPartners.size;
+        const total = document.querySelectorAll('.attendance-checkbox').length;
+        const counter = document.getElementById('attendance-count');
+        if (counter) counter.textContent = count;
+    }
+
+    // Escuchar cambios de checkbox (marcar/desmarcar)
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('attendance-checkbox')) {
+            const cb = e.target;
+            const partnerId = parseInt(cb.name.replace('attendance_', ''));
+            const row = cb.closest('tr');
+            const statusCell = row.querySelector('.attendance-status');
+
+            if (cb.checked) {
+                markedPartners.add(partnerId);
+                row.classList.add('table-success');
+                statusCell.textContent = 'Registrado';
+            } else {
+                markedPartners.delete(partnerId);
+                row.classList.remove('table-success');
+                statusCell.textContent = 'No registrado';
+            }
+            updateAttendanceCount();
+        }
+    });
+
+    // Restaurar las marcas después de búsquedas (HTMX swap)
+    document.body.addEventListener('htmx:afterSwap', function(e) {
+        if (e.detail.target.id === "table-content") {
+            restoreCheckboxes();
+        }
+    });
+
+    // Al cargar por primera vez, registrar los que ya vienen marcados
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.attendance-checkbox:checked').forEach(cb => {
+            const partnerId = parseInt(cb.name.replace('attendance_', ''));
+            markedPartners.add(partnerId);
+        });
+        updateAttendanceCount();
+    });
+</script>
+

@@ -15,7 +15,7 @@
         </thead>
         <tbody id="table-body">
         {% for connection in page_obj %}
-            {% include "partials/water_connection/connection_row_table.html" %}
+            {% include "water_connection/partials/connection_row_table.html" %}
         {% empty %}
             <tr class="text-center">
                 <td colspan="6">No hay resultados</td>
