@@ -14,7 +14,7 @@
         </thead>
         <tbody id="table-body">
         {% for user in page_obj %}
-            {% include "partials/users/users_row_table.html" %}
+            {% include "users/partials/users_row_table.html" %}
         {% empty %}
             <tr>
                 <td colspan="4">No hay resultados</td>

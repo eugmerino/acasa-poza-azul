@@ -15,7 +15,7 @@
         </thead>
         <tbody id="table-body">
         {% for partner in page_obj %}
-            {% include "partials/partner/partners_row_table.html" %}
+            {% include "partner/partials/partners_row_table.html" %}
         {% empty %}
             <tr>
                 <td colspan="6" class="text-center">No hay resultados</td>
