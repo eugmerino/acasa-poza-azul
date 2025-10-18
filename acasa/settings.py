@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'collection',
     'meeting',
     'core',
+    'finance',
 ]
 
 MIDDLEWARE = [
