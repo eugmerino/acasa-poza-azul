@@ -709,7 +709,7 @@ def partner_search_view(request):
         "target": target,  # para saber a qué campo asignar
     }
     # Corrige la ruta del template:
-    response = render(request, "partials/partner/partner_search_results.html", ctx)
+    response = render(request, "partner/partials/partner_search_results.html", ctx)
     response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response["Pragma"] = "no-cache"
     return response
