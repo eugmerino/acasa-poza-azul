@@ -80,23 +80,19 @@
     </div>
 
 
-        <!-- Monto -->
-        <div class="mb-3">
-            <label for="{{ form.amount.id_for_label }}" class="form-label">
-                {{ form.amount.label }} <span class="text-danger">*</span>
-            </label>
-            <input type="number"
-                step="0.01"
-                name="{{ form.amount.name }}"
-                value="{{ form.amount.value|default_if_none:'' }}"
-                id="{{ form.amount.id_for_label }}"
-                class="form-control{% if form.amount.errors %} is-invalid{% endif %}">
-            {% if form.amount.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in form.amount.errors %}{{ error }}{% endfor %}
-                </div>
-            {% endif %}
-        </div>
+      <!-- Monto -->
+    <div class="mb-3">
+        <label for="{{ form.amount.id_for_label }}" class="form-label">
+            {{ form.amount.label }} <span class="text-danger">*</span>
+        </label>
+        {{ form.amount }}
+        {% if form.amount.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.amount.errors %}{{ error }}{% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
 
     </div>
 

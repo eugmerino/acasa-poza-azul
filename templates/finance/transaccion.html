@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-  Reuniones |{% if project and project.title %}
+  Transacciones |{% if project and project.title %}
     {{ project.title }}
   {% else %}
     ACASA Poza Azul
@@ -38,7 +38,7 @@
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const modalEl = document.getElementById("exampleModal");
+        const modalEl = document.getElementById("transactionModal");
 
         function limpiarFormulario() {
             const form = modalEl.querySelector("form");

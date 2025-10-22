@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import localtime, now
-
+import json
 
 per_page_options =[5, 10, 20, 50]
 
@@ -73,7 +73,7 @@ def transaction_create(request):
         form = TransactionForm(request.POST)
         if form.is_valid():
             transaction = form.save()
-            return render(request, "partials/finance/transaction_row_table.html", {"transaction": transaction})
+            response = render(request, "partials/finance/transaction_row_table.html", {"transaction": transaction})
             response["HX-Trigger"] = json.dumps({
                 "state": "success",
                 "message": "La transaccion se guardó correctamente"
@@ -90,7 +90,7 @@ def transaction_create(request):
     else:
         form = TransactionForm()
 
-    return redirect(request, "partials/finance/transaction_form.html", {"form": form})
+    return render(request, "partials/finance/transaction_form.html", {"form": form})
 
 def transaction_edit(request, pk):
     transaction = get_object_or_404(Transaction, pk=pk)
