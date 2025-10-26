@@ -301,6 +301,7 @@ def reading_create(request, pk):
         form.instance.connection = con
         form.instance.penalty_fee = Decimal(penalty_fee or "0.00")
         form.instance.late_payment = Decimal(total_to_pay or "0.00")
+        form.instance.previous_reading = pre_reading
 
         if form.is_valid():
             form.save()
