@@ -13,60 +13,154 @@ import json
 per_page_options =[5, 10, 20, 50]
 
 def transaction_list(request):
-    transaction = Transaction.objects.first()
+    query = request.GET.get('q', '')
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+    selected_month = request.GET.get('month', '')
+
+    now = timezone.localtime()
+    current_year = now.year
+    current_month = now.month
+
+    # Si no hay mes seleccionado, usar mes actual
+    if not selected_month:
+        selected_month = f"{current_year}-{current_month:02d}"
+
+    try:
+        year, month = map(int, selected_month.split('-'))
+        transaction_list = Transaction.objects.filter(date__year=year, date__month=month).order_by('-date')
+    except ValueError:
+        transaction_list = Transaction.objects.all().order_by('-date')
+
+    # Filtro de búsqueda
+    if query:
+        transaction_list = transaction_list.filter(
+            Q(concept__icontains=query) |
+            Q(type__icontains=query) |
+            Q(amount__icontains=query)
+        )
+
+    paginator = Paginator(transaction_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    month_start = timezone.localdate().replace(day=1)
+    month_end = (month_start + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(days=1)
+
+    return render(request, 'finance/transaccion.html', {
+        'transaction_search_url': reverse('transaction_search'),
+        'page_obj': page_obj,
+        'query': query,
+        'per_page': per_page,
+        'per_page_options': per_page_options,
+        'form': TransactionForm(),
+        'today': timezone.localdate(),
+        'month_start': month_start,
+        'month_end': month_end,
+        'selected_month': selected_month,
+        'show_actions': True,
+    })
+
+def transaction_list_all(request):
     query = request.GET.get('q', '')
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
     transaction_list = Transaction.objects.all().order_by('-date')
+
+    if query:
+        transaction_list = transaction_list.filter(
+            Q(concept__icontains=query) |
+            Q(type__icontains=query) |
+            Q(amount__icontains=query)
+        )
+
     paginator = Paginator(transaction_list, per_page)
     page_obj = paginator.get_page(page_number)
 
-    now = timezone.localtime()
-
     return render(
         request,
-        'finance/transaccion.html',
+        "partials/finance/transaction_list_all.html",
         {
-            'transaction_search_url': reverse('transaction_search'),
-            'page_obj': page_obj,
-            'query': query,
-            'per_page': per_page,
-            'per_page_options': per_page_options,
-            'form': TransactionForm(),
-            'today': now.date(),
+            "page_obj": page_obj,
+            "transaction_search_all_url": reverse('transaction_search_all'),
+            "per_page": per_page,
+            "per_page_options": per_page_options,
+            "query": query,
+            "show_actions": False,
         }
     )
+
+
 
 def transaction_search(request):
     query = request.GET.get('q', '')
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
+    now = timezone.localdate()
+    current_year = now.year
+    current_month = now.month
+
+    # Filtrar solo transacciones del mes actual
     transaction_list = Transaction.objects.filter(
-        Q(concept__icontains=query) |
-        Q(type__icontains=query) |
-        Q(amount__icontains=query)
+        date__year=current_year,
+        date__month=current_month
     ).order_by('-date')
+
+    # Filtro de búsqueda
+    if query:
+        transaction_list = transaction_list.filter(
+            Q(concept__icontains=query) |
+            Q(type__icontains=query) |
+            Q(amount__icontains=query)
+        )
 
     paginator = Paginator(transaction_list, per_page)
     page_obj = paginator.get_page(page_number)
-
-    now = timezone.localtime()
 
     return render(
         request,
         'partials/finance/transaction_table.html',
         {
-           'transaction_search_url': reverse('transaction_search'),
+            'transaction_search_url': reverse('transaction_search'),
             'page_obj': page_obj,
             'query': query,
             'per_page': per_page,
             'per_page_options': per_page_options,
-            'today': timezone.localdate(),
-            'current_time': localtime(now).time(),
+            'today': now,
         }
     )
+
+def transaction_search_all(request):
+    query = request.GET.get('q', '')
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    transaction_list = Transaction.objects.all().order_by('-date')
+
+    if query:
+        transaction_list = transaction_list.filter(
+            Q(concept__icontains=query) |
+            Q(type__icontains=query) |
+            Q(amount__icontains=query)
+        )
+
+    paginator = Paginator(transaction_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'partials/finance/transaction_table.html',
+        {
+            'page_obj': page_obj,
+            'transaction_search_url': reverse('transaction_search_all'),
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+            'query': query,
+        }
+    )
+
+
 
 def transaction_create(request):
     if request.method == 'POST':

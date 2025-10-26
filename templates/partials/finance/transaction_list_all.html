@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Transacciones | {% if project and project.title %} {{ project.title }} {% else %} ACASA Poza Azul {% endif %}
+{% endblock %}
+{% block content %}
+<div class="row mt-4 mb-2 text-center">
+    <div class="col-12">
+        <h1 class="h3">Todas las transacciones</h1>
+    </div>
+</div>
+<div class="table-container rounded-4 shadow p-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3"></div>
+        {% include "partials/search_table.html" with hx_url=transaction_search_all_url hx_target="#table-content" placeholder="Buscar Transacción..." %}
+    </div>
+        <div id="table-content">
+            {% include "partials/finance/transaction_table.html" with page_obj=page_obj transaction_search_url=transaction_search_all_url %}
+        </div>
+
+        <div class="text-end mt-3">
+            <a href="{% url 'transaction_list' %}" class="btn btn-outline-primary">Volver al mes actual</a>
+        </div>
+</div>
+{% endblock %}

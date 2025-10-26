@@ -1,10 +1,12 @@
-<tr id="transaction-{{ transaction.id }}">
+<tr id="transaction-{{ transaction.id }}"> 
     <td>{{ transaction.project.title }}</td>
     <td>{{ transaction.concept }}</td>
     <td>{{ transaction.get_type_display }}</td>
     <td>${{ transaction.amount }}</td>
     <td>{{ transaction.date|date:"d-m-Y" }}</td>
-     <td class="text-center">
+
+    {% if show_actions %}
+    <td class="text-center">
         <div class="btn-group">
             <button
                 type="button"
@@ -19,4 +21,5 @@
             </button>
         </div>
     </td>
+    {% endif %}
 </tr>
