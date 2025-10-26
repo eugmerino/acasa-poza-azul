@@ -647,9 +647,6 @@ def connections_search(request):
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
-    print("DEBUG connections_search: query param q =", repr(query))
-    print("DEBUG connections_search: request.GET =", dict(request.GET))
-
     connections_list = WaterConnection.objects.filter(
         (Q(description__icontains=query) | Q(responsible__first_name__icontains=query) | Q(responsible__last_name__icontains=query))
     )

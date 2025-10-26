@@ -285,3 +285,15 @@ body {
 .modal-header .btn-close {
     filter: invert(1) grayscale(1);
 }
+
+.modal-stack {
+  z-index: 1060; /* encima de la modal principal (1050) */
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+body.modal-open .modal-stack {
+  background: rgba(0, 0, 0, 0.3);
+}

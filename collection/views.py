@@ -1,20 +1,25 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Fee
-from project.models import Project
+from .models import Fee, Range, Reading
+from project.models import Project, WaterConnection
+from meeting.models import Meeting
+from .forms import ReadingForm
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
 import json
-from .models import Fee, Range
 from django.utils.timezone import localtime
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.paginator import Paginator
 from django.urls import reverse
-from django.db.models import Q
-from datetime import datetime
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
+from datetime import date
+from decimal import Decimal
 
+
+# Opciones de paginación
+per_page_options = [5, 10, 20, 50]
 
 
 def fee_list(request):
@@ -41,7 +46,6 @@ def fee_list(request):
             'project': project,
         }
     )
-
 
 def fee_search(request):
     per_page_options = [5, 10, 20, 50]
@@ -84,6 +88,7 @@ def fee_create_form(request):
     return render(request, 'fee/crud_tarifas.html', contexto)    
 
 def ver_tarifa(request, tarifa_id):
+    project = Project.objects.first()
     tarifa = get_object_or_404(Fee, pk=tarifa_id)
     tramos = tarifa.Fee_ranges.all().order_by('min_meter')
 
@@ -102,7 +107,8 @@ def ver_tarifa(request, tarifa_id):
         "tarifa": tarifa,
         "tramos": tramos,
         "tramos_json": tramos_json,
-        "hoy": localtime()
+        "hoy": localtime(),
+        'project': project,
     }
     return render(request, "fee/ver_tarifa.html", contexto)
 
@@ -119,13 +125,11 @@ def fees_json(request):
     ]
     return JsonResponse({'data': data})
 
-
 def fee_activate(request, pk):
     fee = get_object_or_404(Fee, pk=pk)
     fee.isActive = True
     fee.save()
     return redirect("fee_list")
-
 
 @csrf_exempt
 @require_POST
@@ -155,3 +159,243 @@ def fee_create(request):
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+    
+
+def readings_list(request):
+    project = Project.objects.first()
+    user = request.user  # usuario en sesión
+    query = request.GET.get('q', '')
+    page_number = request.GET.get('page', 1)
+
+    per_page_options = [5, 10, 20, 50]
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    today = timezone.localtime().date()
+
+    # Subconsulta: verificar si existe una lectura del mes y año actual para cada acometida
+    current_month_reading = Reading.objects.filter(
+        connection=OuterRef('pk'),
+        date_reading__year=today.year,
+        date_reading__month=today.month
+    )
+
+    # Base queryset: solo acometidas activas
+    connections_list = WaterConnection.objects.filter(is_active=True)
+
+    # Si el usuario es LECTOR o COLECTOR → limitar por comunidad
+    if user.groups.filter(name__in=["LECTOR", "COLECTOR"]).exists() and user.community:
+        connections_list = connections_list.filter(responsible__community=user.community)
+
+    # Filtros de búsqueda
+    connections_list = connections_list.filter(
+        Q(description__icontains=query)
+        | Q(responsible__first_name__icontains=query)
+        | Q(responsible__last_name__icontains=query)
+    ).annotate(has_current_reading=Exists(current_month_reading))
+
+    paginator = Paginator(connections_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'reading_search_url': reverse('reading_search'),
+        'page_obj': page_obj,
+        'query': query,
+        'per_page': per_page,
+        'per_page_options': per_page_options,
+        'project': project,
+        'today': today, 
+    }
+
+    if request.headers.get('HX-Request'):
+        return render(request, "reading/partials/reading_content.html", context)
+
+    return render(request, "reading/reading.html", context)
+
+def reading_search(request):
+    user = request.user
+    query = request.GET.get('q', '')
+    page_number = request.GET.get('page', 1)
+
+    per_page_options = [5, 10, 20, 50]
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    today = timezone.localtime().date()
+    current_month_reading = Reading.objects.filter(
+        connection=OuterRef('pk'),
+        date_reading__year=today.year,
+        date_reading__month=today.month
+    )
+
+    connections_list = WaterConnection.objects.filter(is_active=True)
+
+    if user.groups.filter(name__in=["LECTOR", "COBRADOR"]).exists() and user.community:
+        connections_list = connections_list.filter(responsible__community=user.community)
+
+    connections_list = connections_list.filter(
+        Q(description__icontains=query)
+        | Q(responsible__first_name__icontains=query)
+        | Q(responsible__last_name__icontains=query)
+    ).annotate(has_current_reading=Exists(current_month_reading))
+
+    paginator = Paginator(connections_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'reading/partials/readings_table.html',
+        {
+            'reading_search_url': reverse('reading_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+        }
+    )
+
+def reading_create(request, pk):
+    con = get_object_or_404(WaterConnection, pk=pk)
+    today = timezone.localtime().date()
+    project = Project.objects.first()
+
+    result = Reading.calculate_unpaid_total(con)
+
+    pre_reading = 0
+    total_to_pay = 0
+    months_unread = 0
+    total_unpaid = 0
+    penalty_fee = 0
+
+    if result:
+        last_reading = result["last_reading"]
+        pre_reading = last_reading.meter_reading
+        total_to_pay = result["total_to_pay"]
+        total_unpaid = result["total_unpaid"]
+        if total_to_pay is not None:
+            total_to_pay = f"{total_to_pay:.2f}"
+        else:
+            total_to_pay = "0.00"
+        months_unread = (today.year - last_reading.date_reading.year) * 12 + (today.month - last_reading.date_reading.month)-1
+
+    
+    meeting = Meeting.objects.filter(
+        date__year=today.year,
+        date__month=today.month
+    ).first()
+
+    if meeting:
+        attendance_exists = meeting.attendances.filter(partner=con.responsible).exists()
+        if not attendance_exists:
+            penalty_fee_exists = Reading.objects.filter(
+                connection__responsible=con.responsible,
+                date_reading__year=today.year,
+                date_reading__month=today.month
+            ).exists()
+            if not penalty_fee_exists:
+                penalty_fee = project.absence_fine
+                penalty_fee = f"{penalty_fee:.2f}"
+        else:
+            penalty_fee = "0.00"
+
+    if request.method == "POST":
+        form = ReadingForm(request.POST)
+        form.instance.connection = con
+        form.instance.penalty_fee = Decimal(penalty_fee or "0.00")
+        form.instance.late_payment = Decimal(total_to_pay or "0.00")
+
+        if form.is_valid():
+            form.save()
+            if request.headers.get('HX-Request'):
+                response = HttpResponse()
+                response['HX-Redirect'] = reverse('readings_list')
+                return response
+        else:
+            response = render(
+                request,
+                "reading/partials/reading_form.html",
+                {
+                    "form": form,
+                    "connection": con,
+                    "today": today,
+                    "pre_reading": pre_reading,
+                    "total_to_pay": total_to_pay,
+                    "months_unread": months_unread,
+                    "total_unpaid": total_unpaid,
+                    "penalty_fee": penalty_fee,
+                    "penalty": Decimal(penalty_fee),
+                },
+            )
+            response['HX-Retarget'] = 'form'
+            response['HX-Reswap'] = 'outerHTML'
+            response['HX-Trigger-After-Settle'] = 'fail'
+            return response
+
+    else:
+        form = ReadingForm()
+
+    return render(
+        request,
+        "reading/partials/reading_form.html",
+        {
+            "form": form,
+            "connection": con,
+            "today": today,
+            "pre_reading": pre_reading,
+            "total_to_pay": total_to_pay,
+            "months_unread": months_unread,
+            "total_unpaid": total_unpaid,
+            "penalty_fee": penalty_fee,
+            "penalty": Decimal(penalty_fee),
+        },
+    )
+
+def reading_edit(request):
+    form = ReadingForm()
+
+    return render(request, "reading/partials/reading_form.html", {"form": form})
+
+def reading_details(request):
+    """
+    Vista que muestra los detalles del cálculo según la tarifa activa,
+    los metros consumidos, mora y multa enviados como parámetros.
+    """
+    from decimal import Decimal
+
+    try:
+        metros = Decimal(request.GET.get("metros", 0))
+        penalty_fee = Decimal(request.GET.get("penalty_fee", 0))
+        late_fee = Decimal(request.GET.get("late_fee", 0))
+    except:
+        return JsonResponse({"error": "Valores inválidos"}, status=400)
+
+    fee = Fee.objects.filter(isActive=True).first()
+    if not fee:
+        return JsonResponse({"error": "No hay una tarifa activa"}, status=400)
+
+    try:
+        monto = Reading.calculate_amount(fee, metros)
+    except ValueError as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+    total = monto + penalty_fee + late_fee
+
+    # Buscar el tramo aplicado
+    tramo_aplicado = None
+    for r in fee.Fee_ranges.all().order_by("min_meter"):
+        if r.max_meter is not None:
+            if r.min_meter <= metros <= r.max_meter:
+                tramo_aplicado = r
+                break
+        else:
+            if metros >= r.min_meter:
+                tramo_aplicado = r
+                break
+
+    context = {
+        "metros": metros,
+        "monto": monto,
+        "penalty_fee": penalty_fee,
+        "late_fee": late_fee,
+        "total": total,
+        "tramo": tramo_aplicado,
+    }
+    return render(request, "reading/partials/details_modal.html", context)

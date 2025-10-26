@@ -141,6 +141,7 @@ def today_local():
     """Devuelve la fecha local actual."""
     return timezone.localtime().date()
 
+
 class WaterConnection(models.Model):
     owner = models.ForeignKey(
         'Partner',

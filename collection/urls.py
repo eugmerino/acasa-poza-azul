@@ -9,4 +9,9 @@ urlpatterns = [
     path('fees/create/', views.fee_create, name='fee_create'),
     path('tarifas/<int:tarifa_id>/ver/', views.ver_tarifa, name='ver_tarifa'),
     path("tarifas-buscar/", views.fee_search, name="fee_search"),
+    path('lecturas/', views.readings_list, name='readings_list'),
+    path('lecturas/buscar', views.reading_search, name='reading_search'),
+    path('lecturas/crear/<int:pk>/', views.reading_create, name='reading_create'),
+    path('lecturas/edit/<int:pk>/', views.reading_edit, name='reading_edit'),
+    path('reading/details/', views.reading_details, name='reading_details'),
 ]
