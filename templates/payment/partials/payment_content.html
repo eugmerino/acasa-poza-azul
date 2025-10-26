@@ -1,0 +1,26 @@
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    <h1 class="h3">Gestión Pago de Acometida</h1>
+    <h2 class="h4">{{ today|date:"F \\d\\e Y" }}</h2>
+  </div>
+</div>
+
+<div class="table-container rounded-4 shadow p-4">    
+  <div class="header-controls">
+    <button
+        id="btn-abrir-crud"
+        class="btn btn-success"
+        data-bs-toggle="modal"
+        data-bs-target="#exampleModal"
+        hx-get="{% url 'payment_create' %}"
+        hx-target="#payment-content-modal"
+        hx-trigger="click"
+    >
+      <i class="fas fa-plus me-1"></i> Agregar Nuevo Pago
+    </button>
+      {% include "partials/search_table.html" with hx_url=payment_search_url hx_target="#table-content" placeholder="Buscar Pago..." %}
+  </div>
+  {% include "payment/partials/payment_table.html" %}
+</div>
+
+{% include "payment/partials/payment_create_modal.html" %}

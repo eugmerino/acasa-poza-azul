@@ -1,0 +1,28 @@
+<div
+    class="table-responsive rounded-3"
+    id="table-content"
+>
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+        <tr>
+            <th>Acometida</th>
+            <th>Precio de adquisición</th>
+            <th>Propietario</th>
+            <th>Fecha de abono</th>
+            <th>Abono</th>
+            <th>Restante</th>
+        </tr>
+        </thead>
+        <tbody id="table-body">
+        {% for pay in page_obj %}
+            {% include "payment/partials/payment_row_table.html" %}
+        {% empty %}
+            <tr class="text-center">
+                <td colspan="6">No hay resultados</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "partials/paginator.html" with hx_url=connections_search_url hx_target="#table-content" per_page_options=per_page_options %}
+</div>

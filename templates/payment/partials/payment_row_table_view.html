@@ -1,0 +1,10 @@
+{% if pay %}
+<tr id="payment-row-{{ pay.id }}">
+  <td>{{ pay.connection.description }}</td>
+  <td>$ {{ pay.connection.acquisition_price }}</td>
+  <td>{{ pay.connection.responsible.first_name }} {{ pay.connection.responsible.last_name }}</td>
+  <td>{{ pay.date_pay|date:"d-m-y" }} </td>
+  <td>$ {{ pay.amount }} </td>
+  <td>$ {{ pay.amount }} </td>
+</tr>
+{% endif %}

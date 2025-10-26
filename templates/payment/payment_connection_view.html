@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Pago Acometida |{% if project and project.title %}
+    {{ project.title }}
+  {% else %}
+    ACASA Poza Azul
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% include "payment/partials/payment_content_view.html" %}
+{% endblock %}

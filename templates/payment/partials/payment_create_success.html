@@ -1,0 +1,24 @@
+{# payment_create_success.html #}
+
+<div class="p-3">
+  <div class="alert alert-success mb-0">El pago se guardó correctamente.</div>
+</div>
+
+<script>
+  (function(){
+    try {
+      // Muestra el mensaje de éxito usando SweetAlert
+      Swal.fire('Guardado', 'El pago se guardó correctamente.', 'success').then(() => {
+        // Recarga la página después de cerrar la alerta
+        location.reload();  // Recarga la página para que se muestren los cambios
+      });
+    } catch(_) {}
+
+    // Cierra el modal actual si está abierto
+    const modalEl = document.querySelector('.modal.show');
+    if (modalEl) {
+      const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      inst.hide();  // Cierra el modal
+    }
+  })();
+</script>
