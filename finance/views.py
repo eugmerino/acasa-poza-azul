@@ -57,7 +57,7 @@ def transaction_list(request):
         'month_start': month_start,
         'month_end': month_end,
         'selected_month': selected_month,
-        'show_actions': True,
+        'show_actions': True,  # Asegúrate que esto esté presente
     })
 
 def transaction_list_all(request):
@@ -128,6 +128,7 @@ def transaction_search(request):
             'per_page': per_page,
             'per_page_options': per_page_options,
             'today': now,
+            'show_actions': True,  # Añade esta línea
         }
     )
 
@@ -167,12 +168,15 @@ def transaction_create(request):
         form = TransactionForm(request.POST)
         if form.is_valid():
             transaction = form.save()
-            response = render(request, "partials/finance/transaction_row_table.html", {"transaction": transaction})
+            # Añadir show_actions al contexto
+            response = render(request, "partials/finance/transaction_row_table.html", {
+                "transaction": transaction,
+                "show_actions": True
+            })
             response["HX-Trigger"] = json.dumps({
                 "state": "success",
                 "message": "La transaccion se guardó correctamente"
             })
-
             return response
         else:
             response = render(request, "partials/finance/transaction_form.html", {"form": form})
@@ -193,7 +197,11 @@ def transaction_edit(request, pk):
         form = TransactionForm(request.POST, instance=transaction)
         if form.is_valid():
             transaction = form.save()
-            response = render(request, "partials/finance/transaction_row_table.html", {"transaction": transaction})
+            # Añadir show_actions al contexto
+            response = render(request, "partials/finance/transaction_row_table.html", {
+                "transaction": transaction,
+                "show_actions": True
+            })
             response["HX-Trigger"] = json.dumps({
                 "state": "success",
                 "message": "La transaccion se actualizó correctamente"

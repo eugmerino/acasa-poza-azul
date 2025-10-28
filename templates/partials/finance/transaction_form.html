@@ -3,6 +3,7 @@
     hx-target="{% if transaction %}#transaction-{{ transaction.id }}{% else %}#table-body{% endif %}"
     hx-swap="{% if transaction %}outerHTML{% else %}afterbegin{% endif %}"
     class="modal-content"
+    novalidate
 >
     <div class="modal-header">
         <h5 class="modal-title">
