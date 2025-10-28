@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from .forms import UserLoginForm
-from project.models import Project
+from project.models import Project, WaterConnection
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
