@@ -4,6 +4,10 @@ from django.db.models import Sum
 from decimal import Decimal
 from project.models import Project, WaterConnection
 from django.utils import timezone
+from decimal import Decimal
+from django.db.models import Sum, Value, DecimalField
+from django.db.models.functions import Coalesce
+
 
 class Transaction(models.Model):
     TIPO_CHOICES = [
@@ -65,3 +69,13 @@ class Payment(models.Model):
 
         if self.amount > restante:
             raise ValidationError({'amount': f'El abono excede el restante (${restante}).'})
+        
+    @staticmethod
+    def total_pagado_por_acometida(acometida):
+        return (
+            Payment.objects
+            .filter(connection=acometida)
+            .aggregate(
+                total=Coalesce(Sum("amount"), Value(Decimal("0"), output_field=DecimalField()))
+            )["total"]
+        )

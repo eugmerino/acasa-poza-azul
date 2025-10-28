@@ -1,10 +1,10 @@
-{% if pay %}
-<tr id="payment-row-{{ pay.id }}">
-  <td>{{ pay.connection.description }}</td>
-  <td>$ {{ pay.connection.acquisition_price }}</td>
-  <td>{{ pay.connection.responsible.first_name }} {{ pay.connection.responsible.last_name }}</td>
-  <td>{{ pay.date_pay|date:"d-m-y" }}</td>
-  <td>$ {{ pay.amount | floatformat:2 }} </td>
-  <td>$ {{ pay.restante|floatformat:2 }}</td>
+{% if item %}
+<tr id="payment-row-{{ item.payment.id }}">
+  <td>{{ item.payment.connection.description }}</td>
+  <td>$ {{ item.payment.connection.acquisition_price }}</td>
+  <td>{{ item.payment.connection.responsible.first_name }} {{ item.payment.connection.responsible.last_name }}</td>
+  <td>{{ item.payment.date_pay|date:"d-m-y" }}</td>
+  <td>$ {{ item.payment.amount | floatformat:2 }} </td>
+  <td>$ {{ item.restante|floatformat:2 }}</td>
 </tr>
 {% endif %}

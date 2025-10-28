@@ -14,7 +14,7 @@
         </tr>
         </thead>
         <tbody id="table-body">
-        {% for pay in page_obj %}
+        {% for item in page_obj %}
             {% include "payment/partials/payment_row_table.html" %}
         {% empty %}
             <tr class="text-center">
