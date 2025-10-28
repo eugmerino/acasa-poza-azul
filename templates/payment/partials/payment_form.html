@@ -1,0 +1,346 @@
+<form id="payment-form"
+      class="modal-content needs-validation"
+      action="{% url 'payment_create' %}"
+      method="post"
+      hx-post="{% url 'payment_create' %}"
+      hx-target="#table-body"
+      hx-swap="beforeend"
+      novalidate>
+  {% csrf_token %}
+
+  <div class="modal-header">
+    <h5 class="modal-title">Agregar Pago Acometida</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- Buscador de Acometida -->
+    <div class="mb-3 position-relative" id="connection-search-wrap">
+      <label for="connection_search_input" class="form-label">
+        Acometida <span class="text-danger">*</span>
+      </label>
+
+      <div class="input-group">
+        <input type="text"
+               name="connection_search"
+               id="connection_search_input"
+               class="form-control {% if form.connection.errors %}is-invalid{% endif %}"
+               placeholder="Buscar acometida (descripción o propietario)..."
+               autocomplete="off"
+               role="combobox" aria-expanded="false"
+               hx-get="{% url 'payment_connection_search' %}"
+               hx-trigger="keyup changed delay:250ms, search"
+               hx-target="#connection-results"
+               hx-swap="innerHTML"
+               hx-include="#connection_search_input">
+
+        {{ form.connection }}  {# select oculto con el ID real #}
+
+        <button class="btn btn-outline-secondary" type="button"
+                id="connection-clear-btn"
+                hidden
+                onclick="(function(){
+                  const input = document.getElementById('connection_search_input');
+                  const hidden = document.querySelector('select[name=&quot;connection&quot;]');
+                  const box = document.getElementById('connection-results');
+                  hidden.value = '';
+                  input.value = '';
+                  input.disabled = false;
+                  input.classList.remove('is-invalid');
+                  this.hidden = true;
+                  if (box) box.innerHTML = '';
+                  input.focus();
+                })();">
+          ✕
+        </button>
+
+        {% if not form.connection.errors %}
+          <div class="invalid-feedback" id="conn-default-feedback">
+            Debes buscar una acometida y seleccionar.
+          </div>
+        {% endif %}
+
+        {% if form.connection.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.connection.errors|striptags }}
+          </div>
+        {% endif %}
+
+      </div>
+
+      <div id="connection-results"
+           class="w-100 position-absolute bg-white border rounded-3 shadow-sm"
+           style="z-index:1000; top:100%; left:0;"></div>
+    </div>
+
+    <!-- Abono -->
+    <div class="mb-3">
+      <label for="{{ form.amount.id_for_label }}" class="form-label">
+        Abono <span class="text-danger">*</span>
+      </label>
+      {{ form.amount }}
+      {% if form.amount.errors %}
+        <div class="invalid-feedback d-block">{{ form.amount.errors|striptags }}</div>
+      {% endif %}
+    </div>
+
+    <p class="small mb-0">
+      <span class="text-danger">*</span>
+      <span class="text-muted">Campos obligatorios</span>
+    </p>
+  </div>
+
+  <div class="modal-footer justify-content-between">
+    <button type="submit" id="btn-save-payment" class="btn btn-success">Guardar</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+  </div>
+</form>
+
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script>
+  /***************
+   * Selección de acometida (se mantiene)
+   ***************/
+  (function bindConnectionPicker(){
+    if (window.__connPickerBound) return;
+    window.__connPickerBound = true;
+
+    document.addEventListener('click', function(e){
+      const item = e.target.closest('[data-connection-id]');
+      if (!item) return;
+
+      const id    = item.getAttribute('data-connection-id');
+      const label = item.getAttribute('data-connection-label') || item.textContent.trim();
+
+      const hidden   = document.querySelector('select[name="connection"]');
+      const input    = document.getElementById('connection_search_input');
+      const clearBtn = document.getElementById('connection-clear-btn');
+      const box      = document.getElementById('connection-results');
+
+      if (hidden) hidden.value = id || '';
+      if (input) {
+        input.value = label || '';
+        input.disabled = true;
+        input.classList.remove('is-invalid');
+      }
+      if (clearBtn) clearBtn.hidden = false;
+      if (box) box.innerHTML = '';
+    });
+  })();
+
+  /***************
+   * Utilidad para cerrar el modal a prueba de todo
+   ***************/
+  function forceCloseModal(modalId) {
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) return;
+
+    // Cerrar con la API de Bootstrap
+    try {
+      const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+      inst.hide();
+    } catch(_) {}
+
+    // Limpieza defensiva por si quedó backdrop/clases
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('padding-right');
+
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(b => b.remove());
+  }
+
+  /***************
+   * ÉXITO: cerrar modal + SweetAlert + recargar
+   * Escucha el trigger que envías con HX-Trigger-After-Swap
+   ***************/
+  document.body.addEventListener("payment:added", function (evt) {
+    const payload = (evt.detail && evt.detail.value) || {};
+    const msg = payload.msg || "El pago se guardó correctamente.";
+
+    // 1) Cerrar modal YA (antes del alert)
+    forceCloseModal("payment-modal");
+
+    // 2) Mostrar éxito y recargar al cerrar el alert
+    let reloaded = false;
+    const doReload = () => { if (!reloaded) { reloaded = true; window.location.reload(); } };
+
+    Swal.fire({
+      icon: "success",
+      title: msg,
+      timer: 1500,
+      showConfirmButton: false,
+      willClose: doReload   // se llama cuando el alert cierra por timer o por usuario
+    });
+
+    // 3) Fallback por si willClose no corre en algún navegador
+    setTimeout(doReload, 1800);
+  });
+
+  /***************
+   * Confirmación + envío manual con HTMX (append en tbody)
+   ***************/
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('#btn-save-payment');
+    if (!btn) return;
+
+    const form = document.getElementById('payment-form');
+    if (!form) return;
+
+    e.preventDefault();
+
+    const connectionInput  = form.querySelector('input[name="connection_search"]');
+    const connectionHidden = form.querySelector('select[name="connection"]');
+    const amountInput      = form.querySelector('input[name="amount"]');
+
+    // limpiar errores
+    connectionInput?.classList.remove('is-invalid');
+    amountInput?.classList.remove('is-invalid');
+
+    // validación mínima
+    let valido = true;
+    if (!connectionHidden || !connectionHidden.value) {
+      connectionInput?.classList.add('is-invalid'); valido = false;
+    }
+    if (!amountInput || !amountInput.value) {
+      amountInput?.classList.add('is-invalid'); valido = false;
+    }
+    if (!valido) {
+      (connectionInput?.classList.contains('is-invalid') ? connectionInput : amountInput)?.focus();
+      return;
+    }
+
+    // confirmación
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'El pago será guardado y no se podrá editar.',
+      icon: 'question',
+      showCancelButton: true,
+      customClass: { confirmButton: 'btn btn-success', cancelButton: 'btn btn-secondary' },
+      confirmButtonText: 'Sí, guardar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      btn.disabled = true;
+
+      const url  = form.action;
+      const csrf = form.querySelector('[name=csrfmiddlewaretoken]')?.value;
+      const vals = Object.fromEntries(new FormData(form).entries());
+
+      if (window.htmx && typeof htmx.ajax === 'function') {
+        const xhr = htmx.ajax('POST', url, {
+          source: form,
+          target: '#table-body',   // <tbody id="table-body">
+          swap: 'beforeend',       // apéndice de la nueva <tr>
+          headers: { 'X-CSRFToken': csrf },
+          values: vals
+        });
+
+        xhr.addEventListener('loadend', function () {
+          if (!(xhr.status >= 200 && xhr.status < 300)) {
+            Swal.fire('Error', 'No se pudo guardar. Intenta nuevamente.', 'error');
+            btn.disabled = false;
+          } else {
+            // Si el servidor validó y devolvió <tr>, enviará HX-Trigger-After-Swap
+            // y el listener "payment:added" se encargará de cerrar modal + recargar
+            btn.disabled = false;
+          }
+        });
+      } else {
+        // Fallback sin HTMX
+        fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrf }, body: new FormData(form) })
+          .then(r => r.text())
+          .then(html => {
+            const tmp = document.createElement('div'); tmp.innerHTML = html;
+            const newRow = tmp.querySelector('tr');
+            const tbody  = document.querySelector('#table-body');
+
+            if (newRow && tbody) {
+              tbody.appendChild(newRow);
+              // Emular el trigger para activar el cierre+reload
+              document.body.dispatchEvent(new CustomEvent('payment:added', {
+                bubbles: true, detail: { value: { msg: 'El pago se guardó correctamente.' } }
+              }));
+            } else {
+              // Si vino el form con errores
+              form.replaceWith(tmp.firstElementChild || tmp);
+            }
+          })
+          .catch(() => Swal.fire('Error', 'No se pudo guardar. Intenta nuevamente.', 'error'))
+          .finally(() => { btn.disabled = false; });
+      }
+    });
+  });
+
+  /***************
+   * ERROR: mostrar alerta si el servidor rechaza el pago
+   ***************/
+ /* document.body.addEventListener("payment:error", function (evt) {
+    const d = evt.detail || {};
+    const payload = d.value || d;
+    const msg = payload.msg || "No se pudo guardar el pago.";
+    Swal.fire({
+      icon: "error",
+      title: "No se pudo guardar",
+      text: msg,
+      confirmButtonText: "Entendido",
+      customClass: { confirmButton: 'btn btn-danger' }
+    });
+  });*/
+</script>
+
+<script>
+  // Rellena el input visible con la etiqueta de la opción seleccionada del <select hidden>
+  function hydrateConnectionUI(root) {
+    const container = root?.querySelector ? root : document;
+    const hidden   = container.querySelector('select[name="connection"]');
+    const input    = container.querySelector('#connection_search_input');
+    const clearBtn = container.querySelector('#connection-clear-btn');
+
+    if (!hidden || !input) return;
+
+    const val = hidden.value;
+    if (val) {
+      // Busca el texto de la opción seleccionada para mostrarlo en el input
+      let label = '';
+      const opt = hidden.querySelector(`option[value="${CSS.escape(val)}"]`);
+      if (opt) label = opt.textContent.trim();
+
+      // Si no encuentra la opción, conserva lo que ya tuviera el input
+      if (!label && input.value) label = input.value.trim();
+
+      input.value = label || input.value || '';
+      input.disabled = true;           // bloquea escritura para evitar inconsistencias
+      if (clearBtn) clearBtn.hidden = false;
+    } else {
+      // No hay selección: deja el input editable
+      input.disabled = false;
+      if (clearBtn) clearBtn.hidden = true;
+    }
+  }
+
+  // 1) Al cargar el DOM
+  document.addEventListener('DOMContentLoaded', function () {
+    hydrateConnectionUI(document);
+  });
+
+  // 2) Cada vez que HTMX reemplace el formulario
+  document.body.addEventListener('htmx:afterSwap', function (evt) {
+    // Si el swap afectó al propio form o a algún hijo suyo, re-hidrata
+    const swapped = evt.target;
+    if (!swapped) return;
+    if (swapped.id === 'payment-form' || swapped.querySelector?.('#payment-form')) {
+      hydrateConnectionUI(swapped);
+    }
+  });
+
+  // 3) Opcional: si cambias manualmente el <select> por cualquier motivo, re-hidrata
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.matches('select[name="connection"]')) {
+      hydrateConnectionUI(document);
+    }
+  });
+</script>
