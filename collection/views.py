@@ -522,15 +522,20 @@ def collection_search(request):
     user = request.user
     query = request.GET.get('q', '')
     page_number = request.GET.get('page', 1)
+    mode = request.GET.get('mode', 'month')
 
     per_page_options = [5, 10, 20, 50]
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
     today = timezone.localtime().date()
-    collection_list = Reading.objects.filter(
-        date_reading__year=today.year,
-        date_reading__month=today.month
-    )
+
+    if mode == 'all':
+        collection_list = Reading.objects.all()
+    else:
+        collection_list = Reading.objects.filter(
+            date_reading__year=today.year,
+            date_reading__month=today.month
+        )
 
     if user.groups.filter(name__in=["LECTOR", "COBRADOR"]).exists() and user.community:
         collection_list = collection_list.filter(connection__responsible__community=user.community)
@@ -544,7 +549,7 @@ def collection_search(request):
 
     data = []
     for reading in collection_list:
-        metros = reading.meter_reading - reading.previous_reading 
+        metros = reading.meter_reading - reading.previous_reading
         total_to_pay = Reading.calculate_amount(reading.fee, metros)
         total_to_pay += reading.late_payment + reading.penalty_fee
         data.append({
@@ -571,7 +576,7 @@ def collection_search(request):
 def charge_collected(request, pk):
     reading = get_object_or_404(Reading, pk=pk)
 
-    reading.is_active = True
+    reading.isPaid = True
 
     reading.save()
 
@@ -583,3 +588,84 @@ def charge_collected(request, pk):
         return response
 
     return redirect("collection_list")
+
+def collection_list_historical(request):
+    project = Project.objects.first()
+    user = request.user  # usuario en sesión
+
+    page_number = request.GET.get('page', 1)
+
+    per_page_options = [5, 10, 20, 50]
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    today = timezone.localtime().date()
+
+    collection_list = Reading.objects.all()
+
+    # Si el usuario es LECTOR o COLECTOR → limitar por comunidad
+    if user.groups.filter(name__in=["LECTOR", "COLECTOR"]).exists() and user.community:
+        collection_list = collection_list.filter(connection__responsible__community=user.community)
+
+    data = []
+    for reading in collection_list:
+        metros = reading.meter_reading - reading.previous_reading 
+        total_to_pay = Reading.calculate_amount(reading.fee, metros)
+        total_to_pay += reading.late_payment + reading.penalty_fee
+        data.append({
+            'reading': reading,
+            'total_to_pay': total_to_pay
+        })
+
+    paginator = Paginator(data, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'collection_search_url': reverse('collection_search'),
+        'page_obj': page_obj,
+        'per_page': per_page,
+        'per_page_options': per_page_options,
+        'project': project,
+    }
+
+    if request.headers.get('HX-Request'):
+        return render(request, "collection/partials/collection_content_historical.html", context)
+
+    return render(request, "collection/collection_historical.html", context)
+
+def collection_details(request, pk):
+
+    reading = get_object_or_404(Reading, pk=pk)
+
+    result = Reading.calculate_previous_unpaid_total(reading)
+
+    months_unread = 0
+
+    if result:
+        last_reading = result["last_reading"]
+        if(last_reading):
+            months_unread = (reading.date_reading.year - last_reading.date_reading.year) * 12 + (reading.date_reading.month - last_reading.date_reading.month)-1
+
+    meters_consumption = reading.meter_reading - reading.previous_reading
+    monto = Reading.calculate_amount(reading.fee, meters_consumption)
+
+    # Buscar el tramo aplicado
+    tramo_aplicado = None
+    for r in reading.fee.Fee_ranges.all().order_by("min_meter"):
+        if r.max_meter is not None:
+            if r.min_meter <= meters_consumption <= r.max_meter:
+                tramo_aplicado = r
+                break
+        else:
+            if meters_consumption >= r.min_meter:
+                tramo_aplicado = r
+                break
+
+    context = {
+        "reading": reading,
+        "months_unread": months_unread,
+        "consumption": meters_consumption,
+        "monto": monto,
+        "total": monto + reading.late_payment + reading.penalty_fee,
+        "tramo": tramo_aplicado
+    }
+    return render(request, "collection/partials/collection_details_modal.html", context)

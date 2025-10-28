@@ -11,3 +11,16 @@
   </div>
   {% include "collection/partials/collection_table.html" %}
 </div>
+
+
+<script>
+    document.body.addEventListener("chargedReading", () => {
+    Swal.fire({
+      title: "¡Cobro realizado!",
+      text: "El cobro se realizó correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false
+    });
+  });
+</script>

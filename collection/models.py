@@ -2,6 +2,8 @@ from django.db import models
 from project.models import WaterConnection
 from django.utils import timezone
 from decimal import Decimal
+from django.db.models import Q
+
 
 
 class Fee(models.Model):
@@ -196,6 +198,74 @@ class Reading(models.Model):
             "last_reading": last_reading,
             "total_unpaid": total_unpaid,
         }
+    
+    @staticmethod
+    def calculate_previous_unpaid_total(reading):
+        """
+        Retorna un diccionario con:
+        - total_amount: monto total acumulado de lecturas impagas anteriores a la lectura dada
+        - total_penalties: total de multas acumuladas
+        - total_to_pay: suma total a pagar (lecturas + multas)
+        - last_paid_reading: última lectura pagada encontrada
+        - last_reading: última lectura registrada antes de la lectura actual
+        - total_unpaid: cantidad de lecturas impagas anteriores
+        """
+
+        if not reading or not reading.connection:
+            return None
+
+        unpaid_total = Decimal("0.00")
+        penalty_total = Decimal("0.00")
+        last_paid = None
+        total_unpaid = 0
+
+        # 🔹 Obtenemos la fecha de la lectura actual
+        date_ref = reading.date_reading
+
+        if not date_ref:
+            return None
+
+        # 🔹 Filtramos solo las lecturas ANTERIORES a la fecha de la lectura actual
+        readings = (
+            Reading.objects
+            .filter(
+                connection=reading.connection
+            )
+            .exclude(
+                Q(date_reading__year__gt=date_ref.year) |
+                Q(date_reading__year=date_ref.year, date_reading__month__gte=date_ref.month)
+            )
+            .order_by("-date_reading")
+        )
+
+        if not readings.exists():
+            return None
+
+        last_reading = readings.first()
+
+        for r in readings:
+            if r.isPaid:
+                last_paid = r
+                break
+            else:
+                # 🔹 Sumar multa
+                penalty_total += r.penalty_fee
+
+                # 🔹 Calcular consumo
+                metros_consumidos = r.meter_reading - (r.previous_reading or 0)
+                monto = Reading.calculate_amount(r.fee, metros_consumidos)
+                unpaid_total += monto
+                total_unpaid += 1
+
+        return {
+            "total_amount": unpaid_total,
+            "total_penalties": penalty_total,
+            "total_to_pay": unpaid_total + penalty_total,
+            "last_paid_reading": last_paid,
+            "last_reading": last_reading,
+            "total_unpaid": total_unpaid,
+        }
+
 
     @staticmethod
     def calculate_amount(fee, metros):
