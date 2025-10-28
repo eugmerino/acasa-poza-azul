@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from decimal import Decimal
 from project.models import Project, WaterConnection
+from django.utils import timezone
 
 class Transaction(models.Model):
     TIPO_CHOICES = [

@@ -9,6 +9,10 @@ from django.http import HttpResponse
 import json
 from django.db.models import Sum
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.forms.utils import ErrorDict
+from django.db import transaction         
+from django.contrib import messages 
 
 
 
@@ -84,8 +88,25 @@ def payment_search(request):
         .order_by('-date_pay')
     )
 
+
+    accumulated_payments = {}
+    for payment in payment_list:
+        connection_id = payment.connection.id  # Obtener el id de la conexión
+
+        if connection_id not in accumulated_payments:
+            # Si no hay abonos previos para esta conexión, el "Restante" será el precio de adquisición
+            accumulated_payments[connection_id] = payment.connection.acquisition_price
+
+        # Restamos el abono actual al "Restante" de esta conexión
+        accumulated_payments[connection_id] -= payment.amount
+
+        # Asignamos el "Restante" calculado al pago actual
+        payment.restante = accumulated_payments[connection_id]
+
+    # Paginación
     paginator = Paginator(payment_list, per_page)
     page_obj = paginator.get_page(page_number)
+
 
     return render(
         request,
@@ -107,8 +128,26 @@ def payment_list_view(request):
 
     # Obtener todos los pagos y ordenarlos por fecha de pago
     payment_list = Payment.objects.all().order_by('-date_pay')
+
+    accumulated_payments = {}
+
+    for payment in payment_list:
+        connection_id = payment.connection.id  # Obtener el id de la conexión
+
+        if connection_id not in accumulated_payments:
+            # Si no hay abonos previos para esta conexión, el "Restante" será el precio de adquisición
+            accumulated_payments[connection_id] = payment.connection.acquisition_price
+
+        # Restamos el abono actual al "Restante" de esta conexión
+        accumulated_payments[connection_id] -= payment.amount
+
+        # Asignamos el "Restante" calculado al pago actual
+        payment.restante = accumulated_payments[connection_id]
+
+    # Paginación
     paginator = Paginator(payment_list, per_page)
     page_obj = paginator.get_page(page_number)
+
 
     return render(
         request,
@@ -123,7 +162,6 @@ def payment_list_view(request):
         }
     )
 
-
 def payment_search_view(request):
     query = request.GET.get('q', '')  # Buscar por monto o conexión (esto depende de lo que tengas en tu modelo)
     page_number = request.GET.get('page', 1)  # Número de página para paginación
@@ -135,8 +173,25 @@ def payment_search_view(request):
         Q(connection__description__icontains=query)  # Buscar por 'description' de la conexión
     ).order_by('-date_pay')
 
+
+    accumulated_payments = {}
+    for payment in payment_list:
+        connection_id = payment.connection.id  # Obtener el id de la conexión
+
+        if connection_id not in accumulated_payments:
+            # Si no hay abonos previos para esta conexión, el "Restante" será el precio de adquisición
+            accumulated_payments[connection_id] = payment.connection.acquisition_price
+
+        # Restamos el abono actual al "Restante" de esta conexión
+        accumulated_payments[connection_id] -= payment.amount
+
+        # Asignamos el "Restante" calculado al pago actual
+        payment.restante = accumulated_payments[connection_id]
+
+    # Paginación
     paginator = Paginator(payment_list, per_page)
     page_obj = paginator.get_page(page_number)
+
 
     return render(
         request,
@@ -216,8 +271,7 @@ def payment_create(request):
             resp = render(request, "payment/partials/payment_form.html", {"form": form})
             resp["HX-Retarget"] = "#payment-form"
             resp["HX-Reswap"] = "outerHTML"
-            resp["HX-Trigger"] = json.dumps({"payment:error": {"msg": msg}})
-            resp.status_code = 422
+            resp["HX-Trigger-After-Swap"] = json.dumps({"payment:error": {"msg": msg}})
             return resp
 
     # GET
@@ -233,16 +287,17 @@ def payment_connection_search(request):
     results = WaterConnection.objects.all()
 
     if q:
-        if q == "":
-            results = results.filter(
-                Q(description__icontains=q) |
-                Q(responsible__first_name__icontains=q) |
-                Q(responsible__last_name__icontains=q)
-            )[:3]
-        return render(
-            request,
-            "payment/partials/payment_search_results.html",  
-            {"connections": results},
+        
+        results = results.filter(
+            Q(description__icontains=q) |
+            Q(responsible__first_name__icontains=q) |
+            Q(responsible__last_name__icontains=q)
+         )[:3]
+
+    return render(
+         request,
+         "payment/partials/payment_search_results.html",  
+         {"connections": results},
     )
 
 

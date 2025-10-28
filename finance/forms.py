@@ -9,7 +9,30 @@ class PaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
         fields = ["connection", "amount"]
-        # ... tus widgets/labels ...
+        widgets = {
+            "connection": forms.Select(
+                attrs={
+                    "id": "connection_hidden",
+                    "style": "display:none;",
+                }
+            ),
+            "amount": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej. 15.00",
+                    "min": "0",
+                    "step": "0.01",
+                }
+            ),
+        }
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get("amount")
+        if amount is None:
+            return amount
+        if amount <= 0:
+            raise forms.ValidationError("El abono debe ser mayor a 0.")
+        return amount
 
     def clean(self):
         cleaned = super().clean()

@@ -25,7 +25,7 @@
         <input type="text"
                name="connection_search"
                id="connection_search_input"
-               class="form-control"
+               class="form-control {% if form.connection.errors %}is-invalid{% endif %}"
                placeholder="Escribe para buscar..."
                autocomplete="off"
                role="combobox" aria-expanded="false"
@@ -55,7 +55,18 @@
           ✕
         </button>
 
-        <div class="invalid-feedback">Debes buscar una acometida y seleccionar.</div>
+        {% if not form.connection.errors %}
+          <div class="invalid-feedback" id="conn-default-feedback">
+            Debes buscar una acometida y seleccionar.
+          </div>
+        {% endif %}
+
+        {% if form.connection.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.connection.errors|striptags }}
+          </div>
+        {% endif %}
+
       </div>
 
       <div id="connection-results"
@@ -86,6 +97,7 @@
   </div>
 </form>
 
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
 <script>
   /***************
    * Selección de acometida (se mantiene)
@@ -266,8 +278,9 @@
   /***************
    * ERROR: mostrar alerta si el servidor rechaza el pago
    ***************/
-  document.body.addEventListener("payment:error", function (evt) {
-    const payload = (evt.detail && evt.detail.value) || {};
+ /* document.body.addEventListener("payment:error", function (evt) {
+    const d = evt.detail || {};
+    const payload = d.value || d;
     const msg = payload.msg || "No se pudo guardar el pago.";
     Swal.fire({
       icon: "error",
@@ -276,5 +289,58 @@
       confirmButtonText: "Entendido",
       customClass: { confirmButton: 'btn btn-danger' }
     });
+  });*/
+</script>
+
+<script>
+  // Rellena el input visible con la etiqueta de la opción seleccionada del <select hidden>
+  function hydrateConnectionUI(root) {
+    const container = root?.querySelector ? root : document;
+    const hidden   = container.querySelector('select[name="connection"]');
+    const input    = container.querySelector('#connection_search_input');
+    const clearBtn = container.querySelector('#connection-clear-btn');
+
+    if (!hidden || !input) return;
+
+    const val = hidden.value;
+    if (val) {
+      // Busca el texto de la opción seleccionada para mostrarlo en el input
+      let label = '';
+      const opt = hidden.querySelector(`option[value="${CSS.escape(val)}"]`);
+      if (opt) label = opt.textContent.trim();
+
+      // Si no encuentra la opción, conserva lo que ya tuviera el input
+      if (!label && input.value) label = input.value.trim();
+
+      input.value = label || input.value || '';
+      input.disabled = true;           // bloquea escritura para evitar inconsistencias
+      if (clearBtn) clearBtn.hidden = false;
+    } else {
+      // No hay selección: deja el input editable
+      input.disabled = false;
+      if (clearBtn) clearBtn.hidden = true;
+    }
+  }
+
+  // 1) Al cargar el DOM
+  document.addEventListener('DOMContentLoaded', function () {
+    hydrateConnectionUI(document);
+  });
+
+  // 2) Cada vez que HTMX reemplace el formulario
+  document.body.addEventListener('htmx:afterSwap', function (evt) {
+    // Si el swap afectó al propio form o a algún hijo suyo, re-hidrata
+    const swapped = evt.target;
+    if (!swapped) return;
+    if (swapped.id === 'payment-form' || swapped.querySelector?.('#payment-form')) {
+      hydrateConnectionUI(swapped);
+    }
+  });
+
+  // 3) Opcional: si cambias manualmente el <select> por cualquier motivo, re-hidrata
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.matches('select[name="connection"]')) {
+      hydrateConnectionUI(document);
+    }
   });
 </script>
