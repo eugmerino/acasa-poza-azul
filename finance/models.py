@@ -18,7 +18,8 @@ class Transaction(models.Model):
     concept = models.CharField(max_length=255)
     type = models.CharField(max_length=1, choices=TIPO_CHOICES)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField()
+
 
     def __str__(self):
         return f"{self.get_type_display()} - {self.concept} (${self.amount})"

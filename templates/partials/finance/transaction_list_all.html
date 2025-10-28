@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Transacciones | {% if project and project.title %} {{ project.title }} {% else %} ACASA Poza Azul {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row mt-4 mb-2 text-center">
+    <div class="col-12">
+        <h1 class="h3">Todas las transacciones</h1>
+    </div>
+</div>
+
+<div class="table-responsive rounded-3">
+
+   <div class="header-controls d-flex justify-content-end">
+        
+            {% include "partials/search_table.html"  with hx_url=transaction_search_all_url  hx_target="#table-content" placeholder="Buscar Transacción..." %}
+        
+    </div>
+
+
+    <!-- Contenido de la tabla -->
+    <div id="table-content">
+        {% include "partials/finance/transaction_table.html" with page_obj=page_obj transaction_search_url=transaction_search_all_url %}
+    </div>
+
+</div>
+{% endblock %}
