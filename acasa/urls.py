@@ -9,7 +9,7 @@ urlpatterns = [
     path("", include("collection.urls")),
     path("", include("project.urls")),
     path("reuniones/", include("meeting.urls")),
-    path("transaccion", include("finance.urls")),
+    path("finanzas/", include("finance.urls")),
 ]
 
 if settings.DEBUG:

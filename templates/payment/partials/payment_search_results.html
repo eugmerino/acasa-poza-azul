@@ -1,0 +1,23 @@
+{% if connections %}
+  <ul class="list-group">
+    {% for c in connections %}
+      <li class="list-group-item list-group-item-action"
+          style="cursor:pointer"
+          onclick="(function(){
+            const input = document.getElementById('connection_search_input');
+            const hidden = document.querySelector('select[name=&quot;connection&quot;]');
+            const clearBtn = document.getElementById('connection-clear-btn');
+            input.value = '{{ c.description|escapejs }}';
+            input.disabled = true;
+            hidden.value = '{{ c.id }}';
+            clearBtn.hidden = false;
+            document.getElementById('connection-results').innerHTML='';
+          })();">
+        <strong>{{ c.description }}</strong><br>
+        <small class="text-muted">{{ c.responsible.first_name }} {{ c.responsible.last_name }}</small>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="p-2 text-muted">Sin resultados…</div>
+{% endif %}

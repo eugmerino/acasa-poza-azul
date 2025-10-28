@@ -10,6 +10,9 @@
 {% endblock %}
 
 {% block content %}
+
+  {% include "home/partials/resumen.html" %}
+  
   <div id="inicio">
     <div class="d-flex flex-column align-items-center justify-content-center" style="height: 80vh;">
       <img src="{% if project and project.logo %}

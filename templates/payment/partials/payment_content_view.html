@@ -1,0 +1,12 @@
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    <h1 class="h3">Historial de Pago de Acometida</h1>
+  </div>
+</div>
+
+<div class="table-container rounded-4 shadow p-4">    
+  <div class="header-controls d-flex justify-content-end">
+      {% include "partials/search_table.html" with hx_url=payment_view_search_url hx_target="#table-content" placeholder="Buscar Pago..." %}
+  </div>
+  {% include "payment/partials/payment_table_view.html" %}
+</div>
