@@ -71,11 +71,17 @@ class Payment(models.Model):
             raise ValidationError({'amount': f'El abono excede el restante (${restante}).'})
         
     @staticmethod
-    def total_pagado_por_acometida(acometida):
+    def total_pagado_por_acometida(payment):
         return (
             Payment.objects
-            .filter(connection=acometida)
+            .filter(
+                connection=payment.connection,
+                date_pay__lte=payment.date_pay 
+            )
             .aggregate(
-                total=Coalesce(Sum("amount"), Value(Decimal("0"), output_field=DecimalField()))
+                total=Coalesce(
+                    Sum("amount"),
+                    Value(Decimal("0"), output_field=DecimalField())
+                )
             )["total"]
         )
