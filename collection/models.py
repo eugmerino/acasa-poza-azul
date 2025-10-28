@@ -155,14 +155,20 @@ class Reading(models.Model):
         - last_paid_reading: última lectura pagada encontrada
         - last_reading: última lectura registrada
         """
+        today = timezone.localtime().date()
 
         unpaid_total = Decimal("0.00")
         penalty_total = Decimal("0.00")
         last_paid = None
         total_unpaid = 0
 
-        # Lecturas ordenadas de la más reciente a la más antigua
-        readings = Reading.objects.filter(connection=connection).order_by("-date_reading")
+        # Lecturas ordenadas de la más reciente a la más antigua(excluyendo las del corriente mes)
+        readings = (
+            Reading.objects
+            .filter(connection=connection)
+            .exclude(date_reading__year=today.year, date_reading__month=today.month)
+            .order_by("-date_reading")
+        )
         if not readings.exists():
             return None
 

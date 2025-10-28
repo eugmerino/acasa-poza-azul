@@ -22,8 +22,13 @@
             <ul class="dropdown-menu">
                 {% if connection.has_current_reading %}
                     <li>
-                        <a href="#" 
-                            class="dropdown-item">
+                        <a href=""
+                            class="dropdown-item"
+                            data-bs-toggle="modal"
+                            data-bs-target="#readingModal"
+                            hx-get="{% url 'search_connection_reading' connection.id 'edit' %}"
+                            hx-target="#reading-content-modal"
+                            hx-trigger="click">
                                 <i class="fa-solid fa-droplet me-2"></i> Editar
                         </a>
                     </li>
@@ -36,7 +41,7 @@
                             hx-get="{% url 'reading_create' connection.id %}"
                             hx-target="#reading-content-modal"
                             hx-trigger="click">
-                            <i class="fa-solid fa-gauge-simple-high me-2"></i> Registrar
+                                <i class="fa-solid fa-gauge-simple-high me-2"></i> Registrar
                         </a>
                     </li>
                 {% endif %}

@@ -12,6 +12,10 @@ urlpatterns = [
     path('lecturas/', views.readings_list, name='readings_list'),
     path('lecturas/buscar', views.reading_search, name='reading_search'),
     path('lecturas/crear/<int:pk>/', views.reading_create, name='reading_create'),
-    path('lecturas/edit/<int:pk>/', views.reading_edit, name='reading_edit'),
+    path('lecturas/editar/<int:pk>/', views.reading_edit, name='reading_edit'),
+    path('reading/search/<int:pk>/<str:mode>/', views.search_connection_reading, name='search_connection_reading'),
     path('reading/details/', views.reading_details, name='reading_details'),
+    path('Cobros/', views.collection_list, name='collection_list'),
+    path('Cobros/buscar', views.collection_search, name='collection_search'),
+    path('Cobros/cobrar/<int:pk>/', views.charge_collected, name='charge_collected'),
 ]

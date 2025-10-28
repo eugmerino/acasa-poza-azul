@@ -1,0 +1,66 @@
+<tr id="reading-{{ item.reading.id }}">
+    <td>{{ item.reading.receipt_number }}</td>
+    <td>{{ item.reading.connection.description }}</td>
+    <td>{{ item.reading.connection.responsible.first_name }} {{ item.reading.connection.responsible.last_name }}</td>
+    <td>{{ item.reading.connection.responsible.community.name }}</td>
+    <td>$ {{ item.total_to_pay  }}</td>
+    <td>
+        {% if item.reading.isPaid %}
+            <span class="badge bg-success">Cobrado</span>
+        {% else %}
+            <span class="badge bg-warning text-dark">Sin cobrar</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="btn-group">
+            <button
+                type="button"
+                class="btn btn-outline-primary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+                <span class="visually-hidden">Acciones</span>
+            </button>
+            <ul class="dropdown-menu">
+                {% if not item.reading.isPaid %}
+                    <li>
+                        <a href=""
+                            class="dropdown-item"
+                            onclick="chargeCollected({{ item.reading.pk }}, '{{ csrf_token }}')">
+                                <i class="fa-solid fa-droplet me-2"></i> Cobrar
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </td>
+</tr>
+
+<script>
+    
+    function chargeCollected(pk, csrfToken) {
+
+    Swal.fire({
+      title: `¿Realizar cobro?`,
+      text: "No podra revertir esta accion.",
+      icon: "question",
+      showCancelButton: true,
+      customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-secondary'
+          },
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        htmx.ajax('POST', `cobrar/${pk}`, {
+          target: "#main-container",
+          swap: "innerHTML",
+          headers: {
+            "X-CSRFToken": csrfToken
+          }
+        });
+      }
+    });
+  }
+</script>

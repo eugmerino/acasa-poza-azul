@@ -40,10 +40,23 @@ class ReadingForm(forms.ModelForm):
         }
 
     def clean_receipt_number(self):
-        """Valida que el número de recibo no esté duplicado."""
+        """Valida que el número de recibo sea numérico y único."""
         receipt_number = self.cleaned_data.get('receipt_number')
-        if receipt_number and Reading.objects.filter(receipt_number=receipt_number).exists():
-            raise ValidationError('Ya existe una lectura con este número de recibo.')
+
+        # Verifica que no esté vacío y solo contenga números
+        if not receipt_number:
+            raise ValidationError('El número de recibo es obligatorio.')
+        if not str(receipt_number).isdigit():
+            raise ValidationError('El formato del N.º del recibo es numérico.')
+
+        # Verifica si ya existe otro registro con ese número
+        qs = Reading.objects.filter(receipt_number=receipt_number)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise ValidationError('Ya existe un registro con este número de recibo.')
+
         return receipt_number
 
     def clean_meter_reading(self):

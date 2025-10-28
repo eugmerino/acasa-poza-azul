@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseRedirect, Http404
 from .models import Fee, Range, Reading
 from project.models import Project, WaterConnection
 from meeting.models import Meeting
@@ -187,11 +188,7 @@ def readings_list(request):
         connections_list = connections_list.filter(responsible__community=user.community)
 
     # Filtros de búsqueda
-    connections_list = connections_list.filter(
-        Q(description__icontains=query)
-        | Q(responsible__first_name__icontains=query)
-        | Q(responsible__last_name__icontains=query)
-    ).annotate(has_current_reading=Exists(current_month_reading))
+    connections_list = connections_list.all().annotate(has_current_reading=Exists(current_month_reading))
 
     paginator = Paginator(connections_list, per_page)
     page_obj = paginator.get_page(page_number)
@@ -199,7 +196,6 @@ def readings_list(request):
     context = {
         'reading_search_url': reverse('reading_search'),
         'page_obj': page_obj,
-        'query': query,
         'per_page': per_page,
         'per_page_options': per_page_options,
         'project': project,
@@ -307,7 +303,7 @@ def reading_create(request, pk):
             form.save()
             if request.headers.get('HX-Request'):
                 response = HttpResponse()
-                response['HX-Redirect'] = reverse('readings_list')
+                response["HX-Trigger"] = "readingCreated"
                 return response
         else:
             response = render(
@@ -349,10 +345,56 @@ def reading_create(request, pk):
         },
     )
 
-def reading_edit(request):
-    form = ReadingForm()
+def reading_edit(request, pk):
+    reading = get_object_or_404(Reading, pk=pk)
+    con = reading.connection
+    today = reading.date_reading
+    project = Project.objects.first()
 
-    return render(request, "reading/partials/reading_form.html", {"form": form})
+    result = Reading.calculate_unpaid_total(con)
+
+    total_to_pay = 0
+    months_unread = 0
+    total_unpaid = 0
+
+    if result:
+        last_reading = result["last_reading"]
+        total_to_pay = result["total_to_pay"]
+        total_unpaid = result["total_unpaid"]
+        if total_to_pay is not None:
+            total_to_pay = f"{total_to_pay:.2f}"
+        else:
+            total_to_pay = "0.00"
+        months_unread = (today.year - last_reading.date_reading.year) * 12 + (today.month - last_reading.date_reading.month)-1
+
+    if request.method == "POST":
+        form = ReadingForm(request.POST, instance=reading)
+        if form.is_valid():
+            reading.date_reading = None
+            form.save()
+            if request.headers.get('HX-Request'):
+                response = HttpResponse()
+                response["HX-Trigger"] = "readingUpdated"
+                return response
+    else:
+        form = ReadingForm(instance=reading)
+
+    return render(
+        request,
+        "reading/partials/reading_form.html",
+        {
+            "form": form,
+            "reading": reading,
+            "connection": con,
+            "today": today,
+            "pre_reading": reading.previous_reading,
+            "total_to_pay": total_to_pay,
+            "months_unread": months_unread,
+            "total_unpaid": total_unpaid,
+            "penalty_fee": f"{reading.penalty_fee:.2f}",
+            "penalty": Decimal(reading.penalty_fee or 0),
+        },
+    )
 
 def reading_details(request):
     """
@@ -400,3 +442,144 @@ def reading_details(request):
         "tramo": tramo_aplicado,
     }
     return render(request, "reading/partials/details_modal.html", context)
+
+def search_connection_reading(request, pk, mode):
+    """
+    Busca la última lectura de una acometida y redirige según el modo.
+    mode: 'edit' o 'view'
+    """
+    con = get_object_or_404(WaterConnection, pk=pk)
+    last_reading = Reading.objects.filter(connection=con).order_by('-date_reading').first()
+
+    if not last_reading:
+        # No existe lectura anterior
+        raise Http404("No se encontró ninguna lectura para esta acometida.")
+
+    if mode == 'edit':
+        # Redirige a la vista de edición (usando HTMX)
+        url = reverse('reading_edit', args=[last_reading.id])
+        response = HttpResponseRedirect(url)
+        return response
+
+    elif mode == 'view':
+        # Podrías crear una vista tipo "reading_detail"
+        url = reverse('reading_detail', args=[last_reading.id])
+        response = HttpResponseRedirect(url)
+        return response
+
+    else:
+        raise Http404("Modo no válido.")
+       
+
+def collection_list(request):
+    project = Project.objects.first()
+    user = request.user  # usuario en sesión
+
+    page_number = request.GET.get('page', 1)
+
+    per_page_options = [5, 10, 20, 50]
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    today = timezone.localtime().date()
+
+    collection_list = Reading.objects.filter(
+        date_reading__year=today.year,
+        date_reading__month=today.month
+    )
+
+    # Si el usuario es LECTOR o COLECTOR → limitar por comunidad
+    if user.groups.filter(name__in=["LECTOR", "COLECTOR"]).exists() and user.community:
+        collection_list = collection_list.filter(connection__responsible__community=user.community)
+
+    data = []
+    for reading in collection_list:
+        metros = reading.meter_reading - reading.previous_reading 
+        total_to_pay = Reading.calculate_amount(reading.fee, metros)
+        total_to_pay += reading.late_payment + reading.penalty_fee
+        data.append({
+            'reading': reading,
+            'total_to_pay': total_to_pay
+        })
+
+    paginator = Paginator(data, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'collection_search_url': reverse('collection_search'),
+        'page_obj': page_obj,
+        'per_page': per_page,
+        'per_page_options': per_page_options,
+        'project': project,
+        'today': today, 
+    }
+
+    if request.headers.get('HX-Request'):
+        return render(request, "collection/partials/collection_content.html", context)
+
+    return render(request, "collection/collection.html", context)
+
+def collection_search(request):
+    user = request.user
+    query = request.GET.get('q', '')
+    page_number = request.GET.get('page', 1)
+
+    per_page_options = [5, 10, 20, 50]
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    today = timezone.localtime().date()
+    collection_list = Reading.objects.filter(
+        date_reading__year=today.year,
+        date_reading__month=today.month
+    )
+
+    if user.groups.filter(name__in=["LECTOR", "COBRADOR"]).exists() and user.community:
+        collection_list = collection_list.filter(connection__responsible__community=user.community)
+
+    collection_list = collection_list.filter(
+        Q(connection__description__icontains=query)
+        | Q(receipt_number__icontains=query)
+        | Q(connection__responsible__first_name__icontains=query)
+        | Q(connection__responsible__last_name__icontains=query)
+    )
+
+    data = []
+    for reading in collection_list:
+        metros = reading.meter_reading - reading.previous_reading 
+        total_to_pay = Reading.calculate_amount(reading.fee, metros)
+        total_to_pay += reading.late_payment + reading.penalty_fee
+        data.append({
+            'reading': reading,
+            'total_to_pay': total_to_pay
+        })
+
+    paginator = Paginator(data, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'collection/partials/collection_table.html',
+        {
+            'collection_search_url': reverse('collection_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+        }
+    )
+
+@require_POST
+def charge_collected(request, pk):
+    reading = get_object_or_404(Reading, pk=pk)
+
+    reading.is_active = True
+
+    reading.save()
+
+    if request.headers.get("HX-Request"):
+        response = collection_list(request)
+        response["HX-Trigger"] = (
+            "chargedReading"
+        )
+        return response
+
+    return redirect("collection_list")

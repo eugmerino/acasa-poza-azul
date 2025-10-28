@@ -129,7 +129,7 @@
 
     <div class="modal-footer justify-content-between">
         <div>
-            <button type="submit" class="btn btn-success">
+            <button type="submit" class="btn btn-success" onclick="confirmReading(event)">
             {% if reading %}
                 <i class="fas fa-edit me-1"></i> Editar
             {% else %}
@@ -192,4 +192,35 @@
     }
   })
 
+</script>
+
+<script>
+function confirmReading(event) {
+    event.preventDefault(); // evita el envío automático
+
+    Swal.fire({
+        title: '¿Guardar lectura?',
+        text: '¿Deseas confirmar el registro de esta lectura?',
+        icon: "question",
+        showCancelButton: true,
+        customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-secondary'
+        },
+        confirmButtonText: "Sí, guardar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = event.target.closest("form");
+
+            // Esto dispara el submit de HTMX si tienes hx-post
+            if (window.htmx) {
+                htmx.trigger(form, "submit");
+            } else {
+                // Si no hay HTMX, hace submit normal (incluye csrf_token)
+                form.submit();
+            }
+        }
+    });
+}
 </script>
