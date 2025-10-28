@@ -1,0 +1,95 @@
+<tr id="reading-{{ item.reading.id }}">
+    <td>{{ item.reading.receipt_number }}</td>
+    <td>{{ item.reading.connection.description }}</td>
+    <td>{{ item.reading.connection.responsible.first_name }} {{ item.reading.connection.responsible.last_name }}</td>
+    <td>{{ item.reading.connection.responsible.community.name }}</td>
+    <td>$ {{ item.total_to_pay  }}</td>
+    <td>
+        {% if item.reading.isPaid %}
+            <span class="badge bg-success">Cobrado</span>
+        {% else %}
+            <span class="badge bg-warning text-dark">Sin cobrar</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="btn-group">
+            <button
+                type="button"
+                class="btn btn-outline-primary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+                <span class="visually-hidden">Acciones</span>
+            </button>
+            <ul class="dropdown-menu">
+                {% if not item.reading.isPaid %}
+                    <li>
+                        <a href="#"
+                            class="dropdown-item"
+                            onclick="chargeCollected({{ item.reading.pk }}, '{{ csrf_token }}')">
+                                <i class="fa-solid fa-cash-register me-2"></i> Cobrar
+                        </a>
+                    </li>
+                {% endif %}
+                <li>
+                    <a href="#"
+                        class="dropdown-item"
+                        hx-get="{% url 'collection_details' item.reading.id %}"
+                        hx-target="#collection-details-modal"
+                        hx-trigger="click">
+                            <i class="fa-solid fa-file-invoice-dollar me-2"></i> Ver detalles
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </td>
+</tr>
+
+<div id="collection-details-modal"></div>
+
+<script>
+    
+    function chargeCollected(pk, csrfToken) {
+
+    Swal.fire({
+      title: `¿Realizar cobro?`,
+      text: "No podrá revertir esta acción.",
+      icon: "question",
+      showCancelButton: true,
+      customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-secondary'
+          },
+      confirmButtonText: "Sí, continuar",
+      cancelButtonText: "Cancelar"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        htmx.ajax('POST', `cobrar/${pk}/`, {
+          target: "#main-container",
+          swap: "innerHTML",
+          headers: {
+            "X-CSRFToken": csrfToken
+          }
+        });
+      }
+    });
+  }
+</script>
+
+<script>
+document.body.addEventListener("htmx:afterSwap", (event) => {
+  // Mostrar la modal sólo si el contenido cargado es la modal
+  if (event.detail.target.id === "collection-details-modal") {
+    const modalEl = document.getElementById("collectionDetailsModal");
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    // Al cerrar, limpiar backdrop y clase del body (evita el fondo oscuro)
+    modalEl.addEventListener("hidden.bs.modal", () => {
+      document.body.classList.remove("modal-open");
+      document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+    });
+  }
+});
+</script>
+

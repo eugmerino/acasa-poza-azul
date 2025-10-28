@@ -1,0 +1,29 @@
+<div
+    class="table-responsive rounded-3"
+    id="table-content"
+>
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+        <tr>
+            <th>N.° Recibo</th>
+            <th>Acometida</th>
+            <th>Responsable</th>
+            <th>Comunidad</th>
+            <th>Total a pagar</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody id="table-body">
+        {% for item in page_obj %}
+            {% include "collection/partials/collection_row_table_historical.html" %}
+        {% empty %}
+            <tr class="text-center">
+                <td colspan="7">No hay resultados</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "partials/paginator.html" with hx_url=collection_search_url hx_target="#table-content" per_page_options=per_page_options %}
+</div>

@@ -1,0 +1,12 @@
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    <h1 class="h3">Histórico de cobros</h1>
+  </div>
+</div>
+
+<div class="table-container rounded-4 shadow p-4">    
+  <div class="header-controls d-flex justify-content-end">
+    {% include "partials/search_table.html" with hx_url=collection_search_url|add:"?mode=all" hx_target="#table-content" placeholder="Buscar en todo el historial..." %}
+  </div>
+  {% include "collection/partials/collection_table_historical.html" %}
+</div>
