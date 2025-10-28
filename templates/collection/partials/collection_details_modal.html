@@ -1,0 +1,51 @@
+<div class="modal fade" id="collectionDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-primary shadow-lg">
+      <div class="modal-header">
+        <h5 class="modal-title">Detalles del Cobro</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% if reading %}
+          <p><strong>N.° Recibo:</strong> {{ reading.receipt_number }}</p>
+          <p><strong>Acometida:</strong> {{ reading.connection.description }}</p>
+          <p><strong>A nombre de:</strong> {{ reading.connection.responsible.first_name }} {{ reading.connection.responsible.last_name }}</p>
+          <p><strong>Lectura anterior:</strong> {{ reading.previous_reading }}  -   <strong>Lectura del medidor:</strong> {{ reading.meter_reading }}</p>
+          <p><strong>Consumo:</strong> {{ consumption }} m³</p>
+          <hr>
+          <p><strong>Tarifa aplicada:</strong> {{ reading.fee.short_description }}</p>
+          <p><strong>Tramo aplicado:</strong> {{ tramo.min_meter }} - {{ tramo.max_meter|default:"∞" }} m³</p>
+          <p><strong>Monto fijo:</strong> ${{ tramo.fixed_amount }}</p>
+          <p><strong>Monto por metro adicional:</strong> ${{ tramo.amount_meter }}</p>
+          <hr>
+          <p><strong>Monto por consumo:</strong> ${{ monto }}</p>
+          <p><strong>Mora:</strong> ${{ reading.late_payment }}</p>
+          <p><strong>Multa:</strong> ${{ reading.penalty_fee }}</p>
+          <hr>
+          <h5><strong>Total a pagar:</strong> ${{ total }}</h5>
+          <hr>
+          <span class="text-danger">Notas:</span><br>
+            {% if months_unread > 0 %}
+            <span class="small">Este usuario tiene {{ months_unread }} mes sin lectura.</span><br>
+            {% endif %}
+            {% if reading.late_payment > 0 %}
+            <span class="small">Este usuario tiene {{ reading.late_payment }} mes de mora.</span><br>
+            {% endif %}
+            {% if reading.penalty_fee > 0 %}
+                <span class="small">Multa por inasistencia a reunion.</span><br>
+            {% endif %}
+            {% if months_unread <= 0 and reading.late_payment <= 0 %}
+            <span class="small">Usuario al día con sus pagos.</span>
+            {% endif %}
+        {% else %}
+          <p>No se encontró un cobro aplicable.</p>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

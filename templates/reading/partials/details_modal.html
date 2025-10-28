@@ -1,0 +1,32 @@
+<!-- reading/partials/details_modal.html -->
+<div class="modal fade show modal-stack" id="detailsModal" tabindex="-1" aria-modal="true" style="display:block; background: rgba(0,0,0,0.3);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-primary shadow-lg">
+      <div class="modal-header">
+        <h5 class="modal-title">Detalles del cálculo</h5>
+        <button type="button" class="btn-close" id="btn-close-details" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% if tramo %}
+          <p><strong>Consumo:</strong> {{ metros }} m³</p>
+          <p><strong>Tramo aplicado:</strong> {{ tramo.min_meter }} - {{ tramo.max_meter|default:"∞" }} m³</p>
+          <p><strong>Monto fijo:</strong> ${{ tramo.fixed_amount }}</p>
+          <p><strong>Monto por metro adicional:</strong> ${{ tramo.amount_meter }}</p>
+          <hr>
+          <p><strong>Monto por consumo:</strong> ${{ monto }}</p>
+          <p><strong>Mora:</strong> ${{ late_fee }}</p>
+          <p><strong>Multa:</strong> ${{ penalty_fee }}</p>
+          <hr>
+          <h5><strong>Total a pagar:</strong> ${{ total }}</h5>
+        {% else %}
+          <p>No se encontró un tramo aplicable.</p>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="closeDetailsModal">
+          <i class="fas fa-times me-1"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

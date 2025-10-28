@@ -38,17 +38,45 @@
     Iniciar sesión
   </button>
   <a href="{% url 'password_reset_request' %}" class="d-block text-center small icon-agua">¿Olvidó su contraseña?</a>
+
+  <!-- Overlay spinner -->
+  <div id="overlay" class="overlay d-none">
+    <div class="spinner-border text-light" role="status" style="width:3rem;height:3rem;">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
 </form>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function togglePassword() {
-  const input = document.getElementById("password");
-  const icon = document.querySelector(".toggle-password i");
-  input.type === "password"
-    ? (input.type = "text", icon.classList.replace("fa-eye-slash", "fa-eye"))
-    : (input.type = "password", icon.classList.replace("fa-eye", "fa-eye-slash"));
-}
+  function togglePassword() {
+    const input = document.getElementById("password");
+    const icon = document.querySelector(".toggle-password i");
+    input.type === "password"
+      ? (input.type = "text", icon.classList.replace("fa-eye-slash", "fa-eye"))
+      : (input.type = "password", icon.classList.replace("fa-eye", "fa-eye-slash"));
+  }
+
+  // Spinner + overlay al enviar
+  const form = document.getElementById("login-form");
+  const btn = document.querySelector("button[type='submit']");
+  const overlay = document.getElementById("overlay");
+
+  form.addEventListener("submit", function(event) {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+      form.classList.add('was-validated');
+      return;
+    }
+    overlay.classList.remove("d-none");
+    btn.disabled = true;
+    btn.innerHTML = `
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      Validando...
+    `;
+  });
 </script>
 {% endblock %}
+
