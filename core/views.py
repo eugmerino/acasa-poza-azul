@@ -6,19 +6,54 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from .forms import UserLoginForm
-from project.models import Project, WaterConnection
+from project.models import Project, WaterConnection, Community
+from collection.models import Reading
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django import forms
+from django.shortcuts import render
+from django.utils import timezone
+from django.utils.formats import date_format 
 
 
 @login_required(login_url='login')
 def inicio(request):
-    project = Project.objects.first()
-    return render(request, "home/home.html", {"project": project})
+     project = Project.objects.first()
+     
+     active_partner_count = WaterConnection.objects.values('responsible').distinct().count()
+
+     active_connections_count = WaterConnection.objects.filter(is_active=True).count()
+
+     active_communities_count = Community.objects.count()
+
+     today = timezone.localdate()
+     first_day = today.replace(day=1)
+     if today.month == 12:
+        first_day_next = first_day.replace(year=today.year + 1, month=1)
+     else:
+        first_day_next = first_day.replace(month=today.month + 1)
+
+     # Lecturas del mes
+     readings_month = Reading.objects.filter(date_reading__gte=first_day,date_reading__lt=first_day_next)
+     total_readings_month = readings_month.count()
+     paid_readings_month = readings_month.filter(isPaid=True).count()
+        # Solo este dato mostramos — EJEMPLO: 30/50
+     charges_ratio = f"{paid_readings_month}/{total_readings_month}"
+
+     current_month = date_format(timezone.localtime(), 'F', use_l10n=True).capitalize()
+
+     return render(request, "home/home.html", {
+            "project": project,
+            "active_partner_count": active_partner_count,
+            "active_connections_count": active_connections_count,
+            "active_communities_count": active_communities_count,
+            "current_month": current_month,
+            "charges_ratio": charges_ratio, 
+        })
+
 
 
 # Diccionario en memoria para rastrear intentos por IP
@@ -156,4 +191,3 @@ def password_reset_confirm(request, uid, token):
     else:
         messages.error(request, "El enlace de restablecimiento no es válido o ha expirado.")
         return render(request, "authentication/password_reset_confirm.html", {"project": project, "validlink": False})
-
