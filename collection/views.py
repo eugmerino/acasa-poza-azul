@@ -17,6 +17,10 @@ from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from datetime import date
 from decimal import Decimal
+from django.template.loader import render_to_string
+import tempfile
+from playwright.sync_api import sync_playwright
+import weasyprint
 
 
 # Opciones de paginación
@@ -669,3 +673,39 @@ def collection_details(request, pk):
         "tramo": tramo_aplicado
     }
     return render(request, "collection/partials/collection_details_modal.html", context)
+
+def collection_pdf(request):
+    project = Project.objects.first()
+    today = timezone.localtime().date()
+
+    # Lecturas del mes actual
+    collection_list = Reading.objects.filter(
+        date_reading__year=today.year,
+        date_reading__month=today.month
+    )
+
+    data = []
+    for reading in collection_list:
+        metros = reading.meter_reading - reading.previous_reading
+        total_to_pay = Reading.calculate_amount(reading.fee, metros)
+        total_to_pay += reading.late_payment + reading.penalty_fee
+        data.append({
+            'reading': reading,
+            'total_to_pay': total_to_pay
+        })
+
+    # URL del logo accesible para weasyprint
+    logo_url = request.build_absolute_uri(project.logo.url) if project.logo else None
+
+    html_string = render_to_string('collection/partials/collection_pdf.html', {
+        'project': project,
+        'logo_url': logo_url,
+        'collection_data': data,
+        'today': today
+    })
+
+    pdf_file = weasyprint.HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Cobros_{today}.pdf"'
+    return response
