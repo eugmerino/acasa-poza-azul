@@ -1,0 +1,44 @@
+<tr id="repair-{{ repair.id }}">
+    <td>{{ repair.report_title }}</td>
+    <td>{{ repair.community.name  }}</td>
+    <td>{{ repair.report_date  }}</td>
+    <td>
+        {% if repair.repair_date %}
+        <span class="badge bg-success">Reparado</span>
+        {% else %}
+        <span class="badge bg-secondary">Sin reparar</span>   
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="btn-group">
+            <button
+                type="button"
+                class="btn btn-outline-primary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+                <span class="visually-hidden">Acciones</span>
+                {% if repair.is_paid %}
+                <i class="fa-solid fa-lock"></i>
+                {% endif %}
+            </button>
+            {% if not repair.is_paid %}
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item"
+                        href="#"
+                        hx-get="{% url 'repair_edit' repair.id %}"
+                        hx-target="#main-container"
+                        hx-swap="innerHTML">
+                        {% if repair.repair_date %}
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Editar
+                        {% else %}
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Registrar
+                        {% endif %}
+                    </a>
+                </li>
+            </ul>
+            {% endif %}
+        </div>
+    </td>
+</tr>

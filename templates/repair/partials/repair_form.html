@@ -1,0 +1,260 @@
+{% load static %}
+
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    {% if mode == "edit" %}
+      <h1 class="h3">Editar reparación</h1>
+    {% else %}
+      <h1 class="h3">Registrar reparación</h1>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header card-header-custom">
+    <h5 class="mb-0 d-inline">Formulario de Reparación</h5>
+    <a href="#ayudaModal" class="btn btn-link btn-sm" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda">
+      <i class="fa-solid fa-circle-info"></i>
+    </a>
+  </div>
+
+  <div class="card-body">
+    <form id="form-report-repair"
+          method="post"
+          enctype="multipart/form-data"
+          hx-post="{% if report %}{% url 'repair_edit' report.id %}{% endif %}"
+          hx-target="#main-container"
+          hx-swap="innerHTML">
+      {% csrf_token %}
+
+      <fieldset class="border p-3 rounded mb-5">
+        <legend class="w-auto px-2">Datos de reporte</legend><hr>
+
+        <!-- Título del reporte -->
+        <div class="mb-3">
+          <label class="form-label">
+            Título del reporte:
+          </label>
+          <input type="text"
+          value="{{ report.report_title }}"
+          class="form-control"
+          disabled>
+        </div>
+        
+        <!-- Comunidad -->
+        <div class="mb-3">
+          <label class="form-label">
+            Comunidad:
+          </label>
+          <select class="form-select"
+                  disabled>
+            <option value="">{{ report.community.name }}</option>
+          </select>
+        </div>
+        
+        <!-- Foto del reporte -->
+        <div class="mb-5">
+          <div class="text-center mb-3">
+            <img id="report-photo-preview"
+                src="{% if form.instance.report_photo %}{{ form.instance.report_photo.url }}{% else %}{% static 'img/image-not-found.png' %}{% endif %}"
+                alt="Foto del reporte"
+                class="img-fluid rounded shadow"
+                style="max-width: 100%; max-height: 300px; object-fit: contain; cursor: pointer;"
+                data-bs-toggle="modal"
+                data-bs-target="#imageModal" />
+          </div>
+
+          {{ form.report_photo }}
+        </div>
+      </fieldset>
+
+      <fieldset class="border p-3 rounded mb-5">
+        <legend class="w-auto px-2">Datos de la reparación</legend><hr>
+
+        <!-- Título del fecha -->
+        <div class="mb-3 col-4">
+          <label class="form-label">
+            Fecha:(hoy)
+          </label>
+          <input type="text"
+          value="{{ today }}"
+          class="form-control"
+          disabled>
+        </div>
+        
+        <!-- Descripción -->
+        <div class="mb-3">
+          <label for="{{ form.repair_description.id_for_label }}" class="form-label">
+            {{ form.repair_description.label }}: <span class="text-danger">*</span>
+          </label>
+          <textarea name="{{ form.repair_description.name }}"
+                    id="{{ form.repair_description.id_for_label }}"
+                    rows="4"
+                    placeholder="Describa de la reparación"
+                    class="form-control{% if form.repair_description.errors %} is-invalid{% endif %}">{{ form.repair_description.value|default_if_none:'' }}</textarea>
+          {% if form.repair_description.errors %}
+            {% for error in form.repair_description.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <!-- Foto de la reparación -->
+        <div class="mb-5">
+          <label class="form-label">{{ form.repair_photo.label }}: <span class="text-danger">*</span></label>
+          <div class="text-center mb-3">
+            <img id="repair-photo-preview"
+                src="{% if form.instance.repair_photo %}{{ form.instance.repair_photo.url }}{% else %}{% static 'img/image-not-found.png' %}{% endif %}"
+                alt="Foto de la reparación"
+                class="img-fluid rounded shadow"
+                style="max-width: 100%; max-height: 300px; object-fit: contain; cursor: pointer;"
+                data-bs-toggle="modal"
+                data-bs-target="#repairImageModal" />
+          </div>
+
+          {{ form.repair_photo }}
+          {% if form.repair_photo.errors %}
+            {% for error in form.repair_photo.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          {% endif %}
+          <span class="small text-muted">Recomendación: peso máximo 1 MB, formato horizontal o vertical libre.</span>
+        </div>
+
+
+      </fieldset>
+
+      <div class="mb-3 text-muted">
+        <span class="text-danger">*</span><span class="small"> Campos obligatorios</span>
+      </div>
+
+      <!-- Botones -->
+      <div class="d-flex justify-content-end gap-2">
+        <div class="w-100 d-flex justify-content-between gap-2">
+          {% if mode == "edit" %}
+            <button type="submit" class="btn btn-success">
+              <i class="fa-solid fa-pen-to-square me-2"></i></i>Editar
+            </button>
+          {% else %}
+            <button type="submit" class="btn btn-success" onclick="confirmCreate(event)">
+              <i class="fas fa-save me-2"></i>Guardar
+            </button>
+          {% endif %}
+          <button type="button" class="btn btn-secondary" 
+                  hx-get="{% url 'repair_list' %}" 
+                  hx-target="#main-container" 
+                  hx-swap="innerHTML">
+            <i class="fas fa-times me-2"></i>Cancelar</button
+          >
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para mostrar imagen en grande -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark">
+      <div class="modal-body p-0 text-center">
+        <img id="modalImage" src="" class="img-fluid rounded" alt="Vista ampliada">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para la foto de la reparación -->
+<div class="modal fade" id="repairImageModal" tabindex="-1" aria-labelledby="repairImageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark">
+      <div class="modal-body p-0 text-center">
+        <img id="modalRepairImage" src="" class="img-fluid rounded" alt="Vista ampliada de la reparación">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  let lastReportImage = null;
+  let lastRepairImage = null;
+
+  function initImageModals() {
+    // Modal de reporte
+    const reportModal = document.getElementById("imageModal");
+    if (reportModal) {
+      reportModal.addEventListener("show.bs.modal", function () {
+        const img = document.getElementById("report-photo-preview");
+        const modalImg = document.getElementById("modalImage");
+        if (img && modalImg) modalImg.src = img.src;
+      });
+    }
+
+    // Modal de reparación
+    const repairModal = document.getElementById("repairImageModal");
+    if (repairModal) {
+      repairModal.addEventListener("show.bs.modal", function () {
+        const img = document.getElementById("repair-photo-preview");
+        const modalImg = document.getElementById("modalRepairImage");
+        if (img && modalImg) modalImg.src = img.src;
+      });
+    }
+  }
+
+  // Inicialización
+  initImageModals();
+
+  // Restaurar preview después de swap de HTMX
+  document.addEventListener("htmx:afterSwap", function (e) {
+    if (e.detail.target.id === "main-container") {
+      const reportPreview = document.getElementById("report-photo-preview");
+      if (reportPreview && lastReportImage) reportPreview.src = lastReportImage;
+
+      const repairPreview = document.getElementById("repair-photo-preview");
+      if (repairPreview && lastRepairImage) repairPreview.src = lastRepairImage;
+
+      initImageModals();
+    }
+  });
+
+  // Preview local de imágenes
+  document.addEventListener("change", function (e) {
+    const input = e.target;
+    
+    // Reporte
+    if (input.matches("input[type='file'][name='report_photo']")) {
+      const file = input.files && input.files[0];
+      const preview = document.getElementById("report-photo-preview");
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          lastReportImage = evt.target.result;
+          preview.src = lastReportImage;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.src = "{% static 'img/image-not-found.png' %}";
+        lastReportImage = null;
+      }
+    }
+
+    // Reparación
+    if (input.matches("input[type='file'][name='repair_photo']")) {
+      const file = input.files && input.files[0];
+      const preview = document.getElementById("repair-photo-preview");
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          lastRepairImage = evt.target.result;
+          preview.src = lastRepairImage;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.src = "{% static 'img/image-not-found.png' %}";
+        lastRepairImage = null;
+      }
+    }
+  });
+
+</script>
+
