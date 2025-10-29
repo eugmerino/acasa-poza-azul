@@ -1,39 +1,39 @@
-<!-- Resumen del proyecto -->
+<!-- Resumen del proyecto --> 
 <div class="container my-5">
     <div class="row g-4">
 
-    <!-- Usuarios Activos -->
-    <div class="col-md-4">
-        <div class="card text-white bg-primary shadow h-100">
-        <div class="card-body d-flex flex-column justify-content-center align-items-center">
-            <i class="fas fa-users fa-3x mb-3"></i>
-            <h5 class="card-title">Socios Activos</h5>
-            <p class="card-text display-6">{{ active_partner_count }}</p>
+        <!-- Socios Activos -->
+        <div class="col-md-4">
+            <div class="card text-white bg-primary shadow h-100">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <h5 class="card-title">Socios Activos</h5>
+                    <p class="card-text display-6 ">{{ active_partner_count }}</p>
+                </div>
+            </div>
         </div>
-        </div>
-    </div>
 
-    <!-- Acometidas Activas -->
-    <div class="col-md-4">
-        <div class="card text-white bg-success shadow h-100">
-        <div class="card-body d-flex flex-column justify-content-center align-items-center">
-            <i class="fas fa-water fa-3x mb-3"></i>
-            <h5 class="card-title">Acometidas Activas</h5>
-            <p class="card-text display-6">0</p>
+        <!-- Acometidas Activas -->
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow h-100">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <i class="fas fa-water fa-3x mb-3"></i>
+                    <h5 class="card-title">Acometidas Activas</h5>
+                    <p class="card-text display-6 ">{{ active_connections_count }}</p>
+                </div>
+            </div>
         </div>
-        </div>
-    </div>
 
-    <!-- Comunidades -->
-    <div class="col-md-4">
-        <div class="card text-white bg-info shadow h-100">
-        <div class="card-body d-flex flex-column justify-content-center align-items-center">
-            <i class="fas fa-map-marker-alt fa-3x mb-3"></i>
-            <h5 class="card-title">Comunidades</h5>
-            <p class="card-text display-6">0</p>
+        <!-- Comunidades -->
+        <div class="col-md-4">
+            <div class="card text-white bg-info shadow h-100">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <i class="fas fa-map-marker-alt fa-3x mb-3"></i>
+                    <h5 class="card-title">Comunidades</h5>
+                    <p class="card-text display-6 ">{{ active_communities_count }}</p>
+                </div>
+            </div>
         </div>
-        </div>
-    </div>
 
     </div>
 </div>
