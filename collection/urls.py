@@ -20,4 +20,5 @@ urlpatterns = [
     path('cobros/cobrar/<int:pk>/', views.charge_collected, name='charge_collected'),
     path('cobros/historicos', views.collection_list_historical, name='collection_list_historical'),
     path('cobros/detalle/<int:pk>/', views.collection_details, name='collection_details'),
+    path('cobros/pdf/', views.collection_pdf, name='collection_pdf'),
 ]

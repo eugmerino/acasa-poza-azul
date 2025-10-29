@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Cobros</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-white text-dark">
+
+    <!-- Logo centrado -->
+    <div class="container text-center my-4">
+       {% if logo_url %}
+            <img src="{{ logo_url }}" alt="Logo" width="100">
+        {% endif %}
+
+        <h1 class="h4">{{ project.title }}</h1>
+        <h2 class="h5">Gestión de Cobros</h2>
+        <p class="text-muted small">{{ today|date:"j \\d\\e F \\d\\e Y" }}</p>
+    </div>
+
+    <!-- Tabla de resultados con encabezado azul -->
+    <div class="container mb-5">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-primary text-center text-uppercase">
+                    <tr>
+                        <th scope="col">N.º Recibo</th>
+                        <th scope="col">Acometida</th>
+                        <th scope="col">Responsable</th>
+                        <th scope="col">Comunidad</th>
+                        <th scope="col">Total a pagar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in collection_data %}
+                    <tr class="text-center">
+                        <td>{{ item.reading.receipt_number }}</td>
+                        <td>{{ item.reading.connection.description }}</td>
+                        <td>{{ item.reading.connection.responsible.first_name }} {{ item.reading.connection.responsible.last_name }}</td>
+                        <td>{{ item.reading.connection.responsible.community.name }}</td>
+                        <td>${{ item.total_to_pay }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted bg-light fst-italic">No hay resultados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -29,6 +29,15 @@
             >
                 <i class="fas fa-plus me-1"></i> Agregar Nueva reunión
             </button>
+
+             <a
+            href="{% url 'meet_pdf' %}"
+            class="btn btn-success"
+            target="_blank"
+        >
+            <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
+        </a>
+
             {% include "partials/search_table.html" with hx_url=meet_search_url hx_target="#table-content" placeholder="Buscar Reuniones..." %}
         </div>
         {% include "partials/meet/meet_table.html" %}
