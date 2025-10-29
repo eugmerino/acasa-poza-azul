@@ -1,0 +1,207 @@
+{% load static %}
+
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    {% if mode == "create" %}
+      <h1 class="h3">Nuevo reporte</h1>
+    {% elif mode == "edit" %}
+      <h1 class="h3">Editar reporte</h1>
+    {% else %}
+      <h1 class="h3">Ver reporte</h1>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header card-header-custom">
+    <h5 class="mb-0 d-inline">Formulario de Reporte</h5>
+    <a href="#ayudaModal" class="btn btn-link btn-sm" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda">
+      <i class="fa-solid fa-circle-info"></i>
+    </a>
+  </div>
+
+  <div class="card-body">
+    <form id="form-report-repair"
+          method="post"
+          enctype="multipart/form-data"
+          hx-post="{% if report %}{% url 'report_repair_edit' report.id %}{% else %}{% url 'report_repair_create' %}{% endif %}"
+          hx-target="#main-container"
+          hx-swap="innerHTML">
+      {% csrf_token %}
+
+      <div class="mb-3 text-muted">
+        <span class="text-danger">*</span><span class="small"> Campos obligatorios</span>
+      </div>
+
+      <!-- Comunidad -->
+      <div class="mb-3">
+        <label for="{{ form.community.id_for_label }}" class="form-label">
+          {{ form.community.label }}: <span class="text-danger">*</span>
+        </label>
+        <select name="{{ form.community.name }}"
+                id="{{ form.community.id_for_label }}"
+                class="form-select{% if form.community.errors %} is-invalid{% endif %}"
+                {% if mode == "view" %}disabled{% endif %}>
+          <option value="">{{ form.fields.community.empty_label }}</option>
+          {% for choice in form.fields.community.queryset %}
+            <option value="{{ choice.pk }}" {% if form.community.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %}>
+              {{ choice }}
+            </option>
+          {% endfor %}
+        </select>
+        {% if form.community.errors %}
+          {% for error in form.community.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Título del reporte -->
+      <div class="mb-3">
+        <label for="{{ form.report_title.id_for_label }}" class="form-label">
+          {{ form.report_title.label }}: <span class="text-danger">*</span>
+        </label>
+        <input type="text"
+               name="{{ form.report_title.name }}"
+               id="{{ form.report_title.id_for_label }}"
+               value="{{ form.report_title.value|default_if_none:'' }}"
+               placeholder="Ingrese el título del reporte"
+               class="form-control{% if form.report_title.errors %} is-invalid{% endif %}"
+               {% if mode == "view" %}disabled{% endif %}>
+        {% if form.report_title.errors %}
+          {% for error in form.report_title.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Descripción -->
+      <div class="mb-3">
+        <label for="{{ form.report_description.id_for_label }}" class="form-label">
+          {{ form.report_description.label }}: <span class="text-danger">*</span>
+        </label>
+        <textarea name="{{ form.report_description.name }}"
+                  id="{{ form.report_description.id_for_label }}"
+                  rows="4"
+                  placeholder="Describa el reporte"
+                  {% if mode == "view" %}disabled{% endif %}
+                  class="form-control{% if form.report_description.errors %} is-invalid{% endif %}">{{ form.report_description.value|default_if_none:'' }}</textarea>
+        {% if form.report_description.errors %}
+          {% for error in form.report_description.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Foto del reporte -->
+      <div class="mb-5">
+        <label class="form-label">{{ form.report_photo.label }}: <span class="text-danger">*</span></label>
+        <div class="text-center mb-3">
+          <img id="report-photo-preview"
+               src="{% if form.instance.report_photo %}{{ form.instance.report_photo.url }}{% else %}{% static 'img/image-not-found.png' %}{% endif %}"
+               alt="Foto del reporte"
+               class="img-fluid rounded shadow"
+               style="max-width: 100%; max-height: 300px; object-fit: contain; cursor: pointer;"
+               data-bs-toggle="modal"
+               data-bs-target="#imageModal" />
+        </div>
+
+        {{ form.report_photo }}
+        {% if form.report_photo.errors %}
+          {% for error in form.report_photo.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+        <span class="small text-muted">Recomendación: peso máximo 1 MB, formato horizontal o vertical libre.</span>
+      </div>
+
+      <!-- Botones -->
+      <div class="d-flex justify-content-end gap-2">
+        <div class="w-100 d-flex justify-content-between gap-2">
+          {% if mode == "create" %}
+            <button type="submit" class="btn btn-success" onclick="confirmCreate(event)">
+              <i class="fas fa-save me-2"></i>Guardar
+            </button>
+          {% elif mode == "edit" %}
+            <button type="submit" class="btn btn-success">
+              <i class="fa-solid fa-pen-to-square me-2"></i></i>Editar
+            </button>
+          {% else %}
+            <button type="submit" class="btn btn-success" disabled>
+            <i class="fas fa-eye me-2"></i>Modo lectura</button>
+          {% endif %}
+          <button type="button" class="btn btn-secondary" 
+                  hx-get="{% url 'report_repair_list' %}" 
+                  hx-target="#main-container" 
+                  hx-swap="innerHTML">
+            <i class="fas fa-times me-2"></i>Cancelar</button
+          >
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para mostrar imagen en grande -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark">
+      <div class="modal-body p-0 text-center">
+        <img id="modalImage" src="" class="img-fluid rounded" alt="Vista ampliada">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let lastSelectedImage = null;
+
+  function initImageModal() {
+    const imageModal = document.getElementById("imageModal");
+    if (!imageModal) return;
+
+    imageModal.addEventListener("show.bs.modal", function () {
+      const img = document.getElementById("report-photo-preview");
+      const modalImg = document.getElementById("modalImage");
+      if (img && modalImg) modalImg.src = img.src;
+    });
+  }
+
+  // Inicialización al cargar la página por primera vez
+  initImageModal();
+
+  // Volver a vincular modal y restaurar imagen después de cada swap de HTMX
+  document.addEventListener("htmx:afterSwap", function (e) {
+    if (e.detail.target.id === "main-container") {
+      // Restaura vista previa si existía una imagen seleccionada antes del swap
+      if (lastSelectedImage) {
+        const preview = document.getElementById("report-photo-preview");
+        if (preview) preview.src = lastSelectedImage;
+      }
+      // Reasocia el evento del modal al nuevo contenido
+      initImageModal();
+    }
+  });
+
+  // Mostrar vista previa local de la imagen seleccionada
+  document.addEventListener("change", function (e) {
+    const input = e.target;
+    if (!input.matches("input[type='file'][name='report_photo']")) return;
+
+    const file = input.files && input.files[0];
+    const preview = document.getElementById("report-photo-preview");
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        lastSelectedImage = evt.target.result;
+        preview.src = lastSelectedImage;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.src = "{% static 'img/image-not-found.png' %}";
+      lastSelectedImage = null;
+    }
+  });
+</script>
+

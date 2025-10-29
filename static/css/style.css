@@ -297,3 +297,32 @@ body {
 body.modal-open .modal-stack {
   background: rgba(0, 0, 0, 0.3);
 }
+
+
+/* ===== Scroll en Sidebar ===== */
+.sidebar {
+  overflow-y: auto; /* Habilita scroll vertical */
+  scrollbar-width: thin; /* Scroll más delgado (Firefox) */
+  scrollbar-color: var(--celeste) transparent; /* Color personalizado */
+}
+
+/* Scrollbar para Chrome, Edge, etc. */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: var(--celeste);
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-menu a.active {
+  background-color: var(--celeste);
+  color: white !important;
+  font-weight: 600;
+  border-radius: 8px;
+}

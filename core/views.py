@@ -18,7 +18,10 @@ from django import forms
 @login_required(login_url='login')
 def inicio(request):
     project = Project.objects.first()
-    return render(request, "home/home.html", {"project": project})
+
+    active_partner_count = WaterConnection.objects.values('responsible').distinct().count()
+
+    return render(request, "home/home.html", {"project": project, "active_partner_count": active_partner_count})
 
 
 # Diccionario en memoria para rastrear intentos por IP

@@ -1,0 +1,160 @@
+{% load static %}
+
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    {% if mode == "view" %}
+      <h1 class="h3">Ver pago de reparación</h1>
+    {% else %}
+      <h1 class="h3">Registrar pago de reparación</h1>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header card-header-custom">
+    <h5 class="mb-0 d-inline">Formulario de pago de reparación</h5>
+    <a href="#ayudaModal" class="btn btn-link btn-sm" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda">
+      <i class="fa-solid fa-circle-info"></i>
+    </a>
+  </div>
+
+  <div class="card-body">
+    <form id="form-report-repair"
+          method="post"
+          enctype="multipart/form-data"
+          hx-post="{% if report %}{% url 'repair_pay_edit' report.id %}{% endif %}"
+          hx-target="#main-container"
+          hx-swap="innerHTML"
+          novalidate>
+      {% csrf_token %}
+
+      <fieldset class="border p-3 rounded mb-5">
+        <legend class="w-auto px-2">Datos de la reparación</legend><hr>
+
+        <!-- Título del reporte -->
+        <div class="mb-3">
+          <label class="form-label">
+            Título del reporte:
+          </label>
+          <input type="text"
+          value="{{ report.report_title }}"
+          class="form-control"
+          disabled>
+        </div>
+
+        <!-- fecha -->
+        <div class="mb-3 col-4">
+          <label class="form-label">
+            Fecha de reparación:
+          </label>
+          <input type="text"
+          value="{{ report.repair_date }}"
+          class="form-control"
+          disabled>
+        </div>
+        
+        <!-- Comunidad -->
+        <div class="mb-3">
+          <label class="form-label">
+            Comunidad:
+          </label>
+          <select class="form-select"
+                  disabled>
+            <option value="">{{ report.community.name }}</option>
+          </select>
+        </div>
+        
+        <!-- Descripción -->
+        <div class="mb-3">
+          <label class="form-label">
+            Descripción de reparación:
+          </label>
+          <textarea rows="4"
+                    disabled
+                    class="form-control">{{ report.repair_description }}</textarea>
+        </div>
+
+      </fieldset>
+
+      <fieldset class="border p-3 rounded mb-5">
+        <legend class="w-auto px-2">Datos del pago</legend><hr>
+
+        <!-- Fecha del pago -->
+        <div class="mb-3 col-md-6">
+          <label for="{{ form.payment_date.id_for_label }}" class="form-label">
+            {{ form.payment_date.label }} {% if not report.payment_date %}(hoy){% endif %}
+          </label>
+          <input type="text"
+            {% if report.payment_date %}
+              value="{{ report.payment_date }}"
+            {% else %}
+              value="{{ today }}"
+            {% endif %}
+            class="form-control"
+            disabled>
+        </div>
+        
+        <!-- Monto del pago -->
+        <div class="mb-3 col-md-6">
+          <label for="{{ form.payment_amount.id_for_label }}" class="form-label">
+            {{ form.payment_amount.label }} <span class="text-danger">*</span>
+          </label>
+          {{ form.payment_amount }}
+          {% if form.payment_amount.errors %}
+            <div class="text-danger small">{{ form.payment_amount.errors }}</div>
+          {% endif %}
+        </div>
+
+      </fieldset>
+
+      <div class="mb-3 text-muted">
+        <span class="text-danger">*</span><span class="small"> Campos obligatorios</span>
+      </div>
+
+      <!-- Botones -->
+      <div class="d-flex justify-content-end gap-2">
+        <div class="w-100 d-flex justify-content-between gap-2">
+          {% if mode == "view" %}
+          {% else %}
+            <button type="submit" class="btn btn-success" onclick="confirmCreate(event)">
+              <i class="fas fa-save me-2"></i>Guardar
+            </button>
+          {% endif %}
+          <button type="button" class="btn btn-secondary" 
+                  hx-get="{% url 'repair_pay_list' %}" 
+                  hx-target="#main-container" 
+                  hx-swap="innerHTML">
+            <i class="fas fa-times me-2"></i>Cancelar</button
+          >
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function confirmCreate(event) {
+    event.preventDefault();
+
+    const form = document.getElementById("form-report-repair");
+
+    // Si es válido, preguntar confirmación
+    Swal.fire({
+      title: "¿Confirmar pago?",
+      text: "¿Está seguro de que desea registrar este pago de reparación?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, guardar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#198754",
+      cancelButtonColor: "#6c757d",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Enviar formulario manualmente (compatible con htmx)
+        form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      }
+    });
+  }
+</script>
+
+

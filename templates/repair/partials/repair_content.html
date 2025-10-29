@@ -1,0 +1,24 @@
+<div class="row mt-4 mb-2 text-center">
+  <div class="col-12">
+    <h1 class="h3">Gestión de reparaciones de daño a tuberias</h1>
+  </div>
+</div>
+
+<div class="table-container rounded-4 shadow p-4">    
+  <div class="header-controls d-flex justify-content-end">
+    {% include "partials/search_table.html" with hx_url=repair_search_url hx_target="#table-content" placeholder="Buscar Reparación..." %}
+  </div>
+  {% include "repair/partials/repair_table.html" %}
+</div>
+
+<script>
+  document.body.addEventListener("repairEdited", () => {
+    Swal.fire({
+      title: "¡Reparación registrada!",
+      text: "La reparación fue registrada correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false
+    });
+  });
+</script>
