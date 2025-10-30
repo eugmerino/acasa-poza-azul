@@ -19,7 +19,6 @@ from datetime import date
 from decimal import Decimal
 from django.template.loader import render_to_string
 import tempfile
-from playwright.sync_api import sync_playwright
 import weasyprint
 
 

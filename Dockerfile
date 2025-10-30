@@ -8,10 +8,17 @@ WORKDIR /workspace
 # Evita que Python almacene archivos .pyc
 ENV PYTHONUNBUFFERED=1
 
-# Instala dependencias del sistema
+# Instala dependencias del sistema necesarias para WeasyPrint
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libcairo2 \
+    libgdk-pixbuf2.0-0 \
+    libffi-dev \
+    shared-mime-info \
+    fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
 # Copia los archivos necesarios para instalar dependencias primero
