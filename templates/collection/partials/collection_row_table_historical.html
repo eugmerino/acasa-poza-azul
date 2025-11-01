@@ -3,6 +3,7 @@
     <td>{{ item.reading.connection.description }}</td>
     <td>{{ item.reading.connection.responsible.first_name }} {{ item.reading.connection.responsible.last_name }}</td>
     <td>{{ item.reading.connection.responsible.community.name }}</td>
+    <td>{{ item.reading.date_reading|date:"d-m-Y" }}</td>
     <td>$ {{ item.total_to_pay  }}</td>
     <td>
         {% if item.reading.isPaid %}

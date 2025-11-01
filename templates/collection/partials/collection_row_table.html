@@ -26,7 +26,7 @@
                     <li>
                         <a href="#"
                             class="dropdown-item"
-                            onclick="chargeCollected({{ item.reading.pk }}, '{{ csrf_token }}')">
+                            onclick="chargeCollected('{{ item.reading.pk }}', '{{ csrf_token }}')">
                                 <i class="fa-solid fa-cash-register me-2"></i> Cobrar
                         </a>
                     </li>
@@ -92,4 +92,3 @@ document.body.addEventListener("htmx:afterSwap", (event) => {
   }
 });
 </script>
-

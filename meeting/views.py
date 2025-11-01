@@ -14,6 +14,8 @@ from django.utils import timezone
 from django.utils.timezone import localtime, now
 from project.models import Partner
 from django.http import HttpResponse
+from django.template.loader import render_to_string
+import weasyprint
 
 
 
@@ -352,3 +354,27 @@ def attendance(request):
         "attended_partner_ids": attended_partner_ids,
         "partners": partners,
     })
+
+
+def meet_pdf(request):
+    project = Project.objects.first()
+    today = timezone.localtime().date()
+
+    # Reuniones activas
+    meetings = Meeting.objects.filter(isActive=True).order_by('date', 'start_time')
+
+    # Logo opcional
+    logo_path = project.logo.path if project.logo else None
+
+    html_string = render_to_string('partials/meet/meetings_pdf.html', {
+        'project': project,
+        'logo_path': logo_path,
+        'meetings': meetings,
+        'today': today
+    })
+
+    pdf_file = weasyprint.HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Reuniones_{today}.pdf"'
+    return response

@@ -1,6 +1,6 @@
 # finance/forms.py
 from django import forms
-from .models import Transaction
+from .models import Transaction, Project
 from django.utils import timezone
 
 class TransactionForm(forms.ModelForm):
@@ -11,7 +11,7 @@ class TransactionForm(forms.ModelForm):
             'project': forms.Select(attrs={'class': 'form-select', 'required': True}),
             'concept': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Concepto de la transacción', 'required': True}),
             'type': forms.Select(attrs={'class': 'form-select', 'required': True}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'required': True}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0','required': True}),
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'required': True}),
         }
         labels = {
@@ -62,6 +62,24 @@ class TransactionForm(forms.ModelForm):
         if not concept:
             raise forms.ValidationError("El concepto es obligatorio.")
         return concept
+
+     # 👇 AQUÍ ESTÁ EL BLOQUE CORRECTO
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Si solo hay un proyecto, lo selecciona automáticamente
+        projects = Project.objects.all()
+        if projects.count() == 1:
+            self.fields['project'].initial = projects.first()
+
+        # Cambiar la etiqueta inicial del campo 'type'
+        if self.fields['type'].choices:
+            # Filtra para eliminar la opción vacía por defecto (las rayitas)
+            choices = [(value, label) for value, label in self.fields['type'].choices if value != '']
+            # Agrega nuestra opción inicial personalizada
+            self.fields['type'].choices = [('', 'Seleccionar')] + choices
+
+
 
 # forms.py
 from django import forms
