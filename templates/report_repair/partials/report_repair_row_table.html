@@ -1,7 +1,7 @@
 <tr id="report-{{ report.id }}">
     <td>{{ report.report_title }}</td>
     <td>{{ report.community.name  }}</td>
-    <td>{{ report.report_date  }}</td>
+    <td>{{ report.report_date|date:"d-m-Y"  }}</td>
     <td class="text-center">
         <div class="btn-group">
             <button
