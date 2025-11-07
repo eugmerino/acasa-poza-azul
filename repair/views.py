@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.db.models import Q, F, Func, Value, CharField, Case, When, IntegerField
+from django.db.models.functions import Cast
 
 
 # Variable global
@@ -356,20 +357,25 @@ def repair_pay_search(request):
                 F('repair_date'),
                 function='strftime',
                 output_field=CharField()
+            ),
+            payment_amount_str=Cast(
+                F('payment_amount'),
+                output_field=CharField()
             )
         )
         .filter(
             Q(report_title__icontains=query) |
             Q(community__name__icontains=query) |
             Q(repair_date_str__icontains=query) |
-            Q(payment_date_str__icontains=query),
+            Q(payment_date_str__icontains=query) |
+            Q(payment_amount_str__icontains=query),
             repair_date__isnull=False
         )
         .order_by('is_paid', '-repair_date')
     )
 
     if not repair_list.exists() and query:
-        repair_list_base = Repair.objects.all()
+        repair_list_base = Repair.objects.filter(repair_date__isnull=False)
         query_lower = query.lower()
 
         if "pagado" in query_lower:

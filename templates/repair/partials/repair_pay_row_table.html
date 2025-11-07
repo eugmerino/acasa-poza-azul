@@ -1,8 +1,9 @@
 <tr id="repair-{{ repair.id }}">
     <td>{{ repair.report_title }}</td>
     <td>{{ repair.community.name  }}</td>
-    <td>{{ repair.repair_date|date:"d-m-Y"  }}</td>
-    <td>{{ repair.payment_date|date:"d-m-Y"  }}</td>
+    <td>{{ repair.repair_date|date:"d-m-Y" }}</td>
+    <td>{% if repair.payment_date %}{{ repair.payment_date|date:"d-m-Y" }}{% else %}<span class="badge bg-secondary">Pendiente</span>{% endif %}</td>
+    <td>{% if repair.payment_amount %}$ {% endif %}{{ repair.payment_amount|default_if_none:'<span class="badge bg-secondary">Pendiente</span>' }}</td>
     <td>
         {% if repair.is_paid %}
         <span class="badge bg-success">Pagado</span>

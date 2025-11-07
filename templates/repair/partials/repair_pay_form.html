@@ -79,45 +79,58 @@
       <fieldset class="border p-3 rounded mb-5">
         <legend class="w-auto px-2">Datos del pago</legend><hr>
 
-        <!-- Fecha del pago -->
-        <div class="mb-3 col-md-6">
-          <label for="{{ form.payment_date.id_for_label }}" class="form-label">
-            {{ form.payment_date.label }}: {% if not report.payment_date %} (hoy){% endif %}
+        <div class="mb-3">
+          <label class="form-label">
+            Pago a:
           </label>
           <input type="text"
-            {% if report.payment_date %}
-              value="{{ report.payment_date }}"
-            {% else %}
-              value="{{ today }}"
-            {% endif %}
+            value="{{ report.plumber }}"
             class="form-control"
             disabled>
         </div>
-        
-        <!-- Monto del pago -->
-        <div class="mb-3 col-md-6">
-          <label for="{{ form.payment_amount.id_for_label }}" class="form-label">
-            {{ form.payment_amount.label }}: <span class="text-danger">*</span>
-          </label>
 
-          <div class="input-group">
-            <span class="input-group-text bg-light">$</span>
-            <input {% if mode == "view" %} type="text" {% else %} type="number" {% endif %}
-                  name="{{ form.payment_amount.name }}"
-                  id="{{ form.payment_amount.id_for_label }}"
-                  value="{{ form.payment_amount.value|default_if_none:'' }}"
-                  class="form-control{% if form.payment_amount.errors %} is-invalid{% endif %}"
-                  placeholder="Ingrese el monto a pagar. Ej: 10.00"
-                  step="0.01"
-                  {% if mode == "view" %}disabled{% endif %}>
+        <div class="row">
+          <!-- Fecha del pago -->
+          <div class="mb-3 col-md-4">
+            <label for="{{ form.payment_date.id_for_label }}" class="form-label">
+              {{ form.payment_date.label }}: {% if not report.payment_date %} (hoy){% endif %}
+            </label>
+            <input type="text"
+              {% if report.payment_date %}
+                value="{{ report.payment_date }}"
+              {% else %}
+                value="{{ today|date:"d-m-Y" }}"
+              {% endif %}
+              class="form-control"
+              disabled>
           </div>
+          
+          <!-- Monto del pago -->
+          <div class="mb-3 col-md-8">
+            <label for="{{ form.payment_amount.id_for_label }}" class="form-label">
+              {{ form.payment_amount.label }}: <span class="text-danger">*</span>
+            </label>
 
-          {% if form.payment_amount.errors %}
-            {% for error in form.payment_amount.errors %}
-              <div class="invalid-feedback d-block">{{ error }}</div>
-            {% endfor %}
-          {% endif %}
+            <div class="input-group">
+              <span class="input-group-text bg-light">$</span>
+              <input {% if mode == "view" %} type="text" {% else %} type="number" {% endif %}
+                    name="{{ form.payment_amount.name }}"
+                    id="{{ form.payment_amount.id_for_label }}"
+                    value="{{ form.payment_amount.value|default_if_none:'' }}"
+                    class="form-control{% if form.payment_amount.errors %} is-invalid{% endif %}"
+                    placeholder="Ingrese el monto a pagar. Ej: 10.00"
+                    step="0.01"
+                    {% if mode == "view" %}disabled{% endif %}>
+            </div>
+
+            {% if form.payment_amount.errors %}
+              {% for error in form.payment_amount.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
         </div>
+        
 
       </fieldset>
 
