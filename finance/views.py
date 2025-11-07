@@ -1,26 +1,24 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator
-from django.urls import reverse
-from .models import Payment
-from .forms import PaymentForm
-from django.db.models import Q 
-from project.models import Project, WaterConnection
-from django.http import HttpResponse
-import json
-from django.db.models import Sum
-from django.utils import timezone
-from django.core.exceptions import ValidationError
-from django.forms.utils import ErrorDict
-from django.db import transaction         
-from django.contrib import messages 
-from django.db.models import Q, CharField, TextField, EmailField
-from django.core.paginator import Paginator
-from django.utils import timezone
-from django.urls import reverse
-from django.db import models
 from datetime import datetime
+import json
 
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
+from django.core.paginator import Paginator
+from django.db import models, transaction
+from django.db.models import Sum, Q
+from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from django.utils import timezone
+from project.models import Project, WaterConnection
+import weasyprint
 
+from .forms import PaymentForm, TransactionForm
+from .models import Payment, Transaction
+from django.template.loader import render_to_string
+import calendar
+from django.utils.translation import gettext as _
 
 
 WaterConnection = Payment._meta.get_field("connection").remote_field.model
@@ -331,11 +329,22 @@ def transaction_list(request):
             Q(amount__icontains=query)
         )
 
+    # Totales
+    total_ingresos = transaction_list.filter(type='I').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_egresos = transaction_list.filter(type='E').aggregate(Sum('amount'))['amount__sum'] or 0
+
     paginator = Paginator(transaction_list, per_page)
     page_obj = paginator.get_page(page_number)
 
     month_start = timezone.localdate().replace(day=1)
     month_end = (month_start + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(days=1)
+
+    # Calcular totales del mes actual
+    total_income = transaction_list.filter(type='I').aggregate(
+        total=Sum('amount'))['total'] or 0
+    total_expenses = transaction_list.filter(type='E').aggregate(
+        total=Sum('amount'))['total'] or 0
+    balance = total_income - total_expenses
 
     return render(request, 'finance/transaccion.html', {
         'transaction_search_url': reverse('transaction_search'),
@@ -348,38 +357,44 @@ def transaction_list(request):
         'month_start': month_start,
         'month_end': month_end,
         'selected_month': selected_month,
-        'show_actions': True,  # Asegúrate que esto esté presente
+        'show_actions': True,
+        'total_income': total_income,  # Cambiado de total_ingresos
+        'total_expenses': total_expenses,  # Cambiado de total_egresos
+        'balance': balance,  # Añadido el balance
     })
+
 
 def transaction_list_all(request):
     query = request.GET.get('q', '')
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
-    transaction_list = Transaction.objects.all().order_by('-date')
-
+    qs = Transaction.objects.all().order_by('-date')
     if query:
-        transaction_list = transaction_list.filter(
+        qs = qs.filter(
             Q(concept__icontains=query) |
             Q(type__icontains=query) |
             Q(amount__icontains=query)
         )
 
-    paginator = Paginator(transaction_list, per_page)
+    # Totales sobre el queryset filtrado (no solo la página)
+    total_income = qs.filter(type='I').aggregate(total=Sum('amount'))['total'] or 0
+    total_expenses = qs.filter(type='E').aggregate(total=Sum('amount'))['total'] or 0
+    balance = total_income - total_expenses
+
+    paginator = Paginator(qs, per_page)
     page_obj = paginator.get_page(page_number)
 
-    return render(
-        request,
-        "partials/finance/transaction_list_all.html",
-        {
-            "page_obj": page_obj,
-            "transaction_search_all_url": reverse('transaction_search_all'),
-            "per_page": per_page,
-            "per_page_options": per_page_options,
-            "query": query,
-            "show_actions": False,
-        }
-    )
+    return render(request, 'finance/partials/transaction_list_all.html', {
+        'page_obj': page_obj,
+        'transaction_search_all_url': reverse('transaction_search_all'),
+        'per_page': per_page,
+        'per_page_options': per_page_options,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'balance': balance,
+        'query': query,
+    })
 
 
 
@@ -409,9 +424,16 @@ def transaction_search(request):
     paginator = Paginator(transaction_list, per_page)
     page_obj = paginator.get_page(page_number)
 
+    # Calcular totales
+    total_income = transaction_list.filter(type='I').aggregate(
+        total=Sum('amount'))['total'] or 0
+    total_expenses = transaction_list.filter(type='E').aggregate(
+        total=Sum('amount'))['total'] or 0
+    balance = total_income - total_expenses
+
     return render(
         request,
-        'partials/finance/transaction_table.html',
+        'finance/partials/transaction_table.html',
         {
             'transaction_search_url': reverse('transaction_search'),
             'page_obj': page_obj,
@@ -420,6 +442,9 @@ def transaction_search(request):
             'per_page_options': per_page_options,
             'today': now,
             'show_actions': True,  # Añade esta línea
+            'total_income': total_income,
+            'total_expenses': total_expenses,
+            'balance': balance,
         }
     )
 
@@ -437,40 +462,65 @@ def transaction_search_all(request):
             Q(amount__icontains=query)
         )
 
+    # Calcular totales
+    total_income = transaction_list.filter(type='I').aggregate(
+        total=Sum('amount'))['total'] or 0
+    total_expenses = transaction_list.filter(type='E').aggregate(
+        total=Sum('amount'))['total'] or 0
+    balance = total_income - total_expenses
+
     paginator = Paginator(transaction_list, per_page)
     page_obj = paginator.get_page(page_number)
 
     return render(
         request,
-        'partials/finance/transaction_table.html',
+        'finance/partials/transaction_table.html',
         {
             'page_obj': page_obj,
             'transaction_search_url': reverse('transaction_search_all'),
             'per_page': per_page,
             'per_page_options': per_page_options,
             'query': query,
+            'total_income': total_income,
+            'total_expenses': total_expenses,
+            'balance': balance,
+            'show_actions': True,
         }
     )
-
-
 
 def transaction_create(request):
     if request.method == 'POST':
         form = TransactionForm(request.POST)
         if form.is_valid():
             transaction = form.save()
-            # Añadir show_actions al contexto
-            response = render(request, "partials/finance/transaction_row_table.html", {
+            
+            # Recalcular totales después de crear
+            now = timezone.localdate()
+            transaction_list = Transaction.objects.filter(
+                date__year=now.year,
+                date__month=now.month
+            )
+            total_income = transaction_list.filter(type='I').aggregate(
+                total=Sum('amount'))['total'] or 0
+            total_expenses = transaction_list.filter(type='E').aggregate(
+                total=Sum('amount'))['total'] or 0
+            balance = total_income - total_expenses
+
+            response = render(request, "finance/partials/transaction_row_table.html", {
                 "transaction": transaction,
-                "show_actions": True
+                "show_actions": True,
+                "total_income": total_income,
+                "total_expenses": total_expenses,
+                "balance": balance,
             })
             response["HX-Trigger"] = json.dumps({
                 "state": "success",
-                "message": "La transaccion se guardó correctamente"
+                "message": "La transaccion se guardó correctamente",
+                "transactionChanged": True
             })
             return response
         else:
-            response = render(request, "partials/finance/transaction_form.html", {"form": form})
+            response = render(request, "finance/partials/transaction_form.html", {"form": form})
             response['HX-Retarget'] = 'form'
             response['HX-Reswap'] = 'outerHTML'
             response['HX-Trigger-After-Settle'] = 'fail'
@@ -479,7 +529,7 @@ def transaction_create(request):
     else:
         form = TransactionForm()
 
-    return render(request, "partials/finance/transaction_form.html", {"form": form})
+    return render(request, "finance/partials/transaction_form.html", {"form": form})
 
 def transaction_edit(request, pk):
     transaction = get_object_or_404(Transaction, pk=pk)
@@ -488,19 +538,35 @@ def transaction_edit(request, pk):
         form = TransactionForm(request.POST, instance=transaction)
         if form.is_valid():
             transaction = form.save()
-            # Añadir show_actions al contexto
-            response = render(request, "partials/finance/transaction_row_table.html", {
+            
+            # Recalcular totales después de editar
+            now = timezone.localdate()
+            transaction_list = Transaction.objects.filter(
+                date__year=now.year,
+                date__month=now.month
+            )
+            total_income = transaction_list.filter(type='I').aggregate(
+                total=Sum('amount'))['total'] or 0
+            total_expenses = transaction_list.filter(type='E').aggregate(
+                total=Sum('amount'))['total'] or 0
+            balance = total_income - total_expenses
+
+            response = render(request, "finance/partials/transaction_row_table.html", {
                 "transaction": transaction,
-                "show_actions": True
+                "show_actions": True,
+                "total_income": total_income,
+                "total_expenses": total_expenses,
+                "balance": balance,
             })
             response["HX-Trigger"] = json.dumps({
                 "state": "success",
-                "message": "La transaccion se actualizó correctamente"
+                "message": "La transaccion se actualizó correctamente",
+                "transactionChanged": True
             })
 
             return response
         else:
-            response = render(request, "partials/finance/transaction_form.html", {"form": form, "transaction": transaction})
+            response = render(request, "finance/partials/transaction_form.html", {"form": form, "transaction": transaction})
             response['HX-Retarget'] = 'form'
             response['HX-Reswap'] = 'outerHTML'
             response['HX-Trigger-After-Settle'] = 'fail'
@@ -511,6 +577,67 @@ def transaction_edit(request, pk):
 
     return render(
         request,
-        "partials/finance/transaction_form.html",
+        "finance/partials/transaction_form.html",
         {"form": form, "transaction": transaction}
     )
+
+def transaction_pdf(request):
+    project = Project.objects.first()
+    logo_url = request.build_absolute_uri(project.logo.url) if project.logo else None
+
+    # Obtener parámetro ?month=YYYY-MM
+    month_param = request.GET.get('month')
+    
+
+    if month_param:
+        try:
+            selected_date = datetime.strptime(month_param, '%Y-%m')
+            year = selected_date.year
+            month = selected_date.month
+        except ValueError:
+            # Si el formato es incorrecto, usar el mes actual
+            today = timezone.localtime().date()
+            year = today.year
+            month = today.month
+    else:
+        # Si no se pasa parámetro, usar el mes actual
+        today = timezone.localtime().date()
+        year = today.year
+        month = today.month
+     
+    month_name = _(calendar.month_name[month]).capitalize()
+    # 🔒 Filtro estricto por año y mes seleccionados
+    transactions = Transaction.objects.filter(
+        date__year=year,
+        date__month=month
+    ).order_by('date')
+
+    # Calcular totales solo de esas transacciones
+    total_income = transactions.filter(type='I').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_expenses = transactions.filter(type='E').aggregate(Sum('amount'))['amount__sum'] or 0
+    balance = total_income - total_expenses
+
+    # Fechas actuales
+    today = timezone.localtime().date()
+    now = timezone.localtime()
+
+    # Renderizar HTML
+    html_string = render_to_string('finance/partials/transaction_pdf.html', {
+        'project': project,
+        'logo_url': logo_url,
+        'transactions': transactions,
+        'today': today,
+        'now': now,
+        'month': month,
+        'year': year,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'balance': balance,
+        'month_name': month_name,
+    })
+
+    pdf_file = weasyprint.HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Transacciones_{year}_{month}.pdf"'
+    return response

@@ -4,33 +4,76 @@
     <meta charset="UTF-8">
     <title>Gestión de Cobros</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-left {
+                content: "Generado el {{ today|date:'d/m/Y' }} a las {{ now|date:'H:i:s' }}";
+                font-size: 10px;
+                color: #6c757d;
+            }
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 10px;
+                color: #6c757d;
+            }
+        }
+
+        body {
+            font-family: "Helvetica", "Arial", sans-serif;
+            font-size: 12px;
+        }
+
+        th, td {
+            vertical-align: middle !important;
+        }
+
+        .table th {
+            background-color: #cfe2ff;
+            color: #003366;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body class="bg-white text-dark">
 
-    <!-- Logo centrado -->
-    <div class="container text-center my-4">
-
-        <h1 class="h4">{{ project.title }}</h1>
-        <h2 class="h5">Gestión de Cobros</h2>
-        <p class="text-muted small">{{ today|date:"j \\d\\e F \\d\\e Y" }}</p>
+    <!-- Encabezado -->
+    <div class="container-fluid border-bottom border-primary mb-4 pb-2">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                {% if logo_url %}
+                    <img src="{{ logo_url }}" alt="Logo" style="max-height:60px;">
+                {% endif %}
+            </div>
+            <div class="col text-end">
+                <h1 class="h5 mb-0">{{ project.title }}</h1>
+                <h2 class="h6 text-primary mb-0">Gestión de Cobros</h2>
+                <small class="text-muted">{{ today|date:"j \\d\\e F \\d\\e Y" }}</small>
+            </div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h3>Informe de Cobros</h3>
     </div>
 
-    <!-- Tabla de resultados con encabezado azul -->
-    <div class="container mb-5">
+    <!-- Tabla -->
+    <div class="container">
         <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle">
+            <table class="table table-striped table-hover align-middle border">
                 <thead class="table-primary text-center text-uppercase">
                     <tr>
-                        <th scope="col">N.º Recibo</th>
-                        <th scope="col">Acometida</th>
-                        <th scope="col">Responsable</th>
-                        <th scope="col">Comunidad</th>
-                        <th scope="col">Total a pagar</th>
+                        <th>N.º Recibo</th>
+                        <th>Acometida</th>
+                        <th>Responsable</th>
+                        <th>Comunidad</th>
+                        <th>Total a pagar</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="text-center">
                     {% for item in collection_data %}
-                    <tr class="text-center">
+                    <tr>
                         <td>{{ item.reading.receipt_number }}</td>
                         <td>{{ item.reading.connection.description }}</td>
                         <td>{{ item.reading.connection.responsible.first_name }} {{ item.reading.connection.responsible.last_name }}</td>
@@ -39,7 +82,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center text-muted bg-light fst-italic">No hay resultados</td>
+                        <td colspan="5" class="text-center text-muted fst-italic bg-light">No hay resultados</td>
                     </tr>
                     {% endfor %}
                 </tbody>
