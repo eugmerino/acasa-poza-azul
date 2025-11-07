@@ -1,17 +1,17 @@
-<div id="payment-success-fragment" class="p-4">
+<div id="connection-success-fragment" class="p-4">
   <div class="alert alert-success d-flex align-items-center" role="alert">
     <i class="fas fa-check-circle me-2"></i>
-    <div><strong>¡Listo!</strong> El pago se guardó correctamente.</div>
+    <div><strong>¡Listo!</strong> La acometida se guardó correctamente.</div>
   </div>
 
   <div class="d-flex gap-2">
-    <a href="{% url 'payments_list' %}" class="btn btn-success">Ver pagos</a>
+    <a href="{% url 'connections_list' %}" class="btn btn-success">Ver acometidas</a>
     <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()">Actualizar página</button>
   </div>
 </div>
 
 <script>
-  // --- Cerrar el modal antes de mostrar el mensaje ---
+  // Cierra el modal
   (function forceCloseModal(modalId) {
     const el = document.getElementById(modalId);
     if (!el) return;
@@ -21,28 +21,28 @@
     document.body.classList.remove('modal-open');
     document.body.style.removeProperty('padding-right');
     document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-  })('payment-modal'); // <-- Asegúrate de usar el ID real de tu modal de pagos
+  })('connection-modal'); // <-- usa el ID real de tu modal
 
-  // --- Mostrar SweetAlert y recargar ---
+  // Mostrar SweetAlert si existe, y recargar al cerrar
   if (window.Swal) {
     Swal.fire({
       icon: 'success',
       title: 'Guardado',
-      text: 'El pago se guardó correctamente.',
+      text: 'La acometida se guardó correctamente.',
       timer: 1600,
       showConfirmButton: false
     }).then(() => {
-      // Da un pequeño margen para las animaciones del modal
+      // Da un pequeño margen para terminar animaciones del modal
       setTimeout(() => window.location.reload(), 150);
     });
   } else {
-    // Sin SweetAlert → mostrar el alert Bootstrap y luego recargar
+    // Sin SweetAlert: deja ver el alert Bootstrap y luego recarga
     setTimeout(() => window.location.reload(), 1200);
   }
 
-  // --- Limpieza del fragmento del DOM ---
+  // Limpieza: elimina este fragmento para que no quede en el DOM
   setTimeout(function () {
-    const wrap = document.getElementById('payment-success-fragment');
+    const wrap = document.getElementById('connection-success-fragment');
     if (wrap) wrap.remove();
   }, 0);
 </script>
