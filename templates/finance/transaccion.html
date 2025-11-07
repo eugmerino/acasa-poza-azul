@@ -37,7 +37,11 @@
     </div>
 
     <!-- Tabla de transacciones -->
-    <div id="main-table-content">
+    <div id="main-table-content"
+         hx-get="{% url 'transaction_search' %}"
+         hx-trigger="transactionChanged from:body"
+         hx-target="#main-table-content"
+         hx-swap="innerHTML">
         {% include "finance/partials/transaction_table.html" %}
     </div>
 

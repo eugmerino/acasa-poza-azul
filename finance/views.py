@@ -1,26 +1,32 @@
-from datetime import datetime
+# Importaciones de Python estándar
+import calendar
 import json
+from datetime import datetime
 
+# Importaciones de Django
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.core.paginator import Paginator
 from django.core.paginator import Paginator
 from django.db import models, transaction
 from django.db.models import Sum, Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from project.models import Project, WaterConnection
+from django.utils.timezone import localtime, now
+from django.utils.translation import gettext as _
+from django.views.decorators.http import require_http_methods
+
+# Importaciones de terceros
 import weasyprint
 
+# Importaciones locales
+from project.models import Project, WaterConnection
 from .forms import PaymentForm, TransactionForm
 from .models import Payment, Transaction
-from django.template.loader import render_to_string
-import calendar
-from django.utils.translation import gettext as _
 
-
+# Constantes
 WaterConnection = Payment._meta.get_field("connection").remote_field.model
 per_page_options = [5, 10, 20, 50]
 
@@ -494,28 +500,28 @@ def transaction_create(request):
         if form.is_valid():
             transaction = form.save()
             
-            # Recalcular totales después de crear
-            now = timezone.localdate()
-            transaction_list = Transaction.objects.filter(
+            # Recalcular totales
+            now = timezone.localtime()
+            transactions = Transaction.objects.filter(
                 date__year=now.year,
                 date__month=now.month
             )
-            total_income = transaction_list.filter(type='I').aggregate(
+            total_income = transactions.filter(type='I').aggregate(
                 total=Sum('amount'))['total'] or 0
-            total_expenses = transaction_list.filter(type='E').aggregate(
+            total_expenses = transactions.filter(type='E').aggregate(
                 total=Sum('amount'))['total'] or 0
             balance = total_income - total_expenses
 
-            response = render(request, "finance/partials/transaction_row_table.html", {
-                "transaction": transaction,
-                "show_actions": True,
-                "total_income": total_income,
-                "total_expenses": total_expenses,
-                "balance": balance,
+            response = render(request, "finance/partials/transaction_table.html", {
+                'page_obj': Paginator(transactions, per_page_options[1]).get_page(1),
+                'total_income': total_income,
+                'total_expenses': total_expenses,
+                'balance': balance,
+                'show_actions': True
             })
             response["HX-Trigger"] = json.dumps({
                 "state": "success",
-                "message": "La transaccion se guardó correctamente",
+                "message": "La transacción se guardó correctamente",
                 "transactionChanged": True
             })
             return response
