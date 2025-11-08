@@ -20,7 +20,7 @@
             {% endfor %}
         </tbody>
     </table>
-
+ {% include "partials/paginator.html" with hx_url=transaction_search_url hx_target="#table-content" per_page_options=per_page_options %}
     <!-- Totales fuera de la tabla -->
     <div class="card mt-3 bg-light">
         <div class="card-body">
@@ -49,5 +49,5 @@
         </div>
     </div>
 
-    {% include "partials/paginator.html" with hx_url=transaction_search_url hx_target="#table-content" per_page_options=per_page_options %}
+   
 </div>

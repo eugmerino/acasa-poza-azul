@@ -409,6 +409,9 @@ def transaction_search(request):
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    type_filter = request.GET.get('type')
     now = timezone.localdate()
     current_year = now.year
     current_month = now.month
@@ -424,7 +427,8 @@ def transaction_search(request):
         transaction_list = transaction_list.filter(
             Q(concept__icontains=query) |
             Q(type__icontains=query) |
-            Q(amount__icontains=query)
+            Q(amount__icontains=query)|
+            Q(date__icontains=query)
         )
 
     paginator = Paginator(transaction_list, per_page)
@@ -459,13 +463,17 @@ def transaction_search_all(request):
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    type_filter = request.GET.get('type')
     transaction_list = Transaction.objects.all().order_by('-date')
 
     if query:
         transaction_list = transaction_list.filter(
             Q(concept__icontains=query) |
             Q(type__icontains=query) |
-            Q(amount__icontains=query)
+            Q(amount__icontains=query)|
+            Q(date__icontains=query)
         )
 
     # Calcular totales
