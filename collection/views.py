@@ -753,8 +753,8 @@ def collection_details(request, pk):
 def collection_pdf(request):
     project = Project.objects.first()
     today = timezone.localtime().date()
+    now = timezone.localtime()
 
-    # Lecturas del mes actual
     collection_list = Reading.objects.filter(
         date_reading__year=today.year,
         date_reading__month=today.month
@@ -770,18 +770,18 @@ def collection_pdf(request):
             'total_to_pay': total_to_pay
         })
 
-    # URL del logo accesible para weasyprint
     logo_url = request.build_absolute_uri(project.logo.url) if project.logo else None
 
     html_string = render_to_string('collection/partials/collection_pdf.html', {
         'project': project,
         'logo_url': logo_url,
         'collection_data': data,
-        'today': today
+        'today': today,
+        'now': now,
     })
 
     pdf_file = weasyprint.HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="Cobros_{today}.pdf"'
+    response['Content-Disposition'] = f'inline; filename="Cobros_{today}.pdf"'
     return response

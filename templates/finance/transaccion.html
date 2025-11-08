@@ -11,118 +11,108 @@
 
 <div class="row mt-4 mb-2 text-center">
     <div class="col-12">
-        <h1 class="h3">Gestión de Transacciones de {{today|date:"F \\d\\e Y"}}</h1>
+        <h1 class="h3">Gestión de Transacciones</h1>
+            <h1 class="h3"> de {{today|date:"F \\d\\e Y"}}</h1>
     </div>
 </div>
 
 <div class="table-container rounded-4 shadow p-4">
-
-    <!-- Controles superiores: agregar + buscador -->
+    <!-- Controles superiores -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <button
-            id="btn-abrir-crud"
-            class="btn btn-success"
-            data-bs-toggle="modal"
-            data-bs-target="#transactionModal"
-            hx-get="{% url 'transaction_create' %}"
-            hx-target="#transaction-content-modal"
-            hx-trigger="click"
+                id="btn-abrir-crud"
+                class="btn btn-success"
+                data-bs-toggle="modal"
+                data-bs-target="#transactionModal"
+                hx-get="{% url 'transaction_create' %}"
+                hx-target="#transaction-content-modal"
+                hx-trigger="click"
             >
                 <i class="fas fa-plus me-1"></i> Agregar Nueva Transacción
             </button>
-            <button
-                id="btn-export-pdf"
-                class="btn btn-primary"
-                hx-get="#"
-                hx-target="_blank"
-                hx-trigger="click"
-            >
-                <i class="fas fa-file-pdf me-1"></i> Exportar Cobros a PDF
-            </button>
         </div>
-       
 
-        {% include "partials/search_table.html" with hx_url=transaction_search_url hx_target="#table-content" placeholder="Buscar Transacción..." %}
+        {% include "partials/search_table.html" with hx_url=transaction_search_url hx_target="#main-table-content" placeholder="Buscar Transacción..." %}
     </div>
-
 
     <!-- Tabla de transacciones -->
-    <div id="table-content">
-        {% include "partials/finance/transaction_table.html" %}
+    <div id="main-table-content"
+         hx-get="{% url 'transaction_search' %}"
+         hx-trigger="transactionChanged from:body"
+         hx-target="#main-table-content"
+         hx-swap="innerHTML">
+        {% include "finance/partials/transaction_table.html" %}
     </div>
 
-    
-
+    <!-- Modal HTMX -->
+    {% include "finance/partials/transaction_create_modal.html" %}
 </div>
 
-<!-- Modal HTMX -->
-{% include "partials/finance/transaction_create_modal.html" %}
-
 <!-- Flatpickr JS -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
-<script>
-flatpickr("#month", {
-    locale: "es",
-    plugins: [new monthSelectPlugin({
-        shorthand: true,
-        dateFormat: "Y-m",
-        altFormat: "F Y"
-    })]
-});
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script>
+        flatpickr("#month", {
+            locale: "es",
+            plugins: [new monthSelectPlugin({
+                shorthand: true,
+                dateFormat: "Y-m",
+                altFormat: "F Y"
+            })]
+        });
+    </script>
 
-<!-- HTMX + SweetAlert -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const modalEl = document.getElementById("transactionModal");
+    <!-- HTMX + SweetAlert -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const modalEl = document.getElementById("transactionModal");
 
-    function limpiarFormulario() {
-        const form = modalEl.querySelector("form");
-        if (form) {
-            form.reset();
-            form.querySelectorAll("input[type=text], input[type=date], input[type=time]").forEach(el => el.value = "");
-            form.querySelectorAll("input[type=checkbox]").forEach(el => el.checked = false);
-            form.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
-        }
-    }
-
-    modalEl.addEventListener("hidden.bs.modal", limpiarFormulario);
-
-    document.body.addEventListener("htmx:afterOnLoad", function (event) {
-        const triggerHeader = event.detail.xhr.getResponseHeader("HX-Trigger");
-        if (triggerHeader) {
-            try {
-                const data = JSON.parse(triggerHeader);
-
-                if (data.state === "success") {
-                    Swal.fire({
-                        icon: "success",
-                        title: "¡Éxito!",
-                        text: data.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-
-                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                    modal.hide();
-                    limpiarFormulario();
-                } else if (data.state === "error") {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: data.message
-                    });
+            function limpiarFormulario() {
+                const form = modalEl.querySelector("form");
+                if (form) {
+                    form.reset();
+                    form.querySelectorAll("input[type=text], input[type=date], input[type=time]").forEach(el => el.value = "");
+                    form.querySelectorAll("input[type=checkbox]").forEach(el => el.checked = false);
+                    form.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
                 }
-
-            } catch (e) {
-                console.warn("HX-Trigger no era JSON válido:", e);
             }
-        }
-    });
-});
-</script>
+
+            modalEl.addEventListener("hidden.bs.modal", limpiarFormulario);
+
+            document.body.addEventListener("htmx:afterOnLoad", function (event) {
+                const triggerHeader = event.detail.xhr.getResponseHeader("HX-Trigger");
+                if (triggerHeader) {
+                    try {
+                        const data = JSON.parse(triggerHeader);
+
+                        if (data.state === "success") {
+                            Swal.fire({
+                                icon: "success",
+                                title: "¡Éxito!",
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+
+                            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                            modal.hide();
+                            limpiarFormulario();
+                        } else if (data.state === "error") {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: data.message
+                            });
+                        }
+
+                    } catch (e) {
+                        console.warn("HX-Trigger no era JSON válido:", e);
+                    }
+                }
+            });
+        });
+    </script>
 
 {% endblock %}
