@@ -78,7 +78,7 @@ def community_search(request):
 
     return render(
         request,
-        'partials/community_table.html',
+        'partials/communities/community_table.html',
         {
             'community_search_url': reverse('community_search'),
             'page_obj': page_obj,

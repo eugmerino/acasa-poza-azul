@@ -6,6 +6,7 @@ class RepairAdmin(admin.ModelAdmin):
     list_display = (
         'report_title',
         'community',
+        'plumber',
         'report_date',
         'repair_date',
         'payment_amount',
@@ -13,6 +14,7 @@ class RepairAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'community',
+        'plumber',
         'is_paid',
         'report_date',
         'repair_date',
@@ -20,10 +22,13 @@ class RepairAdmin(admin.ModelAdmin):
     search_fields = (
         'report_title',
         'community__name',
+        'plumber__first_name',
+        'plumber__last_name',
         'report_description',
         'repair_description',
     )
     readonly_fields = ('report_date',)
+    
     fieldsets = (
         ('Información del Reporte', {
             'fields': (
@@ -37,6 +42,7 @@ class RepairAdmin(admin.ModelAdmin):
         ('Información de la Reparación', {
             'fields': (
                 'repair_date',
+                'plumber',
                 'repair_description',
                 'repair_photo',
             ),
@@ -49,4 +55,5 @@ class RepairAdmin(admin.ModelAdmin):
             ),
         }),
     )
+
 

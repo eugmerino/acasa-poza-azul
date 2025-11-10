@@ -1,21 +1,19 @@
-from django.shortcuts import render
-from .models import Meeting
+from django.shortcuts import render, get_object_or_404
+from .models import Meeting, Attendance
 from project.models import Project
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+import weasyprint
+from datetime import date
+import json
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.urls import reverse
 from meeting.forms import MeetingForm
 from django.views.decorators.http import require_http_methods
-from django.shortcuts import get_object_or_404
-import json
-from meeting.models import Attendance
-from meeting.forms import AttendanceForm
 from django.utils import timezone
 from django.utils.timezone import localtime, now
 from project.models import Partner
-from django.http import HttpResponse
-from django.template.loader import render_to_string
-import weasyprint
 
 
 
@@ -355,26 +353,45 @@ def attendance(request):
         "partners": partners,
     })
 
+def attendance_pdf(request, meeting_id=None):
+    default_project = Project.objects.first()
+    meeting = None
 
-def meet_pdf(request):
-    project = Project.objects.first()
-    today = timezone.localtime().date()
+    if meeting_id:
+        meeting = get_object_or_404(Meeting, id=meeting_id)
+        attendances = Attendance.objects.select_related(
+            'partner', 'meeting', 'partner__community'
+        ).filter(meeting=meeting)
+        project_for_pdf = getattr(meeting, 'project', default_project) or default_project
 
-    # Reuniones activas
-    meetings = Meeting.objects.filter(isActive=True).order_by('date', 'start_time')
+        # 🔹 Total de socios del proyecto
+        total_socios = Partner.objects.filter(community__project=project_for_pdf).count()
+        total_asistencias = attendances.count()
+    else:
+        attendances = Attendance.objects.select_related(
+            'partner', 'meeting', 'partner__community'
+        ).all()
+        project_for_pdf = default_project
+        total_asistencias = attendances.count()
 
-    # Logo opcional
-    logo_path = project.logo.path if project.logo else None
+    # 🔹 logo seguro
+    logo_url = None
+    if project_for_pdf and getattr(project_for_pdf, 'logo', None):
+        try:
+            logo_url = request.build_absolute_uri(project_for_pdf.logo.url)
+        except Exception:
+            logo_url = None
 
-    html_string = render_to_string('partials/meet/meetings_pdf.html', {
-        'project': project,
-        'logo_path': logo_path,
-        'meetings': meetings,
-        'today': today
+    html = render_to_string("partials/meeting/attendance_pdf.html", {
+        'project': project_for_pdf,
+        'logo_url': logo_url,
+        'meeting': meeting,
+        'attendances': attendances,
+        'today': date.today(),
+        'total_asistencias': total_asistencias,
     })
 
-    pdf_file = weasyprint.HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="Reuniones_{today}.pdf"'
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename=\"asistencia.pdf\"'
+    weasyprint.HTML(string=html).write_pdf(response)
     return response

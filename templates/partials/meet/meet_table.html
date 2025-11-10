@@ -18,7 +18,7 @@
             {% include "partials/meet/meet_row_table.html" %}
         {% empty %}
             <tr>
-                <td colspan="4">No hay resultados</td>
+                <td colspan="6">No hay resultados</td>
             </tr>
         {% endfor %}
         </tbody>
@@ -26,3 +26,27 @@
 
     {% include "partials/paginator.html" with hx_url=meet_search_url hx_target="#table-content" per_page_options=per_page_options %}
 </div>
+<script>
+document.addEventListener('htmx:afterSwap', (event) => {
+    // Solo actuamos si el contenido cambiado afecta la tabla
+    const tableBody = document.querySelector('#table-body');
+    if (!tableBody) return;
+
+    // Buscar fila de "No hay resultados"
+    const noResultsRow = tableBody.querySelector('tr td[colspan="6"]');
+    const totalRows = tableBody.querySelectorAll('tr').length;
+
+    // Si hay más de una fila (es decir, ya hay reuniones)
+    // y existe la fila de "No hay resultados", la quitamos
+    if (noResultsRow && totalRows > 1) {
+        noResultsRow.parentElement.removeChild(noResultsRow);
+    }
+
+    // También, si se eliminaron todas las filas, podríamos volver a mostrar "No hay resultados"
+    if (!noResultsRow && totalRows === 0) {
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = '<td colspan="6" class="text-center text-muted">No hay resultados</td>';
+        tableBody.appendChild(newRow);
+    }
+});
+</script>

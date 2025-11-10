@@ -26,7 +26,8 @@
           enctype="multipart/form-data"
           hx-post="{% if report %}{% url 'report_repair_edit' report.id %}{% else %}{% url 'report_repair_create' %}{% endif %}"
           hx-target="#main-container"
-          hx-swap="innerHTML">
+          hx-swap="innerHTML"
+          novalidate>
       {% csrf_token %}
 
       <div class="mb-3 text-muted">
@@ -34,7 +35,7 @@
       </div>
 
       <!-- Comunidad -->
-      <div class="mb-3">
+      <div class="mb-3 col-6">
         <label for="{{ form.community.id_for_label }}" class="form-label">
           {{ form.community.label }}: <span class="text-danger">*</span>
         </label>
@@ -96,7 +97,7 @@
       <!-- Foto del reporte -->
       <div class="mb-5">
         <label class="form-label">{{ form.report_photo.label }}: <span class="text-danger">*</span></label>
-        <div class="text-center mb-3">
+        <div class="text-center mb-5">
           <img id="report-photo-preview"
                src="{% if form.instance.report_photo %}{{ form.instance.report_photo.url }}{% else %}{% static 'img/image-not-found.png' %}{% endif %}"
                alt="Foto del reporte"
@@ -106,13 +107,20 @@
                data-bs-target="#imageModal" />
         </div>
 
-        {{ form.report_photo }}
-        {% if form.report_photo.errors %}
-          {% for error in form.report_photo.errors %}
-            <div class="invalid-feedback">{{ error }}</div>
-          {% endfor %}
-        {% endif %}
-        <span class="small text-muted">Recomendación: peso máximo 1 MB, formato horizontal o vertical libre.</span>
+        <div>
+          {% if mode != "view" %}
+            <input type="file"
+                  name="{{ form.report_photo.name }}"
+                  id="{{ form.report_photo.id_for_label }}"
+                  class="form-control{% if form.report_photo.errors %} is-invalid{% endif %}">
+            {% if form.report_photo.errors %}
+              {% for error in form.report_photo.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+            <span class="small text-muted">Recomendación: peso máximo 1 MB, formato horizontal o vertical libre.</span>
+          {% endif %}
+        </div>
       </div>
 
       <!-- Botones -->
@@ -203,5 +211,16 @@
       lastSelectedImage = null;
     }
   });
+
+  // Guarda la imagen seleccionada antes de que HTMX reemplace el contenido
+  document.addEventListener("htmx:beforeSwap", function (e) {
+    if (e.detail.target.id === "main-container") {
+      const preview = document.getElementById("report-photo-preview");
+      if (preview) {
+        lastSelectedImage = preview.src;
+      }
+    }
+  });
+
 </script>
 

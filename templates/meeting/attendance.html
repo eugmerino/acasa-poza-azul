@@ -28,6 +28,13 @@
       <button id="btn-guardar-asistencia" type="button" class="btn btn-success">
         <i class="fas fa-plus me-1"></i> Guardar Asistencias
       </button>
+      <a
+          href="{% url 'attendance_pdf' %}"
+          class="btn btn-primary"
+          target="_blank"
+      >
+          <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
+      </a>
 
       <!-- Buscador con HTMX -->
       <div class="input-group search-input-group">

@@ -38,8 +38,13 @@ class TransactionForm(forms.ModelForm):
         first_day = today.replace(day=1)
         last_day = (first_day + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(days=1)
 
+         # Verificar que la fecha esté dentro del mes actual
         if date < first_day or date > last_day:
             raise forms.ValidationError("Solo se permiten fechas dentro del mes actual.")
+
+        # Verificar que la fecha no sea futura
+        if date > today:
+            raise forms.ValidationError("No se permiten fechas futuras.")
         return date
 
     # Validar proyecto

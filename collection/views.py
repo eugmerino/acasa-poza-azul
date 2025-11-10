@@ -13,7 +13,7 @@ from django.utils.timezone import localtime
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.paginator import Paginator
 from django.urls import reverse
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, Subquery, OuterRef, Q
 from django.utils import timezone
 from datetime import date
 from decimal import Decimal
@@ -191,10 +191,16 @@ def readings_list(request):
         connections_list = connections_list.filter(responsible__community=user.community)
 
     # Filtros de búsqueda
-    connections_list = connections_list.all().annotate(has_current_reading=Exists(current_month_reading))
+    connections_list = connections_list.annotate(
+        has_current_reading=Exists(current_month_reading),
+        current_reading_isPaid=Subquery(current_month_reading.values('isPaid')[:1])
+    )
 
     paginator = Paginator(connections_list, per_page)
     page_obj = paginator.get_page(page_number)
+
+    count_connections = connections_list.count()
+    count_readings = connections_list.filter(has_current_reading=True).count()
 
     context = {
         'reading_search_url': reverse('reading_search'),
@@ -202,7 +208,9 @@ def readings_list(request):
         'per_page': per_page,
         'per_page_options': per_page_options,
         'project': project,
-        'today': today, 
+        'today': today,
+        'count_connections': count_connections,
+        'count_readings': count_readings, 
     }
 
     if request.headers.get('HX-Request'):
@@ -225,18 +233,31 @@ def reading_search(request):
         date_reading__month=today.month
     )
 
-    connections_list = WaterConnection.objects.filter(is_active=True)
+    connections_list = (
+        WaterConnection.objects.filter(is_active=True)
+        .annotate(has_current_reading=Exists(current_month_reading))
+    )
 
     if user.groups.filter(name__in=["LECTOR", "COBRADOR"]).exists() and user.community:
         connections_list = connections_list.filter(responsible__community=user.community)
 
-    connections_list = connections_list.filter(
+    connections_list_search = connections_list.filter(
         Q(description__icontains=query)
         | Q(responsible__first_name__icontains=query)
         | Q(responsible__last_name__icontains=query)
-    ).annotate(has_current_reading=Exists(current_month_reading))
+        | Q(responsible__community__name__icontains=query)
+    )
 
-    paginator = Paginator(connections_list, per_page)
+    if not connections_list_search.exists() and query:
+        query_lower = query.lower()
+
+        if "registrada" in query_lower:
+            connections_list_search = connections_list.filter(has_current_reading=True)
+        elif "pendiente" in query_lower:
+            connections_list_search = connections_list.filter(has_current_reading=False)
+
+
+    paginator = Paginator(connections_list_search, per_page)
     page_obj = paginator.get_page(page_number)
 
     return render(
@@ -303,11 +324,32 @@ def reading_create(request, pk):
         form.instance.previous_reading = pre_reading
 
         if form.is_valid():
-            form.save()
-            if request.headers.get('HX-Request'):
-                response = HttpResponse()
-                response["HX-Trigger"] = "readingCreated"
-                return response
+            try:
+                form.save()
+                if request.headers.get('HX-Request'):
+                    response = HttpResponse()
+                    response["HX-Trigger"] = "readingCreated"
+                    return response
+            except ValueError as e:
+                html = f"""
+                <script>
+                Swal.fire({{
+                    icon: 'error',
+                    title: 'Error',
+                    text: '{str(e)}',
+                    confirmButtonColor: '#3085d6'
+                }}).then(() => {{
+                    // Cierra la modal Bootstrap correctamente
+                    var modalEl = document.getElementById('readingModal');
+                    var modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    if (modalInstance) {{
+                        modalInstance.hide();
+                    }}
+                }});
+                </script>
+                """
+                return HttpResponse(html)
+
         else:
             response = render(
                 request,
@@ -399,6 +441,49 @@ def reading_edit(request, pk):
         },
     )
 
+def reading_view(request, pk):
+    reading = get_object_or_404(Reading, pk=pk)
+    con = reading.connection
+    today = reading.date_reading
+
+    result = Reading.calculate_unpaid_total(con)
+
+    total_to_pay = 0
+    months_unread = 0
+    total_unpaid = 0
+
+    if result:
+        last_reading = result["last_reading"]
+        total_to_pay = result["total_to_pay"]
+        total_unpaid = result["total_unpaid"]
+        if total_to_pay is not None:
+            total_to_pay = f"{total_to_pay:.2f}"
+        else:
+            total_to_pay = "0.00"
+        months_unread = (today.year - last_reading.date_reading.year) * 12 + (today.month - last_reading.date_reading.month)-1
+
+    form = ReadingForm(instance=reading)
+    for field in form.fields.values():
+        field.disabled = True
+
+    return render(
+        request,
+        "reading/partials/reading_form.html",
+        {
+            "form": form,
+            "reading": reading,
+            "connection": con,
+            "today": today,
+            "pre_reading": reading.previous_reading,
+            "total_to_pay": total_to_pay,
+            "months_unread": months_unread,
+            "total_unpaid": total_unpaid,
+            "penalty_fee": f"{reading.penalty_fee:.2f}",
+            "penalty": Decimal(reading.penalty_fee or 0),
+            "mode": "view",
+        },
+    )
+
 def reading_details(request):
     """
     Vista que muestra los detalles del cálculo según la tarifa activa,
@@ -459,14 +544,12 @@ def search_connection_reading(request, pk, mode):
         raise Http404("No se encontró ninguna lectura para esta acometida.")
 
     if mode == 'edit':
-        # Redirige a la vista de edición (usando HTMX)
         url = reverse('reading_edit', args=[last_reading.id])
         response = HttpResponseRedirect(url)
         return response
 
     elif mode == 'view':
-        # Podrías crear una vista tipo "reading_detail"
-        url = reverse('reading_detail', args=[last_reading.id])
+        url = reverse('reading_view', args=[last_reading.id])
         response = HttpResponseRedirect(url)
         return response
 
@@ -484,21 +567,26 @@ def collection_list(request):
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
     today = timezone.localtime().date()
+    total_collected = 0
 
-    collection_list = Reading.objects.filter(
+    reading_list = Reading.objects.filter(
         date_reading__year=today.year,
         date_reading__month=today.month
-    )
+    ).order_by('isPaid')
 
     # Si el usuario es LECTOR o COLECTOR → limitar por comunidad
     if user.groups.filter(name__in=["LECTOR", "COLECTOR"]).exists() and user.community:
-        collection_list = collection_list.filter(connection__responsible__community=user.community)
+        reading_list = reading_list.filter(connection__responsible__community=user.community)
 
     data = []
-    for reading in collection_list:
+    for reading in reading_list:
         metros = reading.meter_reading - reading.previous_reading 
         total_to_pay = Reading.calculate_amount(reading.fee, metros)
         total_to_pay += reading.late_payment + reading.penalty_fee
+
+        if reading.isPaid:
+            total_collected += total_to_pay
+
         data.append({
             'reading': reading,
             'total_to_pay': total_to_pay
@@ -507,13 +595,19 @@ def collection_list(request):
     paginator = Paginator(data, per_page)
     page_obj = paginator.get_page(page_number)
 
+    count_readings = reading_list.count()
+    count_collections = reading_list.filter(isPaid=True).count()
+
     context = {
         'collection_search_url': reverse('collection_search'),
         'page_obj': page_obj,
         'per_page': per_page,
         'per_page_options': per_page_options,
         'project': project,
-        'today': today, 
+        'today': today,
+        'count_readings': count_readings,
+        'count_collections': count_collections,
+        'total_collected': total_collected,
     }
 
     if request.headers.get('HX-Request'):
@@ -523,7 +617,7 @@ def collection_list(request):
 
 def collection_search(request):
     user = request.user
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip()
     page_number = request.GET.get('page', 1)
     mode = request.GET.get('mode', 'month')
 
@@ -531,41 +625,68 @@ def collection_search(request):
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
     today = timezone.localtime().date()
+    current_mode = 'collection/partials/collection_table.html'
 
+    # Filtrar lecturas por mes actual o todas
     if mode == 'all':
+        current_mode = 'collection/partials/collection_table_historical.html'
         collection_list = Reading.objects.all()
     else:
         collection_list = Reading.objects.filter(
             date_reading__year=today.year,
             date_reading__month=today.month
-        )
+        ).order_by('isPaid')
 
+    # Restringir por comunidad si aplica
     if user.groups.filter(name__in=["LECTOR", "COBRADOR"]).exists() and user.community:
         collection_list = collection_list.filter(connection__responsible__community=user.community)
-
-    collection_list = collection_list.filter(
-        Q(connection__description__icontains=query)
-        | Q(receipt_number__icontains=query)
-        | Q(connection__responsible__first_name__icontains=query)
-        | Q(connection__responsible__last_name__icontains=query)
-    )
 
     data = []
     for reading in collection_list:
         metros = reading.meter_reading - reading.previous_reading
         total_to_pay = Reading.calculate_amount(reading.fee, metros)
         total_to_pay += reading.late_payment + reading.penalty_fee
+
         data.append({
             'reading': reading,
-            'total_to_pay': total_to_pay
+            'total_to_pay': round(total_to_pay, 2),
         })
 
-    paginator = Paginator(data, per_page)
+    # Aplicar búsqueda
+    query_lower = query.lower()
+    filtered_data = []
+
+    if query:
+        for item in data:
+            reading = item['reading']
+            total_to_pay = item['total_to_pay']
+
+            if (
+                query_lower in reading.connection.description.lower()
+                or query_lower in reading.receipt_number.lower()
+                or query_lower in reading.connection.responsible.first_name.lower()
+                or query_lower in reading.connection.responsible.last_name.lower()
+                or query_lower in reading.connection.responsible.community.name.lower()
+                or query_lower in str(total_to_pay)
+            ):
+                filtered_data.append(item)
+
+        # Filtros por estado del cobro
+        if not filtered_data:
+            if "cobrado" in query_lower:
+                filtered_data = [item for item in data if item['reading'].isPaid]
+            elif "pendiente" in query_lower:
+                filtered_data = [item for item in data if not item['reading'].isPaid]
+    else:
+        filtered_data = data
+
+    # Paginación
+    paginator = Paginator(filtered_data, per_page)
     page_obj = paginator.get_page(page_number)
 
     return render(
         request,
-        'collection/partials/collection_table.html',
+        current_mode,
         {
             'collection_search_url': reverse('collection_search'),
             'page_obj': page_obj,
@@ -676,8 +797,8 @@ def collection_details(request, pk):
 def collection_pdf(request):
     project = Project.objects.first()
     today = timezone.localtime().date()
+    now = timezone.localtime()
 
-    # Lecturas del mes actual
     collection_list = Reading.objects.filter(
         date_reading__year=today.year,
         date_reading__month=today.month
@@ -693,18 +814,18 @@ def collection_pdf(request):
             'total_to_pay': total_to_pay
         })
 
-    # URL del logo accesible para weasyprint
     logo_url = request.build_absolute_uri(project.logo.url) if project.logo else None
 
     html_string = render_to_string('collection/partials/collection_pdf.html', {
         'project': project,
         'logo_url': logo_url,
         'collection_data': data,
-        'today': today
+        'today': today,
+        'now': now,
     })
 
     pdf_file = weasyprint.HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="Cobros_{today}.pdf"'
+    response['Content-Disposition'] = f'inline; filename="Cobros_{today}.pdf"'
     return response

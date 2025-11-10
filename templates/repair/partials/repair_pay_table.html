@@ -8,6 +8,8 @@
             <th>Titulo</th>
             <th>Comunidad</th>
             <th>Fecha de reparación</th>
+            <th>Fecha de pago</th>
+            <th>Monto de pago</th>
             <th>Estado</th>
             <th>Acciones</th>
         </tr>
@@ -17,7 +19,7 @@
             {% include "repair/partials/repair_pay_row_table.html" %}
         {% empty %}
             <tr>
-                <td colspan="5" class="text-center">No hay resultados</td>
+                <td colspan="7" class="text-center">No hay resultados</td>
             </tr>
         {% endfor %}
         </tbody>

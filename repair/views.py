@@ -7,9 +7,15 @@ from django.urls import reverse
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django.db.models import Q, F, Func, Value, CharField, Case, When, IntegerField
+from django.db.models.functions import Cast
 
+
+# Variable global
+today = timezone.localtime().date()
 # Opciones de paginación
 per_page_options = [5, 10, 20, 50]
+
 
 def report_repair_list(request):
     project = Project.objects.first()
@@ -35,7 +41,6 @@ def report_repair_list(request):
     if request.headers.get('HX-Request'):
         return render(request, "report_repair/partials/report_repair_content.html", context)
 
-    # Si es petición normal => renderiza toda la página
     return render(request, "report_repair/report_repair.html", context)
 
 def report_repair_search(request):
@@ -43,10 +48,26 @@ def report_repair_search(request):
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
-    report_list = Repair.objects.filter(
-        Q(report_title__icontains=query)
-        | Q(community__name__icontains=query)
-    ).order_by('-report_date')
+    report_list = (
+        Repair.objects
+        .annotate(
+            report_date_str=Func(
+                Value('%d-%m-%Y'),
+                F('report_date'),
+                function='strftime',
+                output_field=CharField()
+            )
+        )
+        .filter(
+            Q(repair_date__isnull=True) &
+            (
+                Q(report_title__icontains=query) |
+                Q(community__name__icontains=query) |
+                Q(report_date_str__icontains=query)
+            )
+        )
+        .order_by('-report_date')
+    )
 
     paginator = Paginator(report_list, per_page)
     page_obj = paginator.get_page(page_number)
@@ -155,7 +176,17 @@ def repair_list(request):
 
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
-    repair_list = Repair.objects.all().order_by('-report_date')
+    repair_list = (
+        Repair.objects
+        .annotate(
+            is_pending=Case(
+                When(repair_date__isnull=True, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField()
+            )
+        )
+        .order_by('is_pending', '-report_date')
+    )
 
     paginator = Paginator(repair_list, per_page)
     page_obj = paginator.get_page(page_number)
@@ -180,10 +211,38 @@ def repair_search(request):
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
-    repair_list = Repair.objects.filter(
-        Q(report_title__icontains=query)
-        | Q(community__name__icontains=query)
-    ).order_by('-report_date')
+    repair_list = (
+        Repair.objects
+        .annotate(
+            is_pending=Case(
+                When(repair_date__isnull=True, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField()
+            ),
+            report_date_str=Func(
+                Value('%d-%m-%Y'),
+                F('report_date'),
+                function='strftime',
+                output_field=CharField()
+            )
+        )
+        .filter(
+            Q(report_title__icontains=query) |
+            Q(community__name__icontains=query) |
+            Q(report_date_str__icontains=query)
+        )
+        .order_by('is_pending', '-report_date')
+    )
+
+    if not repair_list.exists() and query:
+        repair_list_base = Repair.objects.all()
+        query_lower = query.lower()
+        if "reparada" in query_lower:
+            repair_list = repair_list_base.filter(repair_date__isnull=False)
+        elif "pendiente" in query_lower:
+            repair_list = repair_list_base.filter(repair_date__isnull=True)
+
+        repair_list = repair_list.order_by('-report_date')
 
     paginator = Paginator(repair_list, per_page)
     page_obj = paginator.get_page(page_number)
@@ -202,39 +261,53 @@ def repair_search(request):
 
 def repair_edit(request, pk):
     report = get_object_or_404(Repair, pk=pk)
-    today = timezone.localtime().date()
+    if report.is_paid:
+        mode = "view"
+    elif report.repair_date:
+        mode = "edit"
+    else:
+        mode = "create"
 
     if request.method == "POST":
-
         data = request.POST.copy()
         data["repair_date"] = today.strftime("%Y-%m-%d")
 
-        form = RepairForm(data, request.FILES, instance=report)
+        form = RepairForm(data, request.FILES, instance=report, user=request.user)
 
         if form.is_valid():
-            form.save()
+            repair = form.save(commit=False)
+
+            # Si el usuario es fontanero, se asigna automáticamente
+            if request.user.groups.filter(name="FONTANERO").exists():
+                repair.plumber = request.user
+
+            repair.save()
+
             if request.headers.get("HX-Request"):
                 response = repair_list(request)
                 response["HX-Trigger"] = "repairEdited"
                 return response
+
             return redirect("repair_list")
+
         else:
             response = render(
                 request,
                 "repair/partials/repair_form.html",
-                {"form": form, "mode": "edit", "report": report, "today": today},
+                {"form": form, "mode": mode, "report": report, "today": today},
             )
             response['HX-Target'] = '#main-container'
             response['HX-Swap'] = 'innerHTML'
             response['HX-Trigger-After-Settle'] = 'fail'
             return response
+
     else:
-        form = RepairForm(instance=report)
+        form = RepairForm(instance=report, user=request.user)
 
     return render(
         request,
         "repair/partials/repair_form.html",
-        {"form": form, "report": report, "today": today},
+        {"form": form, "mode": mode, "report": report, "today": today},
     )
 
 
@@ -270,11 +343,47 @@ def repair_pay_search(request):
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
-    repair_list = Repair.objects.filter(
-        Q(report_title__icontains=query) |
-        Q(community__name__icontains=query),
-        repair_date__isnull=False
-    ).order_by('is_paid', '-repair_date')
+    repair_list = (
+        Repair.objects
+        .annotate(
+            payment_date_str=Func(
+                Value('%d-%m-%Y'),
+                F('payment_date'),
+                function='strftime',
+                output_field=CharField()
+            ),
+            repair_date_str=Func(
+                Value('%d-%m-%Y'),
+                F('repair_date'),
+                function='strftime',
+                output_field=CharField()
+            ),
+            payment_amount_str=Cast(
+                F('payment_amount'),
+                output_field=CharField()
+            )
+        )
+        .filter(
+            Q(report_title__icontains=query) |
+            Q(community__name__icontains=query) |
+            Q(repair_date_str__icontains=query) |
+            Q(payment_date_str__icontains=query) |
+            Q(payment_amount_str__icontains=query),
+            repair_date__isnull=False
+        )
+        .order_by('is_paid', '-repair_date')
+    )
+
+    if not repair_list.exists() and query:
+        repair_list_base = Repair.objects.filter(repair_date__isnull=False)
+        query_lower = query.lower()
+
+        if "pagado" in query_lower:
+            repair_list = repair_list_base.filter(is_paid=True)
+        elif "pendiente" in query_lower:
+            repair_list = repair_list_base.filter(is_paid=False)
+
+        repair_list = repair_list.order_by('is_paid', '-repair_date')
 
     paginator = Paginator(repair_list, per_page)
     page_obj = paginator.get_page(page_number)
@@ -283,7 +392,7 @@ def repair_pay_search(request):
         request,
         'repair/partials/repair_pay_table.html',
         {
-            'repair_pay_search_url': reverse('repai_pay_search'),
+            'repair_pay_search_url': reverse('repair_pay_search'),
             'page_obj': page_obj,
             'query': query,
             'per_page': per_page,
@@ -293,7 +402,7 @@ def repair_pay_search(request):
 
 def repair_pay_edit(request, pk):
     report = get_object_or_404(Repair, pk=pk)
-    today = timezone.localtime().date()
+    mode = "edit" if not report.is_paid else "view"
 
     if request.method == "POST":
 
@@ -313,7 +422,7 @@ def repair_pay_edit(request, pk):
             response = render(
                 request,
                 "repair/partials/repair_pay_form.html",
-                {"form": form, "report": report, "today": today},
+                {"form": form, "report": report, "mode": mode, "today": today},
             )
             response['HX-Target'] = '#main-container'
             response['HX-Swap'] = 'innerHTML'
@@ -325,5 +434,5 @@ def repair_pay_edit(request, pk):
     return render(
         request,
         "repair/partials/repair_pay_form.html",
-        {"form": form, "report": report, "today": today},
+        {"form": form, "report": report, "mode": mode, "today": today},
     )

@@ -13,6 +13,7 @@ urlpatterns = [
     path('lecturas/buscar', views.reading_search, name='reading_search'),
     path('lecturas/crear/<int:pk>/', views.reading_create, name='reading_create'),
     path('lecturas/editar/<int:pk>/', views.reading_edit, name='reading_edit'),
+    path('lecturas/ver/<int:pk>/', views.reading_view, name='reading_view'),
     path('reading/search/<int:pk>/<str:mode>/', views.search_connection_reading, name='search_connection_reading'),
     path('reading/details/', views.reading_details, name='reading_details'),
     path('cobros/', views.collection_list, name='collection_list'),

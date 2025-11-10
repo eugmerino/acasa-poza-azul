@@ -4,6 +4,8 @@
   <div class="col-12">
     {% if mode == "edit" %}
       <h1 class="h3">Editar reparación</h1>
+    {% elif mode == "view" %}
+      <h1 class="h3">Ver reparación</h1>
     {% else %}
       <h1 class="h3">Registrar reparación</h1>
     {% endif %}
@@ -24,11 +26,12 @@
           enctype="multipart/form-data"
           hx-post="{% if report %}{% url 'repair_edit' report.id %}{% endif %}"
           hx-target="#main-container"
-          hx-swap="innerHTML">
+          hx-swap="innerHTML"
+          novalidate>
       {% csrf_token %}
 
       <fieldset class="border p-3 rounded mb-5">
-        <legend class="w-auto px-2">Datos de reporte</legend><hr>
+        <legend class="w-auto px-2">Datos del reporte</legend><hr>
 
         <!-- Título del reporte -->
         <div class="mb-3">
@@ -54,6 +57,9 @@
         
         <!-- Foto del reporte -->
         <div class="mb-5">
+          <label class="form-label">
+            Fotografia de reporte:
+          </label>
           <div class="text-center mb-3">
             <img id="report-photo-preview"
                 src="{% if form.instance.report_photo %}{{ form.instance.report_photo.url }}{% else %}{% static 'img/image-not-found.png' %}{% endif %}"
@@ -63,8 +69,6 @@
                 data-bs-toggle="modal"
                 data-bs-target="#imageModal" />
           </div>
-
-          {{ form.report_photo }}
         </div>
       </fieldset>
 
@@ -74,14 +78,38 @@
         <!-- Título del fecha -->
         <div class="mb-3 col-4">
           <label class="form-label">
-            Fecha:(hoy)
+            Fecha: (hoy)
           </label>
           <input type="text"
-          value="{{ today }}"
+          value="{{ today|date:"d-m-Y" }}"
           class="form-control"
           disabled>
         </div>
-        
+
+        <!-- Fontanero (solo visible para no fontaneros) -->
+        {% if form.plumber %}
+          <div class="mb-3">
+            <label for="{{ form.plumber.id_for_label }}" class="form-label">
+              {{ form.plumber.label }}: <span class="text-danger">*</span>
+            </label>
+
+            <select name="{{ form.plumber.name }}"
+                    id="{{ form.plumber.id_for_label }}"
+                    class="form-control{% if form.plumber.errors %} is-invalid{% endif %}"
+                    {% if mode == "view" %}disabled{% endif %}>
+              {% for option in form.plumber.field.choices %}
+                <option value="{{ option.0 }}" {% if option.0 == form.plumber.value %}selected{% endif %}>{{ option.1 }}</option>
+              {% endfor %}
+            </select>
+
+            {% if form.plumber.errors %}
+              {% for error in form.plumber.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% endif %}
+
         <!-- Descripción -->
         <div class="mb-3">
           <label for="{{ form.repair_description.id_for_label }}" class="form-label">
@@ -91,7 +119,8 @@
                     id="{{ form.repair_description.id_for_label }}"
                     rows="4"
                     placeholder="Describa de la reparación"
-                    class="form-control{% if form.repair_description.errors %} is-invalid{% endif %}">{{ form.repair_description.value|default_if_none:'' }}</textarea>
+                    class="form-control{% if form.repair_description.errors %} is-invalid{% endif %}"
+                    {% if mode == "view" %}disabled{% endif %}>{{ form.repair_description.value|default_if_none:'' }}</textarea>
           {% if form.repair_description.errors %}
             {% for error in form.repair_description.errors %}
               <div class="invalid-feedback">{{ error }}</div>
@@ -102,7 +131,7 @@
         <!-- Foto de la reparación -->
         <div class="mb-5">
           <label class="form-label">{{ form.repair_photo.label }}: <span class="text-danger">*</span></label>
-          <div class="text-center mb-3">
+          <div class="text-center mb-5">
             <img id="repair-photo-preview"
                 src="{% if form.instance.repair_photo %}{{ form.instance.repair_photo.url }}{% else %}{% static 'img/image-not-found.png' %}{% endif %}"
                 alt="Foto de la reparación"
@@ -112,13 +141,21 @@
                 data-bs-target="#repairImageModal" />
           </div>
 
-          {{ form.repair_photo }}
-          {% if form.repair_photo.errors %}
-            {% for error in form.repair_photo.errors %}
-              <div class="invalid-feedback">{{ error }}</div>
-            {% endfor %}
-          {% endif %}
-          <span class="small text-muted">Recomendación: peso máximo 1 MB, formato horizontal o vertical libre.</span>
+          <div>
+            {% if not mode == "view" %}
+              <input type="file"
+                    name="{{ form.repair_photo.name }}"
+                    id="{{ form.repair_photo.id_for_label }}"
+                    class="form-control{% if form.repair_photo.errors %} is-invalid{% endif %}">
+              {% if form.repair_photo.errors %}
+                {% for error in form.repair_photo.errors %}
+                  <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              {% endif %}
+              <span class="small text-muted">Recomendación: peso máximo 1 MB, formato horizontal o vertical libre.</span>
+            {% endif %}
+          </div>
+
         </div>
 
 
@@ -134,6 +171,10 @@
           {% if mode == "edit" %}
             <button type="submit" class="btn btn-success">
               <i class="fa-solid fa-pen-to-square me-2"></i></i>Editar
+            </button>
+          {% elif mode == "view" %}
+            <button type="submit" class="btn btn-success" disabled>
+              <i class="fas fa-eye me-2"></i>Modo lectura
             </button>
           {% else %}
             <button type="submit" class="btn btn-success" onclick="confirmCreate(event)">

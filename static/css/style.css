@@ -304,6 +304,7 @@ body.modal-open .modal-stack {
   overflow-y: auto; /* Habilita scroll vertical */
   scrollbar-width: thin; /* Scroll más delgado (Firefox) */
   scrollbar-color: var(--celeste) transparent; /* Color personalizado */
+  padding-bottom: 60px;
 }
 
 /* Scrollbar para Chrome, Edge, etc. */

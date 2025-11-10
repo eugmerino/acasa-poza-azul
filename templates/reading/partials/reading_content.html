@@ -6,7 +6,22 @@
 </div>
 
 <div class="table-container rounded-4 shadow p-4">    
-  <div class="header-controls d-flex justify-content-end">
+  <div class="header-controls d-flex align-items-end justify-content-between">
+    
+      <div class="text-center">
+        <div class="card border-0 shadow-sm rounded-4 py-2 px-2 d-inline-block">
+          <span class="text-primary">
+            Lecturas registradas
+          </span>
+
+          <div class="display-6 fw-bold text-dark">
+            {{ count_readings }}
+            <span class="text-muted fs-5">/ {{ count_connections }}</span>
+          </div>
+
+        </div>
+      </div>
+
     {% include "partials/search_table.html" with hx_url=reading_search_url hx_target="#table-content" placeholder="Buscar Acometida..." %}
   </div>
   {% include "reading/partials/readings_table.html" %}

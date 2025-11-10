@@ -1,8 +1,9 @@
 from django import forms
 from .models import Repair
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 
-
+# Formulario para crear un nuevo reporte de reparación
 class ReportForm(forms.ModelForm):
     class Meta:
         model = Repair
@@ -23,12 +24,16 @@ class ReportForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["community"].empty_label = "Seleccione una comunidad..."
+        self.fields["report_photo"].required = True
 
         
+# Variable glonal
+Partner = get_user_model()
+
 class RepairForm(forms.ModelForm):
     class Meta:
         model = Repair
-        fields = ['repair_date', 'repair_description', 'repair_photo']
+        fields = ['repair_date', 'plumber', 'repair_description', 'repair_photo']
         widgets = {
             'repair_date': forms.DateInput(
                 attrs={
@@ -37,6 +42,7 @@ class RepairForm(forms.ModelForm):
                     'placeholder': 'Seleccione la fecha de reparación'
                 }
             ),
+            'plumber': forms.Select(attrs={'class': 'form-select'}),
             'repair_description': forms.Textarea(
                 attrs={
                     'class': 'form-control',
@@ -45,22 +51,37 @@ class RepairForm(forms.ModelForm):
                 }
             ),
             'repair_photo': forms.ClearableFileInput(
-                attrs={
-                    'class': 'form-control'
-                }
+                attrs={'class': 'form-control'}
             ),
         }
         labels = {
             'repair_date': 'Fecha de reparación',
             'repair_description': 'Descripción de la reparación',
             'repair_photo': 'Foto de la reparación',
+            'plumber': 'Fontanero responsable',
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Campo obligatorio
         self.fields['repair_date'].required = True
         self.fields['repair_description'].required = True
         self.fields['repair_photo'].required = True
+
+        # Si el usuario pertenece al grupo FONTANERO
+        if user and user.groups.filter(name="FONTANERO").exists():
+            # Eliminar el campo plumber del formulario
+            self.fields.pop('plumber', None)
+        else:
+            # Solo mostrar fontaneros activos y staff
+            self.fields['plumber'].queryset = Partner.objects.filter(
+                groups__name="FONTANERO",
+                is_staff=True
+            ).order_by('first_name', 'last_name')
+            self.fields["plumber"].empty_label = "Seleccione un fontanero..."
+            self.fields["plumber"].required = True
+
 
 
 class RepairPayForm(forms.ModelForm):

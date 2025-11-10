@@ -59,7 +59,7 @@ class Partner(AbstractUser):
     foto = models.ImageField(upload_to="users/", blank=True, null=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.username})"
+        return f"{self.first_name} {self.last_name}"
     
     def save(self, *args, **kwargs):
         # Generar username si no existe

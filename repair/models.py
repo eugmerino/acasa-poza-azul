@@ -1,5 +1,5 @@
 from django.db import models
-from project.models import Community
+from project.models import Community, Partner
 
 class Repair(models.Model):
     community = models.ForeignKey(
@@ -31,6 +31,14 @@ class Repair(models.Model):
         null=True,
         blank=True,
         verbose_name='Fecha de reparación'
+    )
+    plumber = models.ForeignKey(
+        Partner,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='repairs',
+        verbose_name='Fontanero'
     )
     repair_description = models.TextField(
         null=True,
