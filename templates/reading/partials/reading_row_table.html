@@ -21,15 +21,28 @@
             </button>
             <ul class="dropdown-menu">
                 {% if connection.has_current_reading %}
+                    {% if not connection.current_reading_isPaid %}
+                        <li>
+                            <a href=""
+                                class="dropdown-item"
+                                data-bs-toggle="modal"
+                                data-bs-target="#readingModal"
+                                hx-get="{% url 'search_connection_reading' connection.id 'edit' %}"
+                                hx-target="#reading-content-modal"
+                                hx-trigger="click">
+                                    <i class="fas fa-edit me-2"></i> Editar
+                            </a>
+                        </li>
+                    {% endif %}
                     <li>
                         <a href=""
                             class="dropdown-item"
                             data-bs-toggle="modal"
                             data-bs-target="#readingModal"
-                            hx-get="{% url 'search_connection_reading' connection.id 'edit' %}"
+                            hx-get="{% url 'search_connection_reading' connection.id 'view' %}"
                             hx-target="#reading-content-modal"
                             hx-trigger="click">
-                                <i class="fa-solid fa-droplet me-2"></i> Editar
+                                <i class="fas fa-eye me-2"></i> Ver
                         </a>
                     </li>
                 {% else %}
@@ -41,7 +54,7 @@
                             hx-get="{% url 'reading_create' connection.id %}"
                             hx-target="#reading-content-modal"
                             hx-trigger="click">
-                                <i class="fa-solid fa-gauge-simple-high me-2"></i> Registrar
+                                <i class="fa-solid fa-gauge-high me-2"></i> Registrar
                         </a>
                     </li>
                 {% endif %}

@@ -13,7 +13,7 @@ from django.utils.timezone import localtime
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.paginator import Paginator
 from django.urls import reverse
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, Subquery, OuterRef, Q
 from django.utils import timezone
 from datetime import date
 from decimal import Decimal
@@ -191,7 +191,10 @@ def readings_list(request):
         connections_list = connections_list.filter(responsible__community=user.community)
 
     # Filtros de búsqueda
-    connections_list = connections_list.all().annotate(has_current_reading=Exists(current_month_reading))
+    connections_list = connections_list.annotate(
+        has_current_reading=Exists(current_month_reading),
+        current_reading_isPaid=Subquery(current_month_reading.values('isPaid')[:1])
+    )
 
     paginator = Paginator(connections_list, per_page)
     page_obj = paginator.get_page(page_number)
@@ -438,6 +441,49 @@ def reading_edit(request, pk):
         },
     )
 
+def reading_view(request, pk):
+    reading = get_object_or_404(Reading, pk=pk)
+    con = reading.connection
+    today = reading.date_reading
+
+    result = Reading.calculate_unpaid_total(con)
+
+    total_to_pay = 0
+    months_unread = 0
+    total_unpaid = 0
+
+    if result:
+        last_reading = result["last_reading"]
+        total_to_pay = result["total_to_pay"]
+        total_unpaid = result["total_unpaid"]
+        if total_to_pay is not None:
+            total_to_pay = f"{total_to_pay:.2f}"
+        else:
+            total_to_pay = "0.00"
+        months_unread = (today.year - last_reading.date_reading.year) * 12 + (today.month - last_reading.date_reading.month)-1
+
+    form = ReadingForm(instance=reading)
+    for field in form.fields.values():
+        field.disabled = True
+
+    return render(
+        request,
+        "reading/partials/reading_form.html",
+        {
+            "form": form,
+            "reading": reading,
+            "connection": con,
+            "today": today,
+            "pre_reading": reading.previous_reading,
+            "total_to_pay": total_to_pay,
+            "months_unread": months_unread,
+            "total_unpaid": total_unpaid,
+            "penalty_fee": f"{reading.penalty_fee:.2f}",
+            "penalty": Decimal(reading.penalty_fee or 0),
+            "mode": "view",
+        },
+    )
+
 def reading_details(request):
     """
     Vista que muestra los detalles del cálculo según la tarifa activa,
@@ -498,14 +544,12 @@ def search_connection_reading(request, pk, mode):
         raise Http404("No se encontró ninguna lectura para esta acometida.")
 
     if mode == 'edit':
-        # Redirige a la vista de edición (usando HTMX)
         url = reverse('reading_edit', args=[last_reading.id])
         response = HttpResponseRedirect(url)
         return response
 
     elif mode == 'view':
-        # Podrías crear una vista tipo "reading_detail"
-        url = reverse('reading_detail', args=[last_reading.id])
+        url = reverse('reading_view', args=[last_reading.id])
         response = HttpResponseRedirect(url)
         return response
 

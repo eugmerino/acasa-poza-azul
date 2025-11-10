@@ -9,7 +9,7 @@
 >
     <div class="modal-header">
         <h5 class="modal-title">
-            {% if reading %}Editar Lectura{% else %}Registrar Lectura{% endif %}
+            {% if reading %}{% if mode == "view" %}Ver lectura{% else %}Editar Lectura{% endif %}{% else %}Registrar Lectura{% endif %}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
@@ -129,13 +129,19 @@
 
     <div class="modal-footer justify-content-between">
         <div>
-            <button type="submit" class="btn btn-success" onclick="confirmReading(event)">
-            {% if reading %}
-                <i class="fas fa-edit me-1"></i> Editar
+            {% if mode == "view" %}
+                <button type="submit" class="btn btn-success" disabled>
+                <i class="fas fa-eye me-2"></i>Modo lectura
+                </button>
             {% else %}
-                <i class="fas fa-save me-1"></i> Guardar
+                <button type="submit" class="btn btn-success" onclick="confirmReading(event)">
+                    {% if reading %}
+                        <i class="fas fa-edit me-1"></i> Editar
+                    {% else %}
+                        <i class="fas fa-save me-1"></i> Guardar
+                    {% endif %}
+                </button>
             {% endif %}
-        </button>
         <button type="button" id="btn-detalles" class="btn btn-primary">
            <i class="fa-solid fa-file-invoice-dollar me-1"></i> Detalles
         </button>

@@ -27,8 +27,7 @@ class Fee(models.Model):
 
     def __str__(self):
         return self.short_description
-
-    
+   
 
 class Range(models.Model):
     fee = models.ForeignKey(
