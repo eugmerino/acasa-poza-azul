@@ -166,8 +166,13 @@
     const metros = actual - anterior
 
     if (isNaN(metros) || metros < 0) {
-      Swal.fire("Error", "Verifique las lecturas ingresadas.", "error")
-      return
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            html: "Verifique las lecturas ingresadas.<br>La lectura actual debe ser mayor a la anterior.",
+            confirmButtonColor: '#198754'
+        });
+        return;
     }
 
     htmx.ajax("GET", `/reading/details/?metros=${metros}&late_fee=${mora}&penalty_fee=${multa}`, {
@@ -175,6 +180,35 @@
       swap: "innerHTML"
     })
   })
+
+  document.body.addEventListener("htmx:responseError", function(event) {
+    const response = event.detail.xhr;
+    try {
+        const data = JSON.parse(response.responseText);
+        if (data.error) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            html: data.error.replace(/\n/g, "<br>"),
+            confirmButtonColor: '#198754'
+        });
+        } else {
+        Swal.fire({
+            icon: "error",
+            title: "Error inesperado",
+            text: "Ocurrió un problema al procesar la solicitud.",
+            confirmButtonColor: '#198754'
+        });
+        }
+    } catch {
+        Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error inesperado en la respuesta del servidor.",
+        confirmButtonColor: '#198754'
+        });
+    }
+    });
 
   // Escuchar cuando la vista parcial se inyecta
   document.body.addEventListener('htmx:afterSwap', (event) => {

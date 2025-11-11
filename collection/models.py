@@ -127,7 +127,7 @@ class Reading(models.Model):
             if active_fee:
                 self.fee = active_fee
             else:
-                raise ValueError("No existe una tarifa activa.")
+                raise ValueError("No existe una tarifa activa. Debe registrar o activar una tarifa antes de continuar.")
 
         # Si no hay lectura anterior registrada
         if self.previous_reading is None:
