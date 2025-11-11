@@ -10,5 +10,7 @@ urlpatterns = [
     path("lista_Asistencias", views.attendance_list, name="attendance_list"),
     path("buscar_Asistencia/", views.attendance_search, name="attendance_search"),
     path("Asistencia/", views.attendance, name="attendance"),
-    path('asistencias/pdf/', views.attendance_pdf, name='attendance_pdf'),
+    path('asistencias/pdf/<int:meeting_id>/', views.attendance_pdf, name='attendance_pdf'),
+    path("Informes/", views.information, name="information"),
+    path("Informes_Buscar/", views.information_search, name="information_search"),
 ]

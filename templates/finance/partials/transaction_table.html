@@ -2,11 +2,10 @@
     <table class="table table-striped table-hover align-middle text-left mb-0">
         <thead class="table-primary">
             <tr>
-                <th>Proyecto</th>
+                <th>Fecha</th>
                 <th>Concepto</th>
                 <th>Tipo</th>
                 <th>Monto</th>
-                <th>Fecha</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -15,7 +14,7 @@
                 {% include "finance/partials/transaction_row_table.html" with transaction=transaction show_actions=True %}
             {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center">No hay transacciones</td>
+                    <td colspan="5" class="text-center">No hay transacciones</td>
                 </tr>
             {% endfor %}
         </tbody>
