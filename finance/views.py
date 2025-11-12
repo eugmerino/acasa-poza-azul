@@ -367,6 +367,7 @@ def transaction_list(request):
         'total_income': total_income,  # Cambiado de total_ingresos
         'total_expenses': total_expenses,  # Cambiado de total_egresos
         'balance': balance,  # Añadido el balance
+        'is_management': True,
     })
 
 
@@ -400,6 +401,7 @@ def transaction_list_all(request):
         'total_expenses': total_expenses,
         'balance': balance,
         'query': query,
+        'is_management': False,
     })
 
 
@@ -455,6 +457,7 @@ def transaction_search(request):
             'total_income': total_income,
             'total_expenses': total_expenses,
             'balance': balance,
+            'is_management': True,
         }
     )
 
@@ -498,7 +501,8 @@ def transaction_search_all(request):
             'total_income': total_income,
             'total_expenses': total_expenses,
             'balance': balance,
-            'show_actions': True,
+            'show_actions': False,  # 👈 Ahora falso
+            'is_management': False,
         }
     )
 
