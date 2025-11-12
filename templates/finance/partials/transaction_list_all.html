@@ -7,8 +7,17 @@
 
 {% block content %}
 <div class="row mt-4 mb-2 text-center">
-    <div class="col-12">
-        <h1 class="h3">Todas las transacciones</h1>
+    <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+        <h1 class="h3 mb-0">Todas las transacciones</h1>
+        <!-- Botón de ayuda -->
+        <a href="#" 
+           class="btn btn-link btn-sm order-1 order-lg-0 me-2" 
+           data-bs-toggle="modal" 
+           data-bs-target="#infoTransacciones" 
+           title="Ayuda sobre transacciones" 
+           role="button">
+            <i class="fa-solid fa-circle-info"></i>
+        </a>
     </div>
 </div>
 
@@ -37,6 +46,29 @@
     <div id="table-content">
         {% include "finance/partials/transaction_table.html" with page_obj=page_obj transaction_search_url=transaction_search_all_url %}
     </div>
+</div>
+
+<!-- Modal de Ayuda -->
+<div class="modal fade" id="infoTransacciones" tabindex="-1" aria-labelledby="infoTransaccionesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoTransaccionesLabel">Información sobre Transacciones</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> Esta sección muestra todas las transacciones registradas del proyecto, tanto ingresos como egresos.</p>
+        <p><strong>Filtrado:</strong> Usa el selector de mes para visualizar las transacciones correspondientes a ese periodo.</p>
+        <p><strong>Exportación:</strong> Puedes generar un reporte en formato PDF con el botón <em>“Exportar a PDF”</em>.</p>
+        <p><strong>Búsqueda:</strong> El cuadro de búsqueda permite filtrar las transacciones por concepto, tipo o fecha.</p>
+        <p><strong>Detalle:</strong> Cada fila muestra la fecha de registro,concepto, tipo de transacción y monto .</p>
+        <p><strong>Consejo:</strong> Mantén actualizados los datos para un control financiero más preciso y reportes claros.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% block extra_js %}
