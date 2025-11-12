@@ -7,8 +7,18 @@
 
 {% block content %}
 <div class="row mt-4 mb-2 text-center">
-  <div class="col-12">
-    <h1 class="h3">Registro de asistencia</h1>
+  <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+    <h1 class="h3 mb-0">Registro de asistencia</h1>
+
+    <!-- Botón de ayuda -->
+    <a href="#" 
+       class="btn btn-link btn-sm order-1 order-lg-0 me-2" 
+       data-bs-toggle="modal" 
+       data-bs-target="#infoAsistencia" 
+       title="Ayuda sobre registro de asistencia" 
+       role="button">
+        <i class="fa-solid fa-circle-info"></i>
+    </a>
   </div>
 </div>
 
@@ -57,6 +67,33 @@
   <!-- Contenedor que HTMX actualizará -->
   <div id="table-content">
     {% include "partials/meeting/attendance_content.html" %}
+  </div>
+</div>
+
+<!-- Modal de Ayuda: Registro de Asistencia -->
+<div class="modal fade" id="infoAsistencia" tabindex="-1" aria-labelledby="infoAsistenciaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoAsistenciaLabel">Información sobre Registro de Asistencia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> Registrar la asistencia de los participantes a una reunión específica. Aquí puedes marcar manualmente quién asistió o no.</p>
+        <p><strong>Guardar Asistencias:</strong> Una vez realizadas las marcas, presiona <em>“Guardar Asistencias”</em> para registrar los cambios.</p>
+        <p><strong>Exportar a PDF:</strong> Genera un reporte en formato PDF con la lista de participantes y su estado de asistencia.</p>
+        <p><strong>Indicadores visuales:</strong> 
+          <ul>
+            <li>Las filas en verde indican asistentes registrados.</li>
+            <li>Las filas sin color indican ausentes o no registrados.</li>
+          </ul>
+        </p>
+        <p><strong>Consejo:</strong> Asegúrate de guardar los cambios antes de salir o cambiar de pestaña para no perder los registros.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
   </div>
 </div>
 

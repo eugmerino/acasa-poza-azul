@@ -11,13 +11,22 @@
 
 {% block content %}
     <div class="row mt-4 mb-2 text-center">
-        <div class="col-12">
-        <h1 class="h3">Gestión de Reuniones</h1>
+        <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+            <h1 class="h3 mb-0">Gestión de Reuniones</h1>
+            <!-- Botón de ayuda (modificado) -->
+            <a href="#" 
+               class="btn btn-link btn-sm order-1 order-lg-0 me-2" 
+               data-bs-toggle="modal" 
+               data-bs-target="#infoReuniones" 
+               title="Ayuda sobre reuniones" 
+               role="button">
+                <i class="fa-solid fa-circle-info"></i>
+            </a>
         </div>
     </div>
 
     <div class="table-container rounded-4 shadow p-4">    
-        <div class="header-controls">
+        <div class="header-controls d-flex justify-content-between align-items-center flex-wrap gap-2">
             <button
                 id="btn-abrir-crud"
                 class="btn btn-success"
@@ -32,10 +41,34 @@
 
             {% include "partials/search_table.html" with hx_url=meet_search_url hx_target="#table-content" placeholder="Buscar Reuniones..." %}
         </div>
+
         {% include "partials/meet/meet_table.html" %}
     </div>
 
     {% include "partials/meet/meet_create_modal.html" %}
+
+    <!-- Modal de Ayuda -->
+    <div class="modal fade" id="infoReuniones" tabindex="-1" aria-labelledby="infoReunionesLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="infoReunionesLabel">Información sobre Reuniones</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <p><strong>Objetivo:</strong> En esta sección puedes registrar, consultar y actualizar las reuniones realizadas por la directiva o comunidad.</p>
+            <p><strong>Agregar reunión:</strong> Usa el botón <em>“Agregar Nueva reunión”</em> para crear un registro con fecha, tema, acuerdos y participantes.</p>
+            <p><strong>Búsqueda:</strong> Utiliza el cuadro de búsqueda para filtrar por tema, fecha o responsable de la reunión.</p>
+            <p><strong>Edición:</strong> Puedes editar una reunión directamente desde la tabla sin recargar la página.</p>
+            <p><strong>Eliminación:</strong> Si eliminas una reunión, se eliminarán también los acuerdos vinculados a ella.</p>
+            <p><strong>Consejo:</strong> Mantén la descripción de los acuerdos breve y clara para facilitar su consulta posterior.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -87,6 +120,5 @@
         });
     });
     </script>
-
 
 {% endblock %}

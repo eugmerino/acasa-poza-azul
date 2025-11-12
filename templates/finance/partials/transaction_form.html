@@ -22,8 +22,12 @@
 
         <!-- Proyecto -->
         <div class="mb-3">
-            <label for="{{ form.project.id_for_label }}" class="form-label">
+            <label for="{{ form.project.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.project.label }} <span class="text-danger">*</span>
+                <i class="fa-solid fa-circle-info text-primary"
+                   data-bs-toggle="tooltip"
+                   data-bs-placement="right"
+                   title="Selecciona el proyecto al que pertenece esta transacción."></i>
             </label>
             {{ form.project }}
             {% if form.project.errors %}
@@ -37,8 +41,12 @@
 
         <!-- Fecha -->
         <div class="mb-3">
-            <label for="{{ form.date.id_for_label }}" class="form-label">
+            <label for="{{ form.date.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.date.label }} <span class="text-danger">*</span>
+                <i class="fa-solid fa-circle-info text-primary"
+                   data-bs-toggle="tooltip"
+                   data-bs-placement="right"
+                   title="Selecciona la fecha de la transacción. Solo se permiten fechas dentro del mes actual."></i>
             </label>
             <input 
                 type="date"
@@ -61,8 +69,12 @@
 
         <!-- Concepto -->
         <div class="mb-3">
-            <label for="{{ form.concept.id_for_label }}" class="form-label">
+            <label for="{{ form.concept.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.concept.label }} <span class="text-danger">*</span>
+                <i class="fa-solid fa-circle-info text-primary"
+                   data-bs-toggle="tooltip"
+                   data-bs-placement="right"
+                   title="Describe brevemente el concepto o motivo de la transacción."></i>
             </label>
             <input type="text"
                 name="{{ form.concept.name }}"
@@ -79,8 +91,12 @@
 
         <!-- Tipo -->
         <div class="mb-3">
-            <label for="{{ form.type.id_for_label }}" class="form-label">
+            <label for="{{ form.type.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.type.label }} <span class="text-danger">*</span>
+                <i class="fa-solid fa-circle-info text-primary"
+                   data-bs-toggle="tooltip"
+                   data-bs-placement="right"
+                   title="Indica si la transacción es un ingreso o un egreso."></i>
             </label>
             {{ form.type }}
             {% if form.type.errors %}
@@ -94,8 +110,12 @@
 
         <!-- Monto -->
         <div class="mb-3">
-            <label for="{{ form.amount.id_for_label }}" class="form-label">
+            <label for="{{ form.amount.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.amount.label }} <span class="text-danger">*</span>
+                <i class="fa-solid fa-circle-info text-primary"
+                   data-bs-toggle="tooltip"
+                   data-bs-placement="right"
+                   title="Introduce el monto total de la transacción. Solo se permiten valores numéricos."></i>
             </label>
             {{ form.amount }}
             {% if form.amount.errors %}
@@ -121,3 +141,13 @@
         </button>
     </div>
 </form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Activar tooltips Bootstrap
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+});
+</script>
