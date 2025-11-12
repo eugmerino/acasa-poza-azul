@@ -219,21 +219,43 @@ def attendance(request):
     today = localtime().date()
     now_time = localtime().time().replace(microsecond=0)
 
-    # Buscar reunión activa en este momento
-    active_meeting = Meeting.objects.filter(
-        date=today,
-        start_time__lte=now_time,
-        end_time__gte=now_time,
-        isActive=True
-    ).first()
+    # 🔹 Buscar reunión activa (no suspendida ni cancelada)
+    active_meeting = (
+        Meeting.objects.filter(
+            date=today,
+            start_time__lte=now_time,
+            end_time__gte=now_time,
+            isActive=True
+        )
+        .exclude(title__icontains="suspendida")
+        .exclude(title__icontains="cancelada")
+        .first()
+    )
 
-    # Filtrar solo socios del proyecto que no sean superusuarios
+    # 🔹 Buscar próxima reunión futura válida
+    next_meeting = (
+        Meeting.objects.filter(date__gt=today, isActive=True)
+        .exclude(title__icontains="suspendida")
+        .exclude(title__icontains="cancelada")
+        .order_by('date', 'start_time')
+        .first()
+    )
+
+    # 🔹 Filtrar socios activos del proyecto
     partners = Partner.objects.filter(
         community__project=project,
         is_superuser=False,
         is_active=True
     )
 
+    # 🔹 Obtener IDs de socios con asistencia si hay reunión activa
+    attended_partner_ids = set()
+    if active_meeting:
+        attended_partner_ids = set(
+            active_meeting.attendances.values_list('partner_id', flat=True)
+        )
+
+    # 🔹 POST: guardar asistencias solo si hay reunión activa
     if request.method == "POST" and active_meeting:
         for partner in partners:
             checkbox_name = f"attendance_{partner.id}"
@@ -244,16 +266,17 @@ def attendance(request):
             else:
                 Attendance.objects.filter(meeting=active_meeting, partner=partner).delete()
 
-        # 🔹 Recalcular IDs después de guardar
+        # Actualizar IDs después de guardar
         attended_partner_ids = set(
             active_meeting.attendances.values_list('partner_id', flat=True)
         )
 
-        # 🔹 Respuesta HTMX con header para SweetAlert2
+        # 🔹 Si es una llamada HTMX, devolver solo el fragmento actualizado
         if request.headers.get("Hx-Request") == "true":
             response = render(request, "partials/meeting/attendance_content.html", {
                 "project": project,
                 "active_meeting": active_meeting,
+                "next_meeting": next_meeting,
                 "partners": partners,
                 "attended_partner_ids": attended_partner_ids,
             })
@@ -265,93 +288,22 @@ def attendance(request):
 
         return redirect("attendance")
 
-    # GET o no hay POST
-    attended_partner_ids = set()
-    if active_meeting:
-        attended_partner_ids = set(
-            active_meeting.attendances.values_list('partner_id', flat=True)
-        )
-
-    # Template parcial si HTMX, sino la página completa
+    # 🔹 Seleccionar template principal o parcial (para HTMX)
     template = (
         "partials/meeting/attendance_content.html"
         if request.headers.get("Hx-Request") == "true"
         else "meeting/attendance.html"
     )
 
+    # 🔹 Render final (incluyendo próxima reunión)
     return render(request, template, {
         "project": project,
         "active_meeting": active_meeting,
+        "next_meeting": next_meeting,
         "partners": partners,
         "attended_partner_ids": attended_partner_ids,
     })
-    project = Project.objects.first()
-    today = localtime().date()
-    now_time = localtime().time().replace(microsecond=0)
 
-    # Buscar reunión activa en este momento
-    active_meeting = Meeting.objects.filter(
-        date=today,
-        start_time__lte=now_time,
-        end_time__gte=now_time,
-        isActive=True
-    ).first()
-
-     # Crear set de IDs de socios que ya tienen asistencia
-    attended_partner_ids = set()
-    if active_meeting:
-        attended_partner_ids = set(
-            active_meeting.attendances.values_list('partner_id', flat=True)
-        )
-
-    # Filtrar solo socios del proyecto y que no sean superusuarios
-    partners = Partner.objects.filter(
-        community__project=project,
-        is_superuser=False
-    )
-
-    if request.method == "POST" and active_meeting:
-        for partner in partners:
-            checkbox_name = f"attendance_{partner.id}"
-            attended = checkbox_name in request.POST
-
-            if attended:
-                # Solo guardar asistencia si fue marcado
-                Attendance.objects.get_or_create(
-                    meeting=active_meeting,
-                    partner=partner
-                )
-            else:
-                # Si estaba guardado y se desmarca, eliminarlo
-                Attendance.objects.filter(
-                    meeting=active_meeting,
-                    partner=partner
-                ).delete()
-
-        # 🔹 Devolver solo el fragmento si es HTMX
-        if request.headers.get("Hx-Request") == "true":
-            return render(request, "partials/meeting/attendance_content.html", {
-                "project": project,
-                "active_meeting": active_meeting,
-                "attended_partner_ids": attended_partner_ids,
-                "partners": partners,
-            })
-
-        return redirect("attendance")
-
-    # 🔹 Si es HTMX también devolver solo el fragmento
-    template = (
-        "partials/meeting/attendance_content.html"
-        if request.headers.get("Hx-Request") == "true"
-        else "meeting/attendance.html"
-    )
-
-    return render(request, template, {
-        "project": project,
-        "active_meeting": active_meeting,
-        "attended_partner_ids": attended_partner_ids,
-        "partners": partners,
-    })
 
 def attendance_pdf(request, meeting_id):
     meeting = get_object_or_404(Meeting, id=meeting_id)

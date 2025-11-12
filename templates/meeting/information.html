@@ -5,7 +5,22 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h3 class="mb-4 text-center">Reuniones Realizadas</h3>
+
+    <!-- Título con ayuda -->
+    <div class="row mb-3 text-center">
+        <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+            <h3 class="mb-0">Reuniones Realizadas</h3>
+            <!-- Botón de ayuda -->
+            <a href="#" 
+               class="btn btn-link btn-sm order-1 order-lg-0 me-2" 
+               data-bs-toggle="modal" 
+               data-bs-target="#infoReunionesRealizadas" 
+               title="Ayuda sobre reuniones realizadas" 
+               role="button">
+                <i class="fa-solid fa-circle-info"></i>
+            </a>
+        </div>
+    </div>
 
     <!-- Buscador -->
     <div class="d-flex justify-content-end mb-3">
@@ -25,7 +40,30 @@
 
     <!-- Contenedor HTMX - solo la tabla se actualiza aquí -->
     <div id="main-table-content">
-        {% include "partials/meet/information_table.html" %}
+        <div class="table-container rounded-4 shadow p-4">
+            {% include "partials/meet/information_table.html" %}
+        </div>
     </div>
+</div>
+
+<!-- Modal de Ayuda: Reuniones Realizadas -->
+<div class="modal fade" id="infoReunionesRealizadas" tabindex="-1" aria-labelledby="infoReunionesRealizadasLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoReunionesRealizadasLabel">Información sobre Reuniones Realizadas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> En esta sección puedes consultar todas las reuniones que ya se realizaron, junto con sus fechas, horarios y documentos generados.</p>
+        <p><strong>Descargar PDF:</strong> Usa el botón <em>“Descargar PDF”</em> para obtener un reporte con la asistencia e inansistencias</p>
+        <p><strong>Visualización:</strong> Esta tabla muestra únicamente las reuniones finalizadas. Las reuniones activas se gestionan en la sección <em>“Gestión de Reuniones”</em>.</p>
+        <p><strong>Consejo:</strong> Mantén actualizada la información de cada reunión para generar reportes precisos y evitar duplicados.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
