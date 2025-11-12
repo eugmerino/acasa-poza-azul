@@ -353,28 +353,30 @@ def attendance(request):
         "partners": partners,
     })
 
-def attendance_pdf(request, meeting_id=None):
+def attendance_pdf(request, meeting_id):
+    meeting = get_object_or_404(Meeting, id=meeting_id)
+
+    # proyecto asociado o por defecto
     default_project = Project.objects.first()
-    meeting = None
+    project_for_pdf = getattr(meeting, 'project', default_project) or default_project
 
-    if meeting_id:
-        meeting = get_object_or_404(Meeting, id=meeting_id)
-        attendances = Attendance.objects.select_related(
-            'partner', 'meeting', 'partner__community'
-        ).filter(meeting=meeting)
-        project_for_pdf = getattr(meeting, 'project', default_project) or default_project
+    # Obtener todos los socios del proyecto excluyendo superusers y solo activos
+    project_partners = Partner.objects.filter(
+        community__project=project_for_pdf,
+        is_superuser=False,
+        is_active=True
+    )
 
-        # 🔹 Total de socios del proyecto
-        total_socios = Partner.objects.filter(community__project=project_for_pdf).count()
-        total_asistencias = attendances.count()
-    else:
-        attendances = Attendance.objects.select_related(
-            'partner', 'meeting', 'partner__community'
-        ).all()
-        project_for_pdf = default_project
-        total_asistencias = attendances.count()
+    # Asistentes y no asistentes (solo entre los partners del proyecto, sin superusers)
+    asistentes = project_partners.filter(attendances__meeting=meeting).distinct()
+    no_asistentes = project_partners.exclude(attendances__meeting=meeting).distinct()
 
-    # 🔹 logo seguro
+    # Totales
+    total_asistencias = asistentes.count()
+    total_socios = project_partners.count()
+    total_inasistentes = total_socios - total_asistencias
+
+    # Logo seguro
     logo_url = None
     if project_for_pdf and getattr(project_for_pdf, 'logo', None):
         try:
@@ -386,12 +388,74 @@ def attendance_pdf(request, meeting_id=None):
         'project': project_for_pdf,
         'logo_url': logo_url,
         'meeting': meeting,
-        'attendances': attendances,
+        'asistentes': asistentes,
+        'no_asistentes': no_asistentes,
         'today': date.today(),
         'total_asistencias': total_asistencias,
+        'total_socios': total_socios,
+        'total_inasistentes': total_inasistentes,
     })
 
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=\"asistencia.pdf\"'
+    response['Content-Disposition'] = f'inline; filename="asistencia_{meeting.id}.pdf"'
     weasyprint.HTML(string=html).write_pdf(response)
     return response
+
+def information(request):
+    project = Project.objects.first()
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    now = timezone.localtime()
+
+    # ✅ Solo reuniones ya realizadas (fecha pasada o finalizadas hoy)
+    from django.db.models import Q
+    meet_list = Meeting.objects.filter(
+        Q(date__lt=now.date()) |
+        Q(date=now.date(), end_time__lt=now.time())
+    ).order_by('-date', '-start_time')
+
+    paginator = Paginator(meet_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'meeting/information.html',  # 👈 nuevo template
+        {
+            'page_obj': page_obj,
+            'project': project,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+        }
+    )
+
+def information_search(request):
+    query = request.GET.get('q', '') 
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    today = timezone.localdate()
+    now = timezone.localtime().time()
+
+    meet_list = Meeting.objects.filter(
+        Q(date__lt=today) | (Q(date=today) & Q(end_time__lt=now))
+    ).filter(
+        Q(title__icontains=query) | Q(date__icontains=query)
+    ).order_by('-date', '-end_time')
+
+    paginator = Paginator(meet_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'partials/meet/information_table.html',
+        {
+            'information_search_url': reverse('information_search'),
+            'page_obj': page_obj,
+            'query': query,
+            'per_page': per_page,
+            'per_page_options': per_page_options,
+            'today': timezone.localdate(),
+            'current_time': timezone.localtime().time(),
+        }
+    )
