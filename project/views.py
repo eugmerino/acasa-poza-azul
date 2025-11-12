@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.http import HttpResponse
 from django.utils import timezone
+from django.contrib import messages
 import json
 from django.http import JsonResponse
 from django.contrib.auth import logout
@@ -713,63 +714,108 @@ def partner_search_view(request):
 
 def connection_create_view(request):
     project = Project.objects.first()
+
     if request.method == "POST":
         data = request.POST.copy()
-        data["acquisition_price"] = project.connection_price
+
+        # precio por defecto desde el proyecto
+        if project and project.connection_price is not None:
+            data["acquisition_price"] = project.connection_price
+
         # Si responsible viene vacío, asigna el owner
         if not data.get("responsible") and data.get("owner"):
             data["responsible"] = data["owner"]
+
         form = ConnectionForm(data)
+
         if form.is_valid():
-            form.save() 
-            if request.headers.get('HX-Request'):
-                response = HttpResponse()
-                response['HX-Redirect'] = reverse('connections_list')
-                return response
-        else:
-            # Si es HTMX → devolver solo el fragmento del form
+            connection = form.save()
+
+            # --- ÉXITO ---
             if request.headers.get("HX-Request"):
-                response = render(
+                # Devolver un parcial que cierra el modal y muestra SweetAlert
+                resp = render(
                     request,
-                    "water_connection/partials/connection_form.html",
-                    {"form": form}
+                    "water_connection/partials/connection_create_success.html",
+                    {"connection": connection},
                 )
-                response["HX-Retarget"] = "#connection-form"
-                response["HX-Reswap"] = "outerHTML"
-                response["HX-Trigger-After-Settle"] = "fail"
-                return response
-    else:
-        form = ConnectionForm()
-        form = ConnectionForm(initial={"acquisition_price": project.connection_price})
+                # Dispara un evento por si quieres refrescar tablas/listas fuera del modal
+                resp["HX-Trigger-After-Swap"] = json.dumps({
+                    "connection:added": {"id": connection.id, "msg": "La acometida se guardó correctamente."}
+                })
+                # Se está haciendo hx-target="#connection-form" hx-swap="outerHTML",
+                # así que este partial reemplazará el formulario dentro del modal.
+                return resp
+            else:
+                messages.success(request, "La acometida se guardó correctamente.")
+                return redirect("connections_list")
+
+        # --- FORM INVÁLIDO ---
+        if request.headers.get("HX-Request"):
+            resp = render(
+                request,
+                "water_connection/partials/connection_form.html",
+                {"form": form},
+            )
+            resp["HX-Retarget"] = "#connection-form"
+            resp["HX-Reswap"] = "outerHTML"
+            # Si quieres mostrar un SweetAlert genérico de error:
+            first_err = ""
+            if form.errors:
+                # toma el primer mensaje útil
+                first_field = next(iter(form.errors))
+                first_err = form.errors.get(first_field, ["Revisa los campos."])[0]
+            resp["HX-Trigger-After-Swap"] = json.dumps({
+                "connection:error": {"msg": first_err or "Revisa los campos."}
+            })
+            return resp
+
+    # GET
+    initial = {}
+    if project and project.connection_price is not None:
+        initial["acquisition_price"] = project.connection_price
+    form = ConnectionForm(initial=initial)
 
     return render(request, "water_connection/partials/connection_form.html", {"form": form})
 
 def connection_edit_view(request, pk):
     connection = get_object_or_404(WaterConnection, pk=pk)
+
     if request.method == "POST":
         data = request.POST.copy()
-        # Setea los campos deshabilitados manualmente
+        # Mantener los campos deshabilitados
         data["owner"] = connection.owner.id
         data["date"] = connection.date.strftime("%Y-%m-%d")
         data["acquisition_price"] = str(connection.acquisition_price)
+
         form = ConnectionForm(data, instance=connection)
+
         if form.is_valid():
             form.save()
+
+            # --- Si es HTMX: mostrar fragmento de éxito ---
             if request.headers.get("HX-Request"):
-                response = HttpResponse()
-                response['HX-Redirect'] = reverse('connections_list')
-                return response
-            return redirect('connections_list')
+                return render(
+                    request,
+                    "water_connection/partials/connection_create_success.html",
+                    {"connection": connection}
+                )
+
+            # --- Si es una petición normal: redirigir ---
+            return redirect("connections_list")
+
         else:
-            # Si es HTMX → devolver solo el fragmento del form de edición
+            # Si el form tiene errores y es HTMX → devolver solo el fragmento
             if request.headers.get("HX-Request"):
                 return render(
                     request,
                     "water_connection/partials/connection_edit_form.html",
                     {"form": form, "connection": connection}
                 )
+
     else:
         form = ConnectionForm(instance=connection)
+
     return render(
         request,
         "water_connection/partials/connection_edit_form.html",
