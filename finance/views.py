@@ -375,6 +375,8 @@ def transaction_list_all(request):
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
 
+    today = timezone.localtime().date()
+
     qs = Transaction.objects.all().order_by('-date')
     if query:
         qs = qs.filter(
@@ -400,6 +402,7 @@ def transaction_list_all(request):
         'total_expenses': total_expenses,
         'balance': balance,
         'query': query,
+        'today': today,
     })
 
 

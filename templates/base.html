@@ -13,6 +13,11 @@
       {% endblock %}
     </title>
 
+    {% if project and project.logo %}
+      <link rel="icon" type="image/png" href="{{ project.logo.url }}">
+    {% endif %}
+
+
     <!-- CSS externos -->
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.3/css/dataTables.bootstrap5.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />

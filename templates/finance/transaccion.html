@@ -33,6 +33,15 @@
             </button>
         </div>
 
+        <div>
+            <a href="{% url 'transaction_pdf' %}" 
+                id="export-pdf" 
+                class="btn btn-primary" 
+                onclick="exportPDF(event)">
+                <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
+            </a>
+        </div>
+
         {% include "partials/search_table.html" with hx_url=transaction_search_url hx_target="#main-table-content" placeholder="Buscar Transacción..." %}
     </div>
 
