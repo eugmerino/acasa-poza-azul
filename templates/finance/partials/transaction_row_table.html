@@ -1,5 +1,5 @@
 <tr id="transaction-{{ transaction.id }}">
-    <td>{{ transaction.project.title }}</td>
+    <td>{{ transaction.date|date:"d-m-Y" }}</td>
     <td>{{ transaction.concept }}</td>
     <td>
         {% if transaction.type == 'I' %}
@@ -18,7 +18,7 @@
             ${{ transaction.amount }}
         {% endif %}
     </td>
-    <td>{{ transaction.date|date:"d-m-Y" }}</td>
+    
 
     {% if show_actions %}
     <td class="text-center">

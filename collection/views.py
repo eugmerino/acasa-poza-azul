@@ -337,7 +337,7 @@ def reading_create(request, pk):
                     icon: 'error',
                     title: 'Error',
                     text: '{str(e)}',
-                    confirmButtonColor: '#3085d6'
+                    confirmButtonColor: '#198754'
                 }}).then(() => {{
                     // Cierra la modal Bootstrap correctamente
                     var modalEl = document.getElementById('readingModal');

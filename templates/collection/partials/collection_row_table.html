@@ -49,7 +49,7 @@
 
 <script>
     
-    function chargeCollected(pk, csrfToken) {
+  function chargeCollected(pk, csrfToken) {
 
     Swal.fire({
       title: `¿Realizar cobro?`,
@@ -77,18 +77,22 @@
 </script>
 
 <script>
-document.body.addEventListener("htmx:afterSwap", (event) => {
-  // Mostrar la modal sólo si el contenido cargado es la modal
-  if (event.detail.target.id === "collection-details-modal") {
-    const modalEl = document.getElementById("collectionDetailsModal");
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
-
-    // Al cerrar, limpiar backdrop y clase del body (evita el fondo oscuro)
-    modalEl.addEventListener("hidden.bs.modal", () => {
-      document.body.classList.remove("modal-open");
+  document.body.addEventListener("htmx:afterSwap", (event) => {
+    if (event.detail.target.id === "collection-details-modal") {
+      // Limpieza de posibles restos anteriores
       document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
-    });
-  }
-});
+      document.body.classList.remove("modal-open");
+
+      const modalEl = document.getElementById("collectionDetailsModal");
+      const modal = new bootstrap.Modal(modalEl, { backdrop: true });
+
+      modal.show();
+
+      // Asegurar limpieza al cerrar la modal
+      modalEl.addEventListener("hidden.bs.modal", () => {
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+        document.body.classList.remove("modal-open");
+      });
+    }
+  });
 </script>

@@ -299,31 +299,64 @@ body.modal-open .modal-stack {
 }
 
 
-/* ===== Scroll en Sidebar ===== */
-.sidebar {
-  overflow-y: auto; /* Habilita scroll vertical */
-  scrollbar-width: thin; /* Scroll más delgado (Firefox) */
-  scrollbar-color: var(--celeste) transparent; /* Color personalizado */
-  padding-bottom: 60px;
+/* ===== Sidebar Menú Activo ===== */
+
+/* Estilo base de los enlaces */
+.sidebar-menu a {
+  display: block;
+  color: #ddd;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
-/* Scrollbar para Chrome, Edge, etc. */
-.sidebar::-webkit-scrollbar {
-  width: 6px;
+/* Hover general */
+.sidebar-menu a:hover {
+  background-color: rgba(0, 123, 255, 0.15);
+  color: var(--celeste);
 }
 
-.sidebar::-webkit-scrollbar-thumb {
-  background-color: var(--celeste);
-  border-radius: 10px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+/* Enlace activo (seleccionado) */
 .sidebar-menu a.active {
   background-color: var(--celeste);
-  color: white !important;
+  color: #fff !important;
   font-weight: 600;
   border-radius: 8px;
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
+}
+
+/* Menú padre que tiene un submenú abierto */
+.sidebar-menu .collapse.show {
+  background-color: rgba(0, 180, 255, 0.08);
+  border-left: 3px solid var(--celeste);
+  border-radius: 6px;
+  padding-left: 8px;
+}
+
+/* Enlaces dentro de un submenu abierto */
+.sidebar-menu .collapse.show a {
+  color: #cfe8ff;
+  font-weight: 500;
+}
+
+/* Subitem activo dentro del submenu */
+.sidebar-menu .collapse.show a.active {
+  background-color: var(--celeste);
+  color: #fff;
+  font-weight: 600;
+  border-left: 4px solid #fff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+}
+
+/* Transición suave para el despliegue */
+.sidebar-menu .collapse {
+  transition: all 0.25s ease-in-out;
+}
+
+/* Ícono del submenú activo */
+.sidebar-menu [data-bs-toggle="collapse"][aria-expanded="true"] {
+  background-color: rgba(0, 180, 255, 0.15);
+  color: var(--celeste);
+  font-weight: 600;
 }
