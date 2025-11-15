@@ -52,7 +52,7 @@ def inicio(request):
      pending_repairs = total_repairs - fixed_repairs
      repairs_done_ratio = f"{fixed_repairs}/{total_repairs}" if total_repairs else "0/0"
 
-     mostrar_alerta_fee = not Fee.has_active()
+     mostrar_alerta_fee = not Fee.objects.filter(isActive=True).exists()
 
      return render(request, "home/home.html", {
             "project": project,

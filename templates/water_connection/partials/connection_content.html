@@ -1,6 +1,15 @@
 <div class="row mt-4 mb-2 text-center">
-  <div class="col-12">
-    <h1 class="h3">Gestión de acometidas</h1>
+  <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+    <h1 class="h3 mb-0">Gestión de acometidas</h1>
+    <!-- Botón de ayuda -->
+    <a href="#"
+       class="btn btn-link btn-sm order-1 order-lg-0 me-2"
+       data-bs-toggle="modal"
+       data-bs-target="#infoAcometidas"
+       title="Ayuda sobre acometidas"
+       role="button">
+      <i class="fa-solid fa-circle-info"></i>
+    </a>
   </div>
 </div>
 
@@ -17,9 +26,81 @@
     >
       <i class="fas fa-plus me-1"></i> Agregar Nueva Acometida
     </button>
-      {% include "partials/search_table.html" with hx_url=connections_search_url hx_target="#table-content" placeholder="Buscar Acometida..." %}
+    {% include "partials/search_table.html" with hx_url=connections_search_url hx_target="#table-content" placeholder="Buscar Acometida..." %}
   </div>
+
   {% include "water_connection/partials/connection_table.html" %}
 </div>
 
 {% include "water_connection/partials/connection_create_modal.html" %}
+
+{# Modal de Ayuda sobre Acometidas #}
+<div class="modal fade" id="infoAcometidas" tabindex="-1" aria-labelledby="infoAcometidasLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoAcometidasLabel">Información sobre acometidas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          <strong>Objetivo:</strong> En esta sección puedes registrar, consultar y administrar
+          las acometidas (conexiones de agua) asociadas a los usuarios del proyecto.
+        </p>
+
+        <p class="mb-1"><strong>Columnas de la tabla:</strong></p>
+        <ul>
+          <li>
+            <strong>Descripción:</strong> nombre o referencia de la acometida.
+          </li>
+          <li>
+            <strong>Nombre del responsable:</strong> persona responsable del inmueble o
+            de la acometida.
+          </li>
+          <li>
+            <strong>Fecha de adquisición:</strong> fecha en la que se registró o se adquirió
+            la acometida.
+          </li>
+          <li>
+            <strong>Precio de adquisición:</strong> monto definido para la acometida.
+            Este valor está establecido en el proyecto y no se modifica al editar.
+          </li>
+          <li>
+            <strong>Estado:</strong> indica si la acometida está
+            <span class="badge bg-success">Activa</span> o
+            <span class="badge bg-secondary">Inactiva</span>.
+          </li>
+          <li>
+            <strong>Acciones:</strong> menú con las opciones disponibles para cada registro.
+          </li>
+        </ul>
+
+        <p class="mb-1"><strong>Acciones disponibles:</strong></p>
+        <ul>
+          <li>
+            <strong>Desactivar:</strong> cambia el estado de la acometida a inactiva.
+            No se elimina el registro, solo deja de considerarse como activa.
+          </li>
+          <li>
+            <strong>Editar:</strong> permite modificar únicamente la
+            <em>Descripción</em> y el <em>Nombre del responsable</em>.
+          </li>
+        </ul>
+
+        <p class="mb-1"><strong>Búsqueda y navegación:</strong></p>
+        <ul class="mb-0">
+          <li>
+            Usa el cuadro <em>“Buscar Acometida…”</em> para filtrar por descripción y
+            responsable.
+          </li>
+          <li>
+            Utiliza la paginación inferior para moverte entre los diferentes registros de acometidas.
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
