@@ -8,7 +8,7 @@ from datetime import timedelta
 from .forms import UserLoginForm
 from project.models import Project, WaterConnection, Community
 from repair.models import Repair
-from collection.models import Reading
+from collection.models import Reading, Fee
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -42,7 +42,6 @@ def inicio(request):
      readings_month = Reading.objects.filter(date_reading__gte=first_day,date_reading__lt=first_day_next)
      total_readings_month = readings_month.count()
      paid_readings_month = readings_month.filter(isPaid=True).count()
-        # Solo este dato mostramos — EJEMPLO: 30/50
      charges_ratio = f"{paid_readings_month}/{total_readings_month}"
 
      current_month = date_format(timezone.localtime(), 'F', use_l10n=True).capitalize()
@@ -51,9 +50,9 @@ def inicio(request):
      total_repairs = Repair.objects.count()
      fixed_repairs = Repair.objects.filter(repair_date__isnull=False).count()  # reparadas
      pending_repairs = total_repairs - fixed_repairs
-
-        # Mostrar "reparadas/total"  -> 0/1 en tu ejemplo
      repairs_done_ratio = f"{fixed_repairs}/{total_repairs}" if total_repairs else "0/0"
+
+     mostrar_alerta_fee = not Fee.objects.filter(isActive=True).exists()
 
      return render(request, "home/home.html", {
             "project": project,
@@ -65,7 +64,8 @@ def inicio(request):
             "fixed_repairs": fixed_repairs,
             "total_repairs" : total_repairs,
             "total_readings_month": total_readings_month,
-            "paid_readings_month" : paid_readings_month
+            "paid_readings_month" : paid_readings_month,
+            "mostrar_alerta_fee": mostrar_alerta_fee,
         })
 
 

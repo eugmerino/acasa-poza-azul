@@ -5,22 +5,40 @@
       hx-swap="outerHTML"
       novalidate>
   {% csrf_token %}
+
   <div class="modal-header">
     <h5 class="modal-title">Editar Acometida</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
+
   <div class="modal-body">
+
     <!-- OWNER (solo lectura) -->
     <div class="mb-3">
       <label class="form-label">Propietario:</label>
-      <input type="text" class="form-control" value="{{ connection.owner.first_name }} {{ connection.owner.last_name }}" readonly disabled>
+      <input type="text" class="form-control" 
+             value="{{ connection.owner.first_name }} {{ connection.owner.last_name }}" 
+             readonly disabled>
       <input type="hidden" name="owner" value="{{ connection.owner.id }}">
     </div>
+
     <!-- RESPONSIBLE (editable con búsqueda) -->
     <div class="mb-3 position-relative" id="responsible-search-wrap">
       <label for="responsible_search_input" class="form-label">
         Responsable: <span class="text-danger">*</span>
+
+        <!-- AYUDA -->
+        <a href="#" class="btn btn-link p-0 align-baseline"
+           tabindex="0"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Selecciona el responsable de la acometida. Puedes buscar por nombre o DUI, y debes elegir una opción de la lista para que quede asignado correctamente."
+        >
+          <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+        </a>
       </label>
+
       <div class="input-group">
         <input type="text"
               name="qq"
@@ -35,57 +53,68 @@
               hx-swap="innerHTML"
               hx-include="#responsible_search_input"
               hx-vals='{"target": "responsible"}'>
-        <input type="hidden" name="responsible" id="id_responsible" value="{% if connection.responsible %}{{ connection.responsible.id }}{% endif %}">
+
+        <input type="hidden" name="responsible" id="id_responsible" 
+               value="{% if connection.responsible %}{{ connection.responsible.id }}{% endif %}">
+
         <button class="btn btn-outline-secondary" type="button" id="responsible-clear-btn" hidden
           onclick="clearPartnerField('responsible')">✕</button>
+
         <div class="invalid-feedback">Debes seleccionar un responsable.</div>
       </div>
-      <div id="responsible-results" class="w-100 position-absolute" style="z-index:1000; top:100%; left:0;"></div>
+
+      <div id="responsible-results" class="w-100 position-absolute"
+           style="z-index:1000; top:100%; left:0;"></div>
     </div>
-    <!-- DATE -->
+
+    <!-- DATE (solo lectura) -->
     <div class="mb-3">
-      <label for="{{ form.date.id_for_label }}" class="form-label">
-        Fecha de adquisición: <span class="text-danger">*</span>
-      </label>
-      <!-- Campo solo lectura con formato dd-mm-aaaa -->
+      <label for="{{ form.date.id_for_label }}" class="form-label">Fecha de adquisición:</label>
+
       <input type="text"
              class="form-control mb-2"
              value="{{ form.instance.date|date:'d-m-Y' }}"
-             readonly
-             tabindex="-1" disabled>
-      <div class="invalid-feedback">Indica la fecha de adquisición.</div>
-      {% if form.date.errors %}
-        <div class="text-danger small mt-1">{{ form.date.errors|first }}</div>
-      {% endif %}
+             readonly disabled>
     </div>
+
     <!-- DESCRIPTION -->
     <div class="mb-3">
       <label for="{{ form.description.id_for_label }}" class="form-label">
         Descripción: <span class="text-danger">*</span>
+
+        <!-- AYUDA -->
+        <a href="#" class="btn btn-link p-0 align-baseline"
+           tabindex="0"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Describe claramente la ubicación o referencia de la acometida. Ejemplo: 'Conexión principal casa #7'."
+        >
+          <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+        </a>
       </label>
+
       {{ form.description }}
       <div class="invalid-feedback">Agrega una descripción válida.</div>
-      {% if form.description.errors %}
-        <div class="text-danger small mt-1">{{ form.description.errors|first }}</div>
-      {% endif %}
     </div>
+
     <!-- ACQUISITION PRICE -->
     <div class="mb-3">
       <label for="{{ form.acquisition_price.id_for_label }}" class="form-label">
         Precio de adquisición:
       </label>
+
       {{ form.acquisition_price }}
       <div class="invalid-feedback">Ingresa un monto válido.</div>
-      {% if form.acquisition_price.errors %}
-        <div class="text-danger small mt-1">{{ form.acquisition_price.errors|first }}</div>
-      {% endif %}
     </div>
-    <!-- NOTA CAMPOS OBLIGATORIOS -->
+
     <p class="small mb-0">
       <span class="text-danger">*</span>
       <span class="text-muted">Campos obligatorios</span>
     </p>
+
   </div>
+
   <div class="modal-footer justify-content-between">
     <button type="submit" class="btn btn-success">Guardar</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -222,5 +251,12 @@
   function scan(){ bindConfirm(document.getElementById('connection-edit-form')); }
   document.addEventListener('DOMContentLoaded', scan);
   document.body.addEventListener('htmx:load', scan);
+
+  const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.forEach(function (popoverTriggerEl) {
+      new bootstrap.Popover(popoverTriggerEl, {
+        customClass: 'popover-sm' 
+      });
+    });
 })();
 </script>

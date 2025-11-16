@@ -1,48 +1,28 @@
-<div id="payment-success-fragment" class="p-4">
-  <div class="alert alert-success d-flex align-items-center" role="alert">
-    <i class="fas fa-check-circle me-2"></i>
-    <div><strong>¡Listo!</strong> El pago se guardó correctamente.</div>
-  </div>
+<script>
+  (function () {
+    try {
+      Swal.fire({
+        title: 'Guardado',
+        text: 'El pago se guardó correctamente.',
+        icon: 'success',
+        showConfirmButton: false,   
+        timer: 2000                 
+      }).then(() => {
 
-  <div class="d-flex gap-2">
-    <a href="{% url 'payments_list' %}" class="btn btn-success">Ver pagos</a>
-    <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()">Actualizar página</button>
+        location.reload();
+      });
+    } catch (_) {}
+
+    const modalEl = document.querySelector('.modal.show');
+    if (modalEl) {
+      const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      inst.hide();
+    }
+  })();
+</script>
+
+<div class="p-3">
+  <div class="alert alert-success mb-0">
+    El pago se guardó correctamente.
   </div>
 </div>
-
-<script>
-  // --- Cerrar el modal antes de mostrar el mensaje ---
-  (function forceCloseModal(modalId) {
-    const el = document.getElementById(modalId);
-    if (!el) return;
-    try { bootstrap.Modal.getOrCreateInstance(el).hide(); } catch (_) {}
-    el.classList.remove('show');
-    el.style.display = 'none';
-    document.body.classList.remove('modal-open');
-    document.body.style.removeProperty('padding-right');
-    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-  })('payment-modal'); // <-- Asegúrate de usar el ID real de tu modal de pagos
-
-  // --- Mostrar SweetAlert y recargar ---
-  if (window.Swal) {
-    Swal.fire({
-      icon: 'success',
-      title: 'Guardado',
-      text: 'El pago se guardó correctamente.',
-      timer: 1600,
-      showConfirmButton: false
-    }).then(() => {
-      // Da un pequeño margen para las animaciones del modal
-      setTimeout(() => window.location.reload(), 150);
-    });
-  } else {
-    // Sin SweetAlert → mostrar el alert Bootstrap y luego recargar
-    setTimeout(() => window.location.reload(), 1200);
-  }
-
-  // --- Limpieza del fragmento del DOM ---
-  setTimeout(function () {
-    const wrap = document.getElementById('payment-success-fragment');
-    if (wrap) wrap.remove();
-  }, 0);
-</script>

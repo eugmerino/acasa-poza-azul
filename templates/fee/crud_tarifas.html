@@ -468,13 +468,16 @@
               .then((response) => response.json())
               .then((data) => {
                   if (data.success) {
-                      Swal.fire(
-                          'Guardado',
-                          'La tarifa se guardó correctamente.',
-                          'success'
-                      ).then(() => {
-                          window.location.href = '/tarifas/'
-                      });
+                     Swal.fire({
+                              title: 'Guardado',
+                              text: 'La tarifa se guardó correctamente.',
+                              icon: 'success',
+                              showConfirmButton: false,
+                              timer: 2000,
+                              didClose: () => {
+                                  window.location.href = '/tarifas/';
+                              }
+                          });
                   } else {
                     descripcionInput.classList.remove('is-invalid')
                     fechaInput.classList.remove('is-invalid')

@@ -11,8 +11,17 @@
 
 {% block content %}
     <div class="row mt-4 mb-2 text-center">
-        <div class="col-12">
-        <h1 class="h3">Gestión de Directiva</h1>
+        <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+            <h1 class="h3 mb-0">Gestión de Directiva</h1>
+            <!-- Botón de ayuda (similar al de reuniones) -->
+            <a href="#"
+               class="btn btn-link btn-sm order-1 order-lg-0 me-2"
+               data-bs-toggle="modal"
+               data-bs-target="#infoDirectiva"
+               title="Ayuda sobre directiva"
+               role="button">
+                <i class="fa-solid fa-circle-info"></i>
+            </a>
         </div>
     </div>
 
@@ -36,62 +45,91 @@
 
     {% include "directive/partials/directive_create_modal.html" %}
 
+    {# Modal de Ayuda sobre Directiva #}
+<div class="modal fade" id="infoDirectiva" tabindex="-1" aria-labelledby="infoDirectivaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoDirectivaLabel">Información sobre la Directiva</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          <strong>Objetivo:</strong> En esta sección puedes consultar y administrar los
+          miembros que forman parte de la directiva del proyecto ACASA Poza Azul.
+        </p>
+
+        <p class="mb-1"><strong>Columnas de la tabla:</strong></p>
+        <ul>
+          <li>
+            <strong>Cargo:</strong> puesto que ocupa la persona dentro de la directiva
+            (por ejemplo: Presidente, Vicepresidente, Secretario, Síndico, etc.).
+          </li>
+          <li>
+            <strong>Directivo:</strong> nombre completo de la persona que ocupa el cargo.
+          </li>
+          <li>
+            <strong>DUI:</strong> número de documento de identificación del directivo.
+          </li>
+          <li>
+            <strong>Estado:</strong> indica si el directivo está
+            <span class="badge bg-success">Activo</span> o
+            <span class="badge bg-secondary">Inactivo</span> en la directiva.
+          </li>
+          <li>
+            <strong>Desde:</strong> fecha a partir de la cual la persona empezó a ejercer el cargo.
+          </li>
+          <li>
+            <strong>Hasta:</strong> fecha en la que dejó de ejercer el cargo
+            (puede aparecer vacía si el directivo sigue activo).
+          </li>
+          <li>
+            <strong>Acciones:</strong> botón para <em>desactivar</em> al directivo seleccionado.
+            No se elimina el registro, solo cambia su estado a inactivo.
+          </li>
+        </ul>
+
+        <p class="mb-1"><strong>Acciones disponibles:</strong></p>
+        <ul>
+          <li>
+            <strong>Agregar Nuevo Directivo:</strong> crea un nuevo registro asignando un cargo
+            y una persona, con su fecha de inicio.
+          </li>
+          <li>
+            <strong>Desactivar:</strong> desde la columna <em>Acciones</em> puedes marcar a un
+            directivo como inactivo cuando deja de formar parte de la directiva.
+          </li>
+        </ul>
+
+        <p class="mb-1"><strong>Búsqueda y navegación:</strong></p>
+        <ul class="mb-0">
+          <li>
+            Usa el cuadro <em>“Buscar Directivo…”</em> para filtrar por nombre y Dui.
+          </li>
+          <li>
+            Utiliza la paginación inferior para moverte entre los distintos registros de directivos.
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
     <script>
     document.addEventListener("DOMContentLoaded", function () {
         const modalEl = document.getElementById("exampleModal");
 
-        /*function limpiarFormulario() {
-            const form = modalEl.querySelector("form");
-            if (form) {
-                form.reset();
-                form.querySelectorAll("input[type=text], input[type=date], input[type=time]").forEach(el => el.value = "");
-                form.querySelectorAll("input[type=checkbox]").forEach(el => el.checked = false);
-                form.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
-            }
-        }*/
-
         modalEl.addEventListener("hidden.bs.modal", limpiarFormulario);
-
-        /*document.body.addEventListener("htmx:afterOnLoad", function (event) {
-            const triggerHeader = event.detail.xhr.getResponseHeader("HX-Trigger");
-            if (triggerHeader) {
-                try {
-                    const data = JSON.parse(triggerHeader);
-
-                    if (data.state === "success") {
-                        Swal.fire({
-                            icon: "success",
-                            title: "¡Éxito!",
-                            text: data.message,
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-
-                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                        modal.hide();
-
-                        limpiarFormulario();
-                    } else if (data.state === "error") {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: data.message
-                        });
-                    }
-
-                } catch (e) {
-                    console.warn("HX-Trigger no era JSON válido:", e);
-                }
-            }
-        });*/
     });
-    document.body.addEventListener('directive:added', function () {
-    const modalEl = document.querySelector('#exampleModal');
-    if (!modalEl) return;
-    const instance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-    instance.hide();
-  });
-    </script>
 
+    document.body.addEventListener('directive:added', function () {
+        const modalEl = document.querySelector('#exampleModal');
+        if (!modalEl) return;
+        const instance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        instance.hide();
+    });
+    </script>
 
 {% endblock %}
