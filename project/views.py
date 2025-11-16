@@ -671,16 +671,25 @@ def connections_search(request):
 def connection_toggle_active(request, pk):
     connection = get_object_or_404(WaterConnection, pk=pk)
 
-    connection.is_active = not connection.is_active
+    if connection.responsible.is_active:
+        
+        connection.is_active = not connection.is_active
 
-    connection.save()
+        connection.save()
 
-    if request.headers.get("HX-Request"):
-        response = connections_list(request)
-        response["HX-Trigger"] = (
-            "connectionActivated" if connection.is_active else "connectionDeactivated"
-        )
-        return response
+        if request.headers.get("HX-Request"):
+            response = connections_list(request)
+            response["HX-Trigger"] = (
+                "connectionActivated" if connection.is_active else "connectionDeactivated"
+            )
+            return response
+    
+    else:
+
+        if request.headers.get("HX-Request"):
+            response = connections_list(request)
+            response["HX-Trigger"] = ("connectionErrorInactivePartner")
+            return response
 
     return redirect("connections_list")
 

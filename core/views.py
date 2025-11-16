@@ -18,55 +18,151 @@ from django import forms
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.formats import date_format 
-from django.db.models import Q, Count
+from django.db.models import Q, Count, OuterRef, Exists
+from django.urls import reverse
+
 
 
 @login_required(login_url='login')
 def inicio(request):
-     project = Project.objects.first()
+    # Variables globales
+    project = Project.objects.first()
+    user = request.user # Usuario sesion actual
+    today = timezone.localtime().date() # Fecha local actual
+    MESES_ES = {
+        1: "Enero",
+        2: "Febrero",
+        3: "Marzo",
+        4: "Abril",
+        5: "Mayo",
+        6: "Junio",
+        7: "Julio",
+        8: "Agosto",
+        9: "Septiembre",
+        10: "Octubre",
+        11: "Noviembre",
+        12: "Diciembre"
+    }
+
      
-     active_partner_count = WaterConnection.objects.values('responsible').distinct().count()
+    # Socios activos del proyecto (Que tengan acometidas activas)
+    active_partner_count = WaterConnection.objects.values('responsible').distinct().count()
 
-     active_connections_count = WaterConnection.objects.filter(is_active=True).count()
+    # Acometidas activas del proyecto
+    active_connections_count = WaterConnection.objects.filter(is_active=True).count()
 
-     active_communities_count = Community.objects.count()
+    # Comunidades que cuentan con acometidas activas
+    active_communities = Community.objects.annotate(
+        has_active_connection=Exists(
+            WaterConnection.objects.filter(
+                is_active=True,
+                responsible__community=OuterRef('pk')
+            )
+        )
+    ).filter(has_active_connection=True)
 
-     today = timezone.localdate()
-     first_day = today.replace(day=1)
-     if today.month == 12:
-        first_day_next = first_day.replace(year=today.year + 1, month=1)
-     else:
-        first_day_next = first_day.replace(month=today.month + 1)
+    active_communities_count = active_communities.count()
 
-     # cobros del mes
-     readings_month = Reading.objects.filter(date_reading__gte=first_day,date_reading__lt=first_day_next)
-     total_readings_month = readings_month.count()
-     paid_readings_month = readings_month.filter(isPaid=True).count()
-     charges_ratio = f"{paid_readings_month}/{total_readings_month}"
 
-     current_month = date_format(timezone.localtime(), 'F', use_l10n=True).capitalize()
+    # ---- LECTURAS DEL MES --------------------------------------------------------------------------------
+    # Subconsulta: lectura del mes actual por acometida
+    current_month_reading = Reading.objects.filter(
+        connection=OuterRef('pk'),
+        date_reading__year=today.year,
+        date_reading__month=today.month
+    )
 
-       # KPIs globales
-     total_repairs = Repair.objects.count()
-     fixed_repairs = Repair.objects.filter(repair_date__isnull=False).count()  # reparadas
-     pending_repairs = total_repairs - fixed_repairs
-     repairs_done_ratio = f"{fixed_repairs}/{total_repairs}" if total_repairs else "0/0"
+    # Acometidas activas
+    connections = WaterConnection.objects.filter(is_active=True)
 
-     mostrar_alerta_fee = not Fee.objects.filter(isActive=True).exists()
+    # Si el usuario pertenece a grupo LECTOR/COLECTOR → filtrar por comunidad
+    if user.groups.filter(name__in=["LECTOR", "COLECTOR"]).exists() and user.community:
+        connections = connections.filter(responsible__community=user.community)
 
-     return render(request, "home/home.html", {
-            "project": project,
-            "active_partner_count": active_partner_count,
-            "active_connections_count": active_connections_count,
-            "active_communities_count": active_communities_count,
-            "current_month": current_month,
-            "charges_ratio": charges_ratio, 
-            "fixed_repairs": fixed_repairs,
-            "total_repairs" : total_repairs,
-            "total_readings_month": total_readings_month,
-            "paid_readings_month" : paid_readings_month,
-            "mostrar_alerta_fee": mostrar_alerta_fee,
+    # Anotar si tiene lectura del mes
+    connections = connections.annotate(
+        has_current_reading=Exists(current_month_reading)
+    )
+
+    # ---- MÉTRICAS ----
+
+    total_connections = connections.count()
+
+    # lecturas realizadas = cuántos tienen reading este mes
+    readings_done = connections.filter(has_current_reading=True).count()
+
+    # lecturas pendientes = acometidas activas que no tienen lectura
+    readings_pending = total_connections - readings_done
+
+
+    # ---- COBROs DEL MES ----------------------------------------------------------------------------------
+    # Lecturas registradas del mes
+    reading_list = Reading.objects.filter(
+        date_reading__year=today.year,
+        date_reading__month=today.month
+    )
+
+    # Si el usuario es LECTOR o COLECTOR → restringir por comunidad
+    if user.groups.filter(name__in=["LECTOR", "COLECTOR"]).exists() and user.community:
+        reading_list = reading_list.filter(connection__responsible__community=user.community)
+
+    # ---- MÉTRICAS DE COBRO ----
+
+    total_readings_month = reading_list.count()
+
+    paid_readings_month = reading_list.filter(isPaid=True).count()
+
+    pending_payments = total_readings_month - paid_readings_month
+    
+
+    # reparaciones
+    total_repairs = Repair.objects.count()
+    fixed_repairs = Repair.objects.filter(repair_date__isnull=False).count()  # reparadas
+    pending_repairs = total_repairs - fixed_repairs
+    repairs_done_ratio = f"{fixed_repairs}/{total_repairs}" if total_repairs else "0/0"
+
+    # Verificar si hay una tarifa activa
+    mostrar_alerta_fee = not Fee.objects.filter(isActive=True).exists()
+
+    # Crear lista de notificaciones
+    notificaciones = []
+    num_notificaciones = 0
+
+    if mostrar_alerta_fee:
+        notificaciones.append({
+            "mensaje": "No hay ninguna tarifa activa",
+            "link": reverse("fee_list")
         })
+        notificaciones.append({
+            "mensaje": "Hay una reunion en proceso.",
+            "link": reverse("attendance")
+        })
+
+    num_notificaciones = len(notificaciones)
+
+    return render(request, "home/home.html", {
+        "project": project,
+        "active_partner_count": active_partner_count,
+        "active_connections_count": active_connections_count,
+        "active_communities_count": active_communities_count,
+        "paid_readings_month": paid_readings_month,
+        "total_readings_month": total_readings_month,
+        "pending_payments": pending_payments,
+        "current_month": MESES_ES[today.month],
+        "fixed_repairs": fixed_repairs,
+        "total_repairs": total_repairs,
+        "total_readings_month": total_readings_month,
+        "paid_readings_month": paid_readings_month,
+        "mostrar_alerta_fee": mostrar_alerta_fee,
+        "total_connections": total_connections,
+        "readings_done": readings_done,
+        "readings_pending": readings_pending,
+
+        # 🔔 Notificaciones
+        "notificaciones": notificaciones,
+        "num_notificaciones": num_notificaciones,
+    })
+
 
 
 

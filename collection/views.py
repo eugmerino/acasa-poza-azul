@@ -86,7 +86,7 @@ def fee_search(request):
 def fee_create_form(request):
     project = Project.objects.first()
     contexto = {
-        'hoy': localtime(),
+        'hoy': timezone.localtime().date(),
         'project': project,
     }
     return render(request, 'fee/crud_tarifas.html', contexto)    

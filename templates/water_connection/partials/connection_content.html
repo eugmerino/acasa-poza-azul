@@ -104,3 +104,14 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.body.addEventListener("connectionErrorInactivePartner", () => {
+    Swal.fire({
+            icon: "warning",
+            title: "Socio inactivo",
+            text: "No se puede activar la acometida porque el socio responsable está inactivo.",
+            confirmButtonColor: "#198754",
+        });
+  });
+</script>

@@ -1,9 +1,4 @@
-{% extends 'base.html' %}
 {% load static %}
-
-{% block title %}
-  Ver Tarifa | ACASA Poza Azul
-{% endblock %}
 
 {% block content %}
   <div class="mt-4 mb-4 text-center">
@@ -80,7 +75,7 @@
         </div>
         <div class="modal-footer">
             <div class="w-100 d-flex justify-content-between">
-                <button type="button" class="btn btn-primary" id="btn-calcular">Calcular</button>
+                <button type="button" class="btn btn-success" id="btn-calcular">Calcular</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
@@ -91,7 +86,7 @@
 
 {% block extra_js %}
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener("htmx:afterSwap", function () {
     // Recibir los tramos como JSON válido
     const tramos = {{ tramos_json|safe }}
 
@@ -142,7 +137,8 @@
       Swal.fire({
               title: 'Resultado: ',
               text: 'El monto calculado es: $' + monto.toFixed(2),
-              showConfirmButton: true
+              showConfirmButton: true,
+              confirmButtonColor: "#198754",
             })
       document.getElementById('metros-consumidos').value = ''
     })

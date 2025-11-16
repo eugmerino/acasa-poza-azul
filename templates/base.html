@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
     <!-- Archivos estáticos -->
     {% load static %}
@@ -49,33 +50,69 @@
           </div>
 
           <div class="ms-auto">
-            <div class="dropdown">
-              <a href="#" class="nav-link dropdown-toggle" id="usuarioDropdown" data-bs-toggle="dropdown">
-                {% if request.user.foto %}
-                  <img src="{{ request.user.foto.url }}" alt="{{ request.user.username }}" class="rounded-circle border border-2 border-info me-2 user-photo-session" />
-                {% else %}
-                  <img src="{% static 'img/not_found.jpg' %}" alt="Usuario" class="rounded-circle border border-2 border-info me-2 user-photo-session" />
-                {% endif %}
-                <span class="d-none d-sm-inline">Bienvenid@, {{ request.user.username }}</span>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end z-3">
-                <li>
-                  <span class="dropdown-item disabled">
-                    <i class="fas fa-user-shield me-2"></i>
-                    <strong>{{ request.user.groups.first.name }}</strong>
+            <div class="ms-auto d-flex align-items-center gap-3">
+              <!-- Notificaciones -->
+              <div class="dropdown">
+                <a class="nav-link position-relative" href="#" id="notificacionesDropdown" data-bs-toggle="dropdown">
+                  <i class="fa-solid fa-bell fa-lg text-light"></i>
+
+                  {% if num_notificaciones > 0 %}
+                  <span class="position-absolute top-0 start-100 badge rounded-pill bg-danger"
+                        style="font-size: .65rem; padding:3px 6px; transform: translate(-130%, 20%);">
+                    {{ num_notificaciones }}
                   </span>
-                </li>
-                  <a class="dropdown-item" href="{% url 'profile_view' %}"><i class="fas fa-user me-2"></i> Perfil</a>
-                </li>
-                <li>
-                  <hr class="dropdown-divider" />
-                </li>
-                <li>
-                  <a class="dropdown-item text-danger" href="{% url 'logout' %}">
-                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión
-                  </a>
-                </li>
-              </ul>
+
+                  {% endif %}
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="notificacionesDropdown" style="width: 280px;">
+                  <li class="dropdown-header fw-semibold">Notificaciones</li>
+
+                  {% if notificaciones %}
+                    {% for item in notificaciones %}
+                    <li>
+                      <a class="dropdown-item small d-flex align-items-start gap-2" href="{{ item.link }}">
+                        <i class="fa-solid fa-circle-exclamation text-warning mt-1"></i>
+                        {{ item.mensaje }}
+                      </a>
+                    </li>
+                    {% endfor %}
+                  {% else %}
+                  <li>
+                    <span class="dropdown-item-text text-muted small">Sin notificaciones</span>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+              
+              <div class="dropdown">
+                <a href="#" class="nav-link dropdown-toggle" id="usuarioDropdown" data-bs-toggle="dropdown">
+                  {% if request.user.foto %}
+                    <img src="{{ request.user.foto.url }}" alt="{{ request.user.username }}" class="rounded-circle border border-2 border-info me-2 user-photo-session" />
+                  {% else %}
+                    <img src="{% static 'img/not_found.jpg' %}" alt="Usuario" class="rounded-circle border border-2 border-info me-2 user-photo-session" />
+                  {% endif %}
+                  <span class="d-none d-sm-inline">Bienvenid@, {{ request.user.username }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end z-3">
+                  <li>
+                    <span class="dropdown-item disabled">
+                      <i class="fas fa-user-shield me-2"></i>
+                      <strong>{{ request.user.groups.first.name }}</strong>
+                    </span>
+                  </li>
+                    <a class="dropdown-item" href="{% url 'profile_view' %}"><i class="fas fa-user me-2"></i> Perfil</a>
+                  </li>
+                  <li>
+                    <hr class="dropdown-divider" />
+                  </li>
+                  <li>
+                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                      <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
