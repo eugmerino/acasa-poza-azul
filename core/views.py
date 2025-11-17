@@ -124,22 +124,6 @@ def inicio(request):
     # Verificar si hay una tarifa activa
     mostrar_alerta_fee = not Fee.objects.filter(isActive=True).exists()
 
-    # Crear lista de notificaciones
-    notificaciones = []
-    num_notificaciones = 0
-
-    if mostrar_alerta_fee:
-        notificaciones.append({
-            "mensaje": "No hay ninguna tarifa activa",
-            "link": reverse("fee_list")
-        })
-        notificaciones.append({
-            "mensaje": "Hay una reunion en proceso.",
-            "link": reverse("attendance")
-        })
-
-    num_notificaciones = len(notificaciones)
-
     return render(request, "home/home.html", {
         "project": project,
         "active_partner_count": active_partner_count,
@@ -157,10 +141,6 @@ def inicio(request):
         "total_connections": total_connections,
         "readings_done": readings_done,
         "readings_pending": readings_pending,
-
-        # 🔔 Notificaciones
-        "notificaciones": notificaciones,
-        "num_notificaciones": num_notificaciones,
     })
 
 

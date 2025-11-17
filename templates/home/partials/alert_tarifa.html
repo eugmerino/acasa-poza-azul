@@ -1,30 +1,32 @@
 {% if mostrar_alerta_fee %}
-<div class="alert alert-warning p-0 border-0 tarifa-alert" role="alert" aria-live="polite">
-  <div class="d-flex align-items-start p-3 gap-3 position-relative overflow-hidden rounded-3 shadow-sm bg-body">
-    <!-- Icono -->
-    <div class="flex-shrink-0 d-inline-flex align-items-center justify-content-center rounded-3 bg-warning-subtle" style="width:44px;height:44px;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="text-warning-emphasis" aria-hidden="true">
-        <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-      </svg>
-    </div>
-
-    <!-- Texto y acciones -->
-    <div class="flex-grow-1">
-      <div class="fw-semibold">No hay ninguna tarifa activa</div>
-      <div class="text-body-secondary small mt-1">
-        Para continuar con el ciclo de cobros, crea o habilita una tarifa.
+<div class="mb-4">
+  <div class="alert alert-warning p-0 border-0 tarifa-alert" role="alert" aria-live="polite">
+    <div class="d-flex align-items-start p-3 gap-3 position-relative overflow-hidden rounded-3 shadow-sm bg-body">
+      <!-- Icono -->
+      <div class="flex-shrink-0 d-inline-flex align-items-center justify-content-center rounded-3 bg-warning-subtle" style="width:44px;height:44px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="text-warning-emphasis" aria-hidden="true">
+          <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        </svg>
       </div>
-      <div class="mt-2 d-flex flex-wrap gap-2">
-        <a href="{% url 'fee_create_form' %}" class="btn btn-warning btn-sm fw-semibold">Crear tarifa</a>
-        <a href="" class="btn btn-outline-secondary btn-sm">Ver tarifas</a>
+
+      <!-- Texto y acciones -->
+      <div class="flex-grow-1">
+        <div class="fw-semibold">No hay ninguna tarifa activa</div>
+        <div class="text-body-secondary small mt-1">
+          Para continuar con el ciclo de cobros, crea o habilita una tarifa.
+        </div>
+        <div class="mt-2 d-flex flex-wrap gap-2">
+          <a href="{% url 'fee_create_form' %}" class="btn btn-warning btn-sm fw-semibold">Crear tarifa</a>
+          <a href="" class="btn btn-outline-secondary btn-sm">Ver tarifas</a>
+        </div>
       </div>
+
+      <!-- Cerrar -->
+      <button type="button" class="btn-close ms-auto mt-1" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+
+      <!-- Banda decorativa -->
+      <span class="position-absolute top-0 start-0 w-100" style="height:4px;background:linear-gradient(90deg,#ffd36a,#ffb703);"></span>
     </div>
-
-    <!-- Cerrar -->
-    <button type="button" class="btn-close ms-auto mt-1" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-
-    <!-- Banda decorativa -->
-    <span class="position-absolute top-0 start-0 w-100" style="height:4px;background:linear-gradient(90deg,#ffd36a,#ffb703);"></span>
   </div>
 </div>
 {% endif %}

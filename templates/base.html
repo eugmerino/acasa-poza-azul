@@ -71,7 +71,7 @@
                   {% if notificaciones %}
                     {% for item in notificaciones %}
                     <li>
-                      <a class="dropdown-item small d-flex align-items-start gap-2" href="{{ item.link }}">
+                      <a class="dropdown-item small d-flex align-items-start gap-2 text-wrap noti-text" href="{{ item.link }}">
                         <i class="fa-solid fa-circle-exclamation text-warning mt-1"></i>
                         {{ item.mensaje }}
                       </a>

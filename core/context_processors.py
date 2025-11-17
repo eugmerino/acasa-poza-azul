@@ -1,6 +1,7 @@
 def notificaciones_context(request):
     from repair.models import Repair
     from collection.models import Fee
+    from django.urls import reverse
 
     # Si no hay usuario logueado -> no mostrar notificaciones
     if not request.user.is_authenticated:
@@ -16,16 +17,8 @@ def notificaciones_context(request):
     # 1. Mostrar alerta si NO hay una tarifa activa
     if not Fee.objects.filter(isActive=True).exists():
         notificaciones.append({
-            "mensaje": "No hay una tarifa activa configurada.",
-            "link": "/fees/"
-        })
-
-
-    pendientes = Repair.objects.filter(fixed=False).count()
-    if pendientes > 0:
-        notificaciones.append({
-            "mensaje": f"Tienes {pendientes} reparaciones pendientes.",
-            "link": "/repairs/"
+            "mensaje": "No se ah seleccionado ninguna tarifa activa.",
+            "link": reverse("fee_list")
         })
 
     # número total
