@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'core',
     'finance',
     'repair',
+    'audit',
 ]
 
 MIDDLEWARE = [

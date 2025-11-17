@@ -13,13 +13,17 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django import forms
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.formats import date_format 
 from django.db.models import Q, Count, OuterRef, Exists
 from django.urls import reverse
+from audit.utils import registrar_log
+from django.contrib.auth.views import LogoutView
+
+
 
 
 
@@ -188,6 +192,14 @@ def login_view(request):
             auth_login(request, user)
             messages.success(request, "Has iniciado sesión correctamente.")
 
+            # LOG
+            registrar_log(
+                user=user,
+                action="login",
+                model_name="Auth",
+                description=f"Inicio de sesión exitoso desde la IP {ip_address}.",
+            )
+
             # Reiniciar contador al iniciar sesión correctamente
             if ip_address in login_attempts:
                 del login_attempts[ip_address]
@@ -198,9 +210,29 @@ def login_view(request):
             # Registrar intento fallido
             if ip_address not in login_attempts:
                 login_attempts[ip_address] = [1, now]
+
+                # LOG — PRIMER intento fallido
+                registrar_log(
+                    user=None,
+                    action="other",
+                    model_name="Auth",
+                    description=f"Primer intento fallido de inicio de sesión para usuario '{request.POST.get('username')}' desde la IP {ip_address}.",
+                )
+
             else:
                 login_attempts[ip_address][0] += 1
                 login_attempts[ip_address][1] = now
+
+                attempts = login_attempts[ip_address][0]
+
+                # LOG — IP BLOQUEADA
+                if attempts == 5:
+                    registrar_log(
+                        user=None,
+                        action="other",
+                        model_name="Auth",
+                        description=f"La IP {ip_address} fue bloqueada por 5 intentos fallidos consecutivos.",
+                    )
 
             remaining = 5 - login_attempts[ip_address][0]
             if remaining > 0:
@@ -221,6 +253,22 @@ def get_client_ip(request):
     else:
         ip = request.META.get("REMOTE_ADDR")
     return ip
+
+
+class CustomLogoutView(LogoutView):
+    """Logout con auditoría"""
+    next_page = "login"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            registrar_log(
+                user=request.user,
+                action="logout",
+                model_name="Auth",
+                description="El usuario cerró sesión.",
+            )
+        return super().dispatch(request, *args, **kwargs)
+
 
 
 class PasswordResetRequestForm(forms.Form):
@@ -244,6 +292,15 @@ def password_reset_request(request):
             reset_url = request.build_absolute_uri(
                 f"/reset-password/{user.pk}/{token}/"
             )
+
+            # LOG Solicitud enviada
+            registrar_log(
+                user=user,
+                action="other",
+                model_name="Auth",
+                description=f"Solicitud de restablecimiento de contraseña enviada al correo {email}. IP: {get_client_ip(request)}"
+            )
+
             subject = "Restablecimiento de contraseña"
             message = render_to_string("authentication/password_reset_email.html", {
                 "user": user,
@@ -273,6 +330,15 @@ def password_reset_confirm(request, uid, token):
             if password1 and password2 and password1 == password2:
                 user.set_password(password1)
                 user.save()
+
+                 # LOG Contraseña restablecida
+                registrar_log(
+                    user=user,
+                    action="other",
+                    model_name="Auth",
+                    description=f"Contraseña restablecida exitosamente desde la IP {get_client_ip(request)}."
+                )
+
                 messages.success(request, "Contraseña restablecida correctamente. Ahora puedes iniciar sesión.")
                 return redirect("login")
             else:

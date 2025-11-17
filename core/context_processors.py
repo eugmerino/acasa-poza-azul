@@ -2,6 +2,9 @@ def notificaciones_context(request):
     from repair.models import Repair
     from collection.models import Fee
     from django.urls import reverse
+    from project.models import Project
+
+    project = Project.objects.first()
 
     # Si no hay usuario logueado -> no mostrar notificaciones
     if not request.user.is_authenticated:
@@ -27,4 +30,5 @@ def notificaciones_context(request):
     return {
         "notificaciones": notificaciones,
         "num_notificaciones": num_notificaciones,
+        "project": project,
     }
