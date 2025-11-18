@@ -2,117 +2,133 @@
 {% load static %}
 
 {% block title %}
-  Transacciones | {% if project and project.title %} {{ project.title }} {% else %} ACASA Poza Azul {% endif %}
+  Transacciones |{% if project and project.title %}
+    {{ project.title }}
+  {% else %}
+    ACASA Poza Azul
+  {% endif %}
 {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-
 <div class="row mt-4 mb-2 text-center">
-    <div class="col-12">
-        <h1 class="h3">Gestión de Transacciones</h1>
-            <h1 class="h4"> de {{today|date:"F \\d\\e Y"}}</h1>
-    </div>
+  <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+    <h1 class="h3 mb-0">Gestión de Transacciones</h1>
+    <!-- Botón de ayuda -->
+    <a href="#" 
+       class="btn btn-link btn-sm order-1 order-lg-0 me-2" 
+       data-bs-toggle="modal" 
+       data-bs-target="#infoTransacciones" 
+       title="Ayuda sobre transacciones" 
+       role="button">
+        <i class="fa-solid fa-circle-info"></i>
+    </a>
+  </div>
+  <h1 class="h4"> de {{today|date:"F \\d\\e Y"}}</h1>
 </div>
 
 <div class="table-container rounded-4 shadow p-4">
-    <!-- Controles superiores -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="header-controls d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <button
+      id="btn-abrir-crud"
+      class="btn btn-success"
+      data-bs-toggle="modal"
+      data-bs-target="#transactionModal"
+      hx-get="{% url 'transaction_create' %}"
+      hx-target="#transaction-content-modal"
+      hx-trigger="click"
+    >
+      <i class="fas fa-plus me-1"></i> Agregar Nueva Transacción
+    </button>
+
         <div>
-            <button
-                id="btn-abrir-crud"
-                class="btn btn-success"
-                data-bs-toggle="modal"
-                data-bs-target="#transactionModal"
-                hx-get="{% url 'transaction_create' %}"
-                hx-target="#transaction-content-modal"
-                hx-trigger="click"
-            >
-                <i class="fas fa-plus me-1"></i> Agregar Nueva Transacción
-            </button>
+            <a href="{% url 'transaction_pdf' %}" 
+                id="export-pdf" 
+                class="btn btn-primary" 
+                onclick="exportPDF(event)">
+                <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
+            </a>
         </div>
 
         {% include "partials/search_table.html" with hx_url=transaction_search_url hx_target="#main-table-content" placeholder="Buscar Transacción..." %}
     </div>
 
-    <!-- Tabla de transacciones -->
-    <div id="main-table-content"
-         hx-get="{% url 'transaction_search' %}"
-         hx-trigger="transactionChanged from:body"
-         hx-target="#main-table-content"
-         hx-swap="innerHTML">
-        {% include "finance/partials/transaction_table.html" %}
-    </div>
+  <div id="main-table-content"
+       hx-get="{% url 'transaction_search' %}"
+       hx-trigger="transactionChanged from:body"
+       hx-target="#main-table-content"
+       hx-swap="innerHTML">
+    {% include "finance/partials/transaction_table.html" %}
+  </div>
 
-    <!-- Modal HTMX -->
-    {% include "finance/partials/transaction_create_modal.html" %}
+  {% include "finance/partials/transaction_create_modal.html" %}
 </div>
 
-<!-- Flatpickr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
-    <script>
-        flatpickr("#month", {
-            locale: "es",
-            plugins: [new monthSelectPlugin({
-                shorthand: true,
-                dateFormat: "Y-m",
-                altFormat: "F Y"
-            })]
-        });
-    </script>
+<!-- Modal de Ayuda -->
+<div class="modal fade" id="infoTransacciones" tabindex="-1" aria-labelledby="infoTransaccionesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoTransaccionesLabel">Información sobre Transacciones</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> En esta sección puedes registrar, consultar y actualizar todas las transacciones financieras del proyecto.</p>
+        <p><strong>Agregar transacción:</strong> Usa el botón <em>“Agregar Nueva Transacción”</em> para ingresar los datos del movimiento.</p>
+        <p><strong>Búsqueda:</strong> Utiliza el campo de búsqueda para filtrar transacciones por concepto, tipo o fecha.</p>
+        <p><strong>Edición:</strong> Puedes editar los registros directamente desde la tabla sin recargar la página.</p>
+        <p><strong>Consejo:</strong> Mantén una descripción clara del concepto para facilitar reportes financieros posteriores.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <!-- HTMX + SweetAlert -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const modalEl = document.getElementById("transactionModal");
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const modalEl = document.getElementById("transactionModal");
 
-            function limpiarFormulario() {
-                const form = modalEl.querySelector("form");
-                if (form) {
-                    form.reset();
-                    form.querySelectorAll("input[type=text], input[type=date], input[type=time]").forEach(el => el.value = "");
-                    form.querySelectorAll("input[type=checkbox]").forEach(el => el.checked = false);
-                    form.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
-                }
-            }
+  function limpiarFormulario() {
+    const form = modalEl.querySelector("form");
+    if (form) {
+      form.reset();
+      form.querySelectorAll("input[type=text], input[type=date], input[type=time]").forEach(el => el.value = "");
+      form.querySelectorAll("input[type=checkbox]").forEach(el => el.checked = false);
+      form.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+    }
+  }
 
-            modalEl.addEventListener("hidden.bs.modal", limpiarFormulario);
+  modalEl.addEventListener("hidden.bs.modal", limpiarFormulario);
 
-            document.body.addEventListener("htmx:afterOnLoad", function (event) {
-                const triggerHeader = event.detail.xhr.getResponseHeader("HX-Trigger");
-                if (triggerHeader) {
-                    try {
-                        const data = JSON.parse(triggerHeader);
-
-                        if (data.state === "success") {
-                            Swal.fire({
-                                icon: "success",
-                                title: "¡Éxito!",
-                                text: data.message,
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-
-                            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                            modal.hide();
-                            limpiarFormulario();
-                        } else if (data.state === "error") {
-                            Swal.fire({
-                                icon: "error",
-                                title: "Error",
-                                text: data.message
-                            });
-                        }
-
-                    } catch (e) {
-                        console.warn("HX-Trigger no era JSON válido:", e);
-                    }
-                }
-            });
-        });
-    </script>
-
+  document.body.addEventListener("htmx:afterOnLoad", function (event) {
+    const triggerHeader = event.detail.xhr.getResponseHeader("HX-Trigger");
+    if (triggerHeader) {
+      try {
+        const data = JSON.parse(triggerHeader);
+        if (data.state === "success") {
+          Swal.fire({
+            icon: "success",
+            title: "¡Éxito!",
+            text: data.message,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+          modal.hide();
+          limpiarFormulario();
+        } else if (data.state === "error") {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: data.message
+          });
+        }
+      } catch (e) {
+        console.warn("HX-Trigger no era JSON válido:", e);
+      }
+    }
+  });
+});
+</script>
 {% endblock %}

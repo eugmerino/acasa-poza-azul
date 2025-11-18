@@ -1,7 +1,18 @@
 <div class="row mt-4 mb-2 text-center">
-  <div class="col-12">
-    <h1 class="h3">Gestión Pago de Acometida</h1>
-    <h2 class="h4">{{ today|date:"F \\d\\e Y" }}</h2>
+  <div class="col-12 d-flex flex-column justify-content-center align-items-center">
+    <div class="d-flex justify-content-center align-items-center gap-2">
+      <h1 class="h3 mb-0">Gestión Pago de Acometida</h1>
+      <!-- Botón de ayuda -->
+      <a href="#"
+         class="btn btn-link btn-sm order-1 order-lg-0 me-2"
+         data-bs-toggle="modal"
+         data-bs-target="#infoPagosAcometida"
+         title="Ayuda sobre pagos de acometida"
+         role="button">
+        <i class="fa-solid fa-circle-info"></i>
+      </a>
+    </div>
+    <h2 class="h4 mt-1">{{ today|date:"F \\d\\e Y" }}</h2>
   </div>
 </div>
 
@@ -18,9 +29,82 @@
     >
       <i class="fas fa-plus me-1"></i> Agregar Nuevo Pago
     </button>
-      {% include "partials/search_table.html" with hx_url=payment_search_url hx_target="#table-content" placeholder="Buscar Pago..." %}
+    {% include "partials/search_table.html" with hx_url=payment_search_url hx_target="#table-content" placeholder="Buscar Pago..." %}
   </div>
+
   {% include "payment/partials/payment_table.html" %}
 </div>
 
 {% include "payment/partials/payment_create_modal.html" %}
+
+{# Modal de ayuda sobre pagos de acometida #}
+<div class="modal fade" id="infoPagosAcometida" tabindex="-1" aria-labelledby="infoPagosAcometidaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoPagosAcometidaLabel">Información sobre pagos de acometida</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          <strong>Objetivo:</strong> En esta sección se registran los abonos realizados
+          a la acometida (conexión de agua) durante el <strong>mes actual</strong>.
+        </p>
+
+        <p class="mb-1"><strong>Columnas de la tabla:</strong></p>
+        <ul>
+          <li>
+            <strong>Acometida:</strong> descripción o nombre de la acometida a la que
+            corresponde el pago.
+          </li>
+          <li>
+            <strong>Precio de adquisición:</strong> monto total definido para esa acometida.
+            Es un valor fijo establecido en el proyecto.
+          </li>
+          <li>
+            <strong>Propietario:</strong> persona responsable o dueña de la acometida.
+          </li>
+          <li>
+            <strong>Fecha de abono:</strong> día en que se realizó el pago
+            (debe pertenecer al mes que se está gestionando).
+          </li>
+          <li>
+            <strong>Abono:</strong> monto que se está pagando en esta ocasión.
+          </li>
+          <li>
+            <strong>Restante:</strong> saldo que queda pendiente por pagar después de
+            aplicar el abono registrado.
+          </li>
+        </ul>
+
+        <p class="mb-1"><strong>Reglas importantes:</strong></p>
+        <ul>
+          <li>
+            Solo se registran pagos del <strong>mes actual</strong> mostrado en el encabezado.
+          </li>
+          <li>
+            Para cada acometida solo puede existir <strong>un pago por mes</strong>.
+            Si ya hay un registro para esa acometida en el mes, no se debe crear otro.
+          </li>
+          <li>
+            No hay opciones para <strong>editar ni eliminar</strong> los pagos desde esta tabla,
+            por lo que es muy importante verificar bien los datos antes de guardar.
+          </li>
+        </ul>
+
+        <p class="mb-1"><strong>Búsqueda y navegación:</strong></p>
+        <ul class="mb-0">
+          <li>
+            Usa el cuadro <em>“Buscar Pago…”</em> para filtrar por acometida y propietario.
+          </li>
+          <li>
+            Utiliza la paginación inferior para moverte entre los pagos registrados en el mes.
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

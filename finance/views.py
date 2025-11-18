@@ -203,6 +203,15 @@ def payment_create(request):
                     # Dispara las validaciones del modelo (acometida saldada / sobrepago)
                     pay.full_clean()
                     pay.save()
+                    registrar_log(
+                        user=request.user,
+                        action="create",
+                        model_name="Transacción",
+                        object_id=pay.id,
+                        description = (
+                            f"Registró la transacción por pago a la acometida '{pay.connection.description}' del socio '{pay.connection.responsible.first_name} {pay.connection.responsible.last_name}'."
+                        )
+                    )
             except ValidationError as e:
                 # Poner los errores en el form para re-renderizarlo con mensajes
                 if hasattr(e, "message_dict"):
@@ -304,6 +313,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import localtime, now
 import json
+from audit.utils import registrar_log
 
 per_page_options =[5, 10, 20, 50]
 
@@ -367,6 +377,7 @@ def transaction_list(request):
         'total_income': total_income,  # Cambiado de total_ingresos
         'total_expenses': total_expenses,  # Cambiado de total_egresos
         'balance': balance,  # Añadido el balance
+        'is_management': True,
     })
 
 
@@ -374,6 +385,8 @@ def transaction_list_all(request):
     query = request.GET.get('q', '')
     page_number = request.GET.get('page', 1)
     per_page = int(request.GET.get('per_page', per_page_options[1]))
+
+    today = timezone.localtime().date()
 
     qs = Transaction.objects.all().order_by('-date')
     if query:
@@ -400,6 +413,8 @@ def transaction_list_all(request):
         'total_expenses': total_expenses,
         'balance': balance,
         'query': query,
+        'today': today,
+        'is_management': False,
     })
 
 
@@ -455,6 +470,7 @@ def transaction_search(request):
             'total_income': total_income,
             'total_expenses': total_expenses,
             'balance': balance,
+            'is_management': True,
         }
     )
 
@@ -498,7 +514,8 @@ def transaction_search_all(request):
             'total_income': total_income,
             'total_expenses': total_expenses,
             'balance': balance,
-            'show_actions': True,
+            'show_actions': False,  # 👈 Ahora falso
+            'is_management': False,
         }
     )
 
@@ -507,6 +524,16 @@ def transaction_create(request):
         form = TransactionForm(request.POST)
         if form.is_valid():
             transaction = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="create",
+                model_name="Transacción",
+                object_id=transaction.id,
+                description = (
+                    f"Registró la transacción: id '{transaction.id}' con el concepto '{transaction.concept}'"
+                )
+            )
             
             # Recalcular totales
             now = timezone.localtime()
@@ -552,6 +579,16 @@ def transaction_edit(request, pk):
         form = TransactionForm(request.POST, instance=transaction)
         if form.is_valid():
             transaction = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Transacción",
+                object_id=transaction.id,
+                description = (
+                    f"Modifico la transacción: id '{transaction.id}' con el concepto '{transaction.concept}'"
+                )
+            )
             
             # Recalcular totales después de editar
             now = timezone.localdate()

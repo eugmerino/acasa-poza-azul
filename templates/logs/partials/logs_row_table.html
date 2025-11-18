@@ -1,0 +1,30 @@
+<tr>
+    <td>
+        {% if log.user %}
+            {{ log.user.first_name }} {{ log.user.last_name }}
+        {% else %}
+            <span class="text-muted">Sistema</span>
+        {% endif %}
+    </td>
+
+    <td>
+        {% if log.action == "create" %}
+            <span class="badge bg-success">Creación</span>
+        {% elif log.action == "update" %}
+            <span class="badge bg-primary">Actualización</span>
+        {% elif log.action == "delete" %}
+            <span class="badge bg-danger">Eliminación</span>
+        {% elif log.action == "login" %}
+            <span class="badge bg-info">Inicio</span>
+        {% elif log.action == "logout" %}
+            <span class="badge bg-secondary">Cierre</span>
+        {% else %}
+            <span class="badge bg-dark">Otro</span>
+        {% endif %}
+    </td>
+
+    <td>{{ log.model_name }}</td>
+    <td>{{ log.object_id|default:"—" }}</td>
+    <td>{{ log.description }}</td>
+    <td>{{ log.created_at|date:"d/m/Y H:i" }}</td>
+</tr>

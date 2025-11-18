@@ -5,16 +5,31 @@
       hx-swap="outerHTML"
       novalidate>
   {% csrf_token %}
+
   <div class="modal-header">
     <h5 class="modal-title">Agregar Acometida</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
+
   <div class="modal-body">
+
     <!-- OWNER -->
     <div class="mb-3 position-relative" id="owner-search-wrap">
       <label for="owner_search_input" class="form-label">
         Propietario: <span class="text-danger">*</span>
+
+        <!-- Ayuda -->
+        <a href="#" class="btn btn-link p-0 align-baseline"
+           tabindex="0"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Busca y selecciona al socio propietario de la acometida. Debes escoger uno antes de guardar."
+        >
+          <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+        </a>
       </label>
+
       <div class="input-group">
         <input type="text"
               name="qq"
@@ -28,62 +43,100 @@
               hx-swap="innerHTML"
               hx-include="#owner_search_input"
               hx-vals='{"target": "owner"}'>
+
         <input type="hidden" name="owner" id="id_owner">
-        <button class="btn btn-outline-secondary" type="button" id="owner-clear-btn" hidden
-          onclick="clearPartnerField('owner')">✕</button>
+
+        <button class="btn btn-outline-secondary" type="button" id="owner-clear-btn"
+                hidden onclick="clearPartnerField('owner')">✕</button>
+
         <div class="invalid-feedback">Debes seleccionar un propietario.</div>
       </div>
-      <div id="owner-results" class="w-100 position-absolute" style="z-index:1000; top:100%; left:0;"></div>
+
+      <div id="owner-results"
+           class="w-100 position-absolute"
+           style="z-index:1000; top:100%; left:0;"></div>
     </div>
-    <!-- RESPONSIBLE (solo visible al editar, oculto al crear) -->
+
+    <!-- RESPONSIBLE (solo visible al editar) -->
     <div class="mb-3" id="responsible-field" style="display: none;">
-      <label for="{{ form.responsible.id_for_label }}" class="form-label">
-        Responsable:
+      <label class="form-label">
+        Responsable
+        <a href="#" class="btn btn-link p-0 align-baseline"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Solo se muestra al editar. Permite cambiar el responsable cuando sea necesario.">
+          <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+        </a>
       </label>
       {{ form.responsible }}
-      {% if form.responsible.errors %}
-        <div class="text-danger small mt-1">{{ form.responsible.errors|first }}</div>
-      {% endif %}
     </div>
+
     <!-- DATE -->
     <div class="mb-3">
       <label for="{{ form.date.id_for_label }}" class="form-label">
         Fecha de adquisición: <span class="text-danger">*</span>
+
+        <!-- Ayuda -->
+        <a href="#" class="btn btn-link p-0 align-baseline"
+           tabindex="0"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Selecciona la fecha exacta en que se adquirió la acometida. Este dato es obligatorio."
+        >
+          <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+        </a>
       </label>
       {{ form.date }}
       <div class="invalid-feedback">Indica la fecha de adquisición.</div>
-      {% if form.date.errors %}
-        <div class="text-danger small mt-1">{{ form.date.errors|first }}</div>
-      {% endif %}
     </div>
+
     <!-- DESCRIPTION -->
     <div class="mb-3">
       <label for="{{ form.description.id_for_label }}" class="form-label">
         Descripción: <span class="text-danger">*</span>
+
+        <!-- Ayuda -->
+        <a href="#" class="btn btn-link p-0 align-baseline"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Indica una breve descripción de la acometida, Ejemplo: 'Conexión principal casa #7'."
+        >
+          <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+        </a>
       </label>
       {{ form.description }}
       <div class="invalid-feedback">Agrega una descripción válida.</div>
-      {% if form.description.errors %}
-        <div class="text-danger small mt-1">{{ form.description.errors|first }}</div>
-      {% endif %}
     </div>
+
     <!-- ACQUISITION PRICE -->
     <div class="mb-3">
       <label for="{{ form.acquisition_price.id_for_label }}" class="form-label">
         Precio de adquisición:
+
+        <!-- Ayuda -->
+        <a href="#" class="btn btn-link p-0 align-baseline"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="El precio es asignado por ACASA."
+        >
+          <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+        </a>
       </label>
       {{ form.acquisition_price }}
       <div class="invalid-feedback">Ingresa un monto válido.</div>
-      {% if form.acquisition_price.errors %}
-        <div class="text-danger small mt-1">{{ form.acquisition_price.errors|first }}</div>
-      {% endif %}
     </div>
+
     <!-- NOTA CAMPOS OBLIGATORIOS -->
     <p class="small mb-0">
       <span class="text-danger">*</span>
       <span class="text-muted">Campos obligatorios</span>
     </p>
   </div>
+
   <div class="modal-footer justify-content-between">
     <button type="submit" class="btn btn-success">Guardar</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -245,5 +298,13 @@ function clearPartnerField(target) {
       }
     });
   });
+
+  const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+  popoverTriggerList.forEach(function (popoverTriggerEl) {
+    new bootstrap.Popover(popoverTriggerEl, {
+      customClass: 'popover-sm' 
+    });
+  });
+
 })();
 </script>

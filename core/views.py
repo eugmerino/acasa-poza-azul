@@ -7,52 +7,146 @@ from django.utils import timezone
 from datetime import timedelta
 from .forms import UserLoginForm
 from project.models import Project, WaterConnection, Community
-from collection.models import Reading
+from repair.models import Repair
+from collection.models import Reading, Fee
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django import forms
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.formats import date_format 
+from django.db.models import Q, Count, OuterRef, Exists
+from django.urls import reverse
+from audit.utils import registrar_log
+from django.contrib.auth.views import LogoutView
+
+
+
 
 
 @login_required(login_url='login')
 def inicio(request):
-     project = Project.objects.first()
+    # Variables globales
+    project = Project.objects.first()
+    user = request.user # Usuario sesion actual
+    today = timezone.localtime().date() # Fecha local actual
+    MESES_ES = {
+        1: "Enero",
+        2: "Febrero",
+        3: "Marzo",
+        4: "Abril",
+        5: "Mayo",
+        6: "Junio",
+        7: "Julio",
+        8: "Agosto",
+        9: "Septiembre",
+        10: "Octubre",
+        11: "Noviembre",
+        12: "Diciembre"
+    }
+
      
-     active_partner_count = WaterConnection.objects.values('responsible').distinct().count()
+    # Socios activos del proyecto (Que tengan acometidas activas)
+    active_partner_count = WaterConnection.objects.values('responsible').distinct().count()
 
-     active_connections_count = WaterConnection.objects.filter(is_active=True).count()
+    # Acometidas activas del proyecto
+    active_connections_count = WaterConnection.objects.filter(is_active=True).count()
 
-     active_communities_count = Community.objects.count()
+    # Comunidades que cuentan con acometidas activas
+    active_communities = Community.objects.annotate(
+        has_active_connection=Exists(
+            WaterConnection.objects.filter(
+                is_active=True,
+                responsible__community=OuterRef('pk')
+            )
+        )
+    ).filter(has_active_connection=True)
 
-     today = timezone.localdate()
-     first_day = today.replace(day=1)
-     if today.month == 12:
-        first_day_next = first_day.replace(year=today.year + 1, month=1)
-     else:
-        first_day_next = first_day.replace(month=today.month + 1)
+    active_communities_count = active_communities.count()
 
-     # Lecturas del mes
-     readings_month = Reading.objects.filter(date_reading__gte=first_day,date_reading__lt=first_day_next)
-     total_readings_month = readings_month.count()
-     paid_readings_month = readings_month.filter(isPaid=True).count()
-        # Solo este dato mostramos — EJEMPLO: 30/50
-     charges_ratio = f"{paid_readings_month}/{total_readings_month}"
 
-     current_month = date_format(timezone.localtime(), 'F', use_l10n=True).capitalize()
+    # ---- LECTURAS DEL MES --------------------------------------------------------------------------------
+    # Subconsulta: lectura del mes actual por acometida
+    current_month_reading = Reading.objects.filter(
+        connection=OuterRef('pk'),
+        date_reading__year=today.year,
+        date_reading__month=today.month
+    )
 
-     return render(request, "home/home.html", {
-            "project": project,
-            "active_partner_count": active_partner_count,
-            "active_connections_count": active_connections_count,
-            "active_communities_count": active_communities_count,
-            "current_month": current_month,
-            "charges_ratio": charges_ratio, 
-        })
+    # Acometidas activas
+    connections = WaterConnection.objects.filter(is_active=True)
+
+    # Si el usuario pertenece a grupo LECTOR/COLECTOR → filtrar por comunidad
+    if user.groups.filter(name__in=["LECTOR", "COLECTOR"]).exists() and user.community:
+        connections = connections.filter(responsible__community=user.community)
+
+    # Anotar si tiene lectura del mes
+    connections = connections.annotate(
+        has_current_reading=Exists(current_month_reading)
+    )
+
+    # ---- MÉTRICAS ----
+
+    total_connections = connections.count()
+
+    # lecturas realizadas = cuántos tienen reading este mes
+    readings_done = connections.filter(has_current_reading=True).count()
+
+    # lecturas pendientes = acometidas activas que no tienen lectura
+    readings_pending = total_connections - readings_done
+
+
+    # ---- COBROs DEL MES ----------------------------------------------------------------------------------
+    # Lecturas registradas del mes
+    reading_list = Reading.objects.filter(
+        date_reading__year=today.year,
+        date_reading__month=today.month
+    )
+
+    # Si el usuario es LECTOR o COLECTOR → restringir por comunidad
+    if user.groups.filter(name__in=["LECTOR", "COLECTOR"]).exists() and user.community:
+        reading_list = reading_list.filter(connection__responsible__community=user.community)
+
+    # ---- MÉTRICAS DE COBRO ----
+
+    total_readings_month = reading_list.count()
+
+    paid_readings_month = reading_list.filter(isPaid=True).count()
+
+    pending_payments = total_readings_month - paid_readings_month
+    
+
+    # reparaciones
+    total_repairs = Repair.objects.count()
+    fixed_repairs = Repair.objects.filter(repair_date__isnull=False).count()  # reparadas
+    pending_repairs = total_repairs - fixed_repairs
+    repairs_done_ratio = f"{fixed_repairs}/{total_repairs}" if total_repairs else "0/0"
+
+    # Verificar si hay una tarifa activa
+    mostrar_alerta_fee = not Fee.objects.filter(isActive=True).exists()
+
+    return render(request, "home/home.html", {
+        "project": project,
+        "active_partner_count": active_partner_count,
+        "active_connections_count": active_connections_count,
+        "active_communities_count": active_communities_count,
+        "paid_readings_month": paid_readings_month,
+        "total_readings_month": total_readings_month,
+        "pending_payments": pending_payments,
+        "current_month": MESES_ES[today.month],
+        "fixed_repairs": fixed_repairs,
+        "total_repairs": total_repairs,
+        "total_readings_month": total_readings_month,
+        "paid_readings_month": paid_readings_month,
+        "mostrar_alerta_fee": mostrar_alerta_fee,
+        "total_connections": total_connections,
+        "readings_done": readings_done,
+        "readings_pending": readings_pending,
+    })
+
 
 
 
@@ -98,6 +192,14 @@ def login_view(request):
             auth_login(request, user)
             messages.success(request, "Has iniciado sesión correctamente.")
 
+            # LOG
+            registrar_log(
+                user=user,
+                action="login",
+                model_name="Auth",
+                description=f"Inicio de sesión exitoso desde la IP {ip_address}.",
+            )
+
             # Reiniciar contador al iniciar sesión correctamente
             if ip_address in login_attempts:
                 del login_attempts[ip_address]
@@ -108,9 +210,29 @@ def login_view(request):
             # Registrar intento fallido
             if ip_address not in login_attempts:
                 login_attempts[ip_address] = [1, now]
+
+                # LOG — PRIMER intento fallido
+                registrar_log(
+                    user=None,
+                    action="other",
+                    model_name="Auth",
+                    description=f"Primer intento fallido de inicio de sesión para usuario '{request.POST.get('username')}' desde la IP {ip_address}.",
+                )
+
             else:
                 login_attempts[ip_address][0] += 1
                 login_attempts[ip_address][1] = now
+
+                attempts = login_attempts[ip_address][0]
+
+                # LOG — IP BLOQUEADA
+                if attempts == 5:
+                    registrar_log(
+                        user=None,
+                        action="other",
+                        model_name="Auth",
+                        description=f"La IP {ip_address} fue bloqueada por 5 intentos fallidos consecutivos.",
+                    )
 
             remaining = 5 - login_attempts[ip_address][0]
             if remaining > 0:
@@ -131,6 +253,22 @@ def get_client_ip(request):
     else:
         ip = request.META.get("REMOTE_ADDR")
     return ip
+
+
+class CustomLogoutView(LogoutView):
+    """Logout con auditoría"""
+    next_page = "login"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            registrar_log(
+                user=request.user,
+                action="logout",
+                model_name="Auth",
+                description="El usuario cerró sesión.",
+            )
+        return super().dispatch(request, *args, **kwargs)
+
 
 
 class PasswordResetRequestForm(forms.Form):
@@ -154,6 +292,15 @@ def password_reset_request(request):
             reset_url = request.build_absolute_uri(
                 f"/reset-password/{user.pk}/{token}/"
             )
+
+            # LOG Solicitud enviada
+            registrar_log(
+                user=user,
+                action="other",
+                model_name="Auth",
+                description=f"Solicitud de restablecimiento de contraseña enviada al correo {email}. IP: {get_client_ip(request)}"
+            )
+
             subject = "Restablecimiento de contraseña"
             message = render_to_string("authentication/password_reset_email.html", {
                 "user": user,
@@ -183,6 +330,15 @@ def password_reset_confirm(request, uid, token):
             if password1 and password2 and password1 == password2:
                 user.set_password(password1)
                 user.save()
+
+                 # LOG Contraseña restablecida
+                registrar_log(
+                    user=user,
+                    action="other",
+                    model_name="Auth",
+                    description=f"Contraseña restablecida exitosamente desde la IP {get_client_ip(request)}."
+                )
+
                 messages.success(request, "Contraseña restablecida correctamente. Ahora puedes iniciar sesión.")
                 return redirect("login")
             else:

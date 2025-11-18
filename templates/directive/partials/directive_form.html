@@ -15,6 +15,15 @@
     <div class="mb-3">
       <label for="{{ form.role.id_for_label }}" class="form-label">
         Cargo <span class="text-danger">*</span>
+        <a href="#" class="btn btn-link p-0 align-baseline"
+           tabindex="0"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Selecciona el cargo o posición que ocupará el directivo dentro de la organización."
+           title="">
+          <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+        </a>
       </label>
       {{ form.role }}
       <div class="invalid-feedback">Seleccione un cargo.</div>
@@ -27,6 +36,15 @@
     <div class="mb-3 position-relative" id="partner-search-wrap">
       <label for="partner_search_input" class="form-label">
         Directivo <span class="text-danger">*</span>
+        <a href="#" class="btn btn-link p-0 align-baseline"
+           tabindex="0"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Escribe el nombre o identificación del directivo, selecciona uno de los resultados y asegúrate de que quede asociado antes de guardar."
+           title="">
+          <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+        </a>
       </label>
 
       <div class="input-group">
@@ -63,8 +81,7 @@
           ✕
         </button>
 
-         <div class="invalid-feedback">Debes buscar un directivo y seleccionar.</div>
-
+        <div class="invalid-feedback">Debes buscar un directivo y seleccionarlo.</div>
       </div>
 
       <div id="partner-results"
@@ -118,16 +135,15 @@
     partnerInput?.classList.remove('is-invalid');
 
     let valido = true;
-    if(!role || !role.value){ 
-      role?.classList.add('is-invalid'); 
-      valido = false; 
+    if(!role || !role.value){
+      role?.classList.add('is-invalid');
+      valido = false;
     }
-    if(!partnerHidden || !partnerHidden.value){ 
-      partnerInput?.classList.add('is-invalid'); 
-      valido = false; 
+    if(!partnerHidden || !partnerHidden.value){
+      partnerInput?.classList.add('is-invalid');
+      valido = false;
     }
 
-  
     if(!valido){
       (role?.classList.contains('is-invalid') ? role : partnerInput)?.focus();
       return;
@@ -160,7 +176,13 @@
         });
         xhr.addEventListener('loadend', function(){
           if(xhr.status >= 200 && xhr.status < 300){
-            Swal.fire('Guardado', 'El directivo se guardó correctamente.', 'success');
+            Swal.fire({
+              title: 'Guardado',
+              text: 'El directivo se guardó correctamente.',
+              icon: 'success',
+              showConfirmButton: false,
+              timer: 2000
+            });
           }else{
             Swal.fire('Error', 'No se pudo guardar. Intenta nuevamente.', 'error');
           }
@@ -173,10 +195,24 @@
             const tmp = document.createElement('div'); tmp.innerHTML = html;
             const node = tmp.firstElementChild || tmp;
             form.replaceWith(node);
-            Swal.fire('Guardado', 'El directivo se guardó correctamente.', 'success');
+           Swal.fire({
+            title: 'Guardado',
+            text: 'El directivo se guardó correctamente.',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 2000
+          });
           })
           .catch(() => Swal.fire('Error','No se pudo guardar. Intenta nuevamente.','error'));
       }
+    });
+  });
+
+  // 3) Inicializar POPOVERS como en el formulario de tarifa
+  const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+  popoverTriggerList.forEach(function (popoverTriggerEl) {
+    new bootstrap.Popover(popoverTriggerEl, {
+      customClass: 'popover-sm'   // misma clase que usas en tu otro formulario
     });
   });
 })();

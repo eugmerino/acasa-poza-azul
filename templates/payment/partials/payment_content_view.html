@@ -1,6 +1,16 @@
-<div class="row mt-4 mb-2 text-center">
-  <div class="col-12">
-    <h1 class="h3">Historial de Pago de Acometida</h1>
+<div class="row mt-4 mb-2 text-center"> 
+  <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+    <h1 class="h3 mb-0">Historial de Pago de Acometida</h1>
+
+    <!-- Botón de ayuda -->
+    <a href="#"
+       class="btn btn-link btn-sm order-1 order-lg-0 me-2"
+       data-bs-toggle="modal"
+       data-bs-target="#infoHistorialPagos"
+       title="Ayuda sobre historial de pagos"
+       role="button">
+      <i class="fa-solid fa-circle-info"></i>
+    </a>
   </div>
 </div>
 
@@ -8,5 +18,46 @@
   <div class="header-controls d-flex justify-content-end">
       {% include "partials/search_table.html" with hx_url=payment_view_search_url hx_target="#table-content" placeholder="Buscar Pago..." %}
   </div>
+
   {% include "payment/partials/payment_table_view.html" %}
+</div>
+
+{# Modal de ayuda sobre el historial #}
+<div class="modal fade" id="infoHistorialPagos" tabindex="-1" aria-labelledby="infoHistorialPagosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoHistorialPagosLabel">Información del historial de pagos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>
+          En esta sección puedes consultar <strong>todos los pagos realizados</strong> por los usuarios
+          a lo largo del tiempo, sin importar el mes en que fueron registrados.
+        </p>
+
+        <p class="mb-1"><strong>Qué muestra este historial:</strong></p>
+        <ul>
+          <li>Todos los pagos de todas las acometidas.</li>
+          <li>Pagos de meses anteriores y del mes actual.</li>
+          <li>Información de la acometida, propietario, fecha de pago, abono y saldo restante.</li>
+        </ul>
+        <p class="mb-1"><strong>Uso del historial:</strong></p>
+        <ul>
+          <li>Utiliza el cuadro <em>“Buscar Pago…”</em> para filtrar por acometida y propietario.</li>
+          <li>Usa la paginación inferior para navegar entre todos los registros históricos.</li>
+        </ul>
+
+        <p class="mb-0">
+          Este historial es ideal para obtener una visión completa del avance de pagos
+          de cada acometida a través del tiempo.
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>

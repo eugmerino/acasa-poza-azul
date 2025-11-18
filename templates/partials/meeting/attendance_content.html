@@ -50,13 +50,27 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% include "partials/paginator.html" with hx_url=attendance_search_url hx_target="#table-content" per_page_options=per_page_options %}
+                    
+                   
                 </div>
             </div>
         </form>
     {% else %}
-        <div class="alert alert-info text-center">
-            No hay ninguna reunión activa en este momento.
-        </div>
+        {% if next_meeting %}
+            <div class="alert alert-info text-center">
+                <i class="fa-solid fa-calendar-day me-2"></i>
+                No hay ninguna reunión en proceso.<br>
+                La próxima reunión será el <strong>{{ next_meeting.date|date:"d/m/Y" }}</strong>
+                de <strong>{{ next_meeting.start_time|time:"H:i" }}</strong>
+                a <strong>{{ next_meeting.end_time|time:"H:i" }}</strong>.
+            </div>
+        {% else %}
+            <div class="alert alert-warning text-center">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                No hay ninguna reunión en proceso ni programada.
+            </div>
+        {% endif %}
     {% endif %}
 </div>
 <script>
@@ -122,4 +136,3 @@
         updateAttendanceCount();
     });
 </script>
-

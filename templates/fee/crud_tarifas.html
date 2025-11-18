@@ -1,13 +1,5 @@
-{% extends 'base.html' %}
-{% load static %}
 
-{% block title %}
-  Agregar Tarifa |{% if project and project.title %}
-    {{ project.title }}
-  {% else %}
-    ACASA Poza Azul
-  {% endif %}
-{% endblock %}
+{% load static %}
 
 {% block content %}
 <div class="row mt-4 mb-2 text-center">
@@ -168,7 +160,7 @@
 
 {% block extra_js %}
  <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener("htmx:afterSwap", function () {
       const formTramo = document.getElementById('form-tramo')
       const tablaTramos = document.getElementById('tabla-tramos')
       const btnGuardarTramo = document.getElementById('btn-guardar-tramo')
@@ -201,10 +193,11 @@
         // 🚫 Bloquear si el último tramo tiene intervalo abierto ("-")
         if (ultimoMetroFinalText === '-') {
           Swal.fire({
-          icon: 'error',
-          title: 'Error',
+          icon: 'warning',
+          title: 'No se puede agregar tramo',
           text: 'El último tramo tiene un intervalo abierto (sin metro final). No se pueden agregar más tramos.',
-          confirmButtonText: 'Aceptar'
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: "#198754",
           })
           event.preventDefault() // cancela la apertura del modal
           return
@@ -283,10 +276,11 @@
         // Validación de rango
         if (metroFinal !== '-' && metroInicial >= metroFinal) {
           Swal.fire({
-          icon: 'error',
+          icon: 'warning',
           title: 'Datos inválidos',
           text: 'El Metro Final debe ser mayor que el Metro Inicial.',
-          confirmButtonText: 'Aceptar'
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: "#198754",
         })
           return
         }
@@ -347,10 +341,11 @@
         if (e.target.closest('.btn-eliminar-tramo')) {
           if (!isLastRow) {
             Swal.fire({
-            icon: 'error',
-            title: 'Error',
+            icon: 'warning',
+            title: 'No se puede eliminar',
             text: 'No puedes eliminar este tramo porque hay registros posteriores. Elimina el último tramo primero.',
-              confirmButtonText: 'Aceptar'
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: "#198754",
           })
             return
           }
@@ -361,16 +356,16 @@
       document.getElementById('tramosModal').addEventListener('hide.bs.modal', function () {
         formTramo.reset()
       })
-    })
-    
-    document.addEventListener('DOMContentLoaded', function () {
+
       const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
       popoverTriggerList.forEach(function (popoverTriggerEl) {
         new bootstrap.Popover(popoverTriggerEl, {
           customClass: 'popover-sm'
         })
       })
+
     })
+    
     
     document.getElementById('form-crud-tarifa').addEventListener('submit', function (e) {
       e.preventDefault()
@@ -425,10 +420,11 @@
 
       if (error) {
         Swal.fire({
-          icon: 'error',
+          icon: 'warning',
           title: 'Datos inválidos',
           text: 'Por favor corrige los errores antes de guardar.',
-          confirmButtonText: 'Aceptar'
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: "#198754",
         })
         return
       }
@@ -468,13 +464,16 @@
               .then((response) => response.json())
               .then((data) => {
                   if (data.success) {
-                      Swal.fire(
-                          'Guardado',
-                          'La tarifa se guardó correctamente.',
-                          'success'
-                      ).then(() => {
-                          window.location.href = '/tarifas/'
-                      });
+                     Swal.fire({
+                              title: 'Guardado',
+                              text: 'La tarifa se guardó correctamente.',
+                              icon: 'success',
+                              showConfirmButton: false,
+                              timer: 2000,
+                              didClose: () => {
+                                  window.location.href = '/tarifas/';
+                              }
+                          });
                   } else {
                     descripcionInput.classList.remove('is-invalid')
                     fechaInput.classList.remove('is-invalid')

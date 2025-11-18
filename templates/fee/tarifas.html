@@ -18,14 +18,12 @@
 
     <div class="table-container rounded-4 shadow p-4">    
         <div class="header-controls">
-            <a
-              href="{% url 'fee_create_form' %}"
-              class="btn btn-success"
-              role="button"
-            >
-              <i class="fas fa-plus me-1"></i> 
-              Agregar Nueva Tarifa
-            </a>
+            <button class="btn btn-success"
+                    hx-get="{% url 'fee_create_form' %}"
+                    hx-target="#main-container"
+                    hx-swap="innerHTML">
+              <i class="fas fa-plus me-1"></i> Agregar Nueva Tarifa
+            </button>
             {% include "partials/search_table.html" with hx_url=fee_search_url hx_target="#fee-list" placeholder="Buscar tarifas..." %}
         </div>
         {% include "partials/fee/fee_table.html" %}
@@ -57,7 +55,8 @@
             title: 'Activada',
             text: 'La tarifa se activó correctamente.',
             icon: 'success',
-            confirmButtonText: 'OK'
+            showConfirmButton: false,
+            timer: 2000,
           }).then(() => {
             window.location.href = url;
           });

@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class BinnacleConfig(AppConfig):
+class AuditConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'binnacle'
+    name = 'audit'
