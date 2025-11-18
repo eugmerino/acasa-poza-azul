@@ -33,7 +33,7 @@ def project_info_view(request):
                 user=request.user,
                 action="update",
                 model_name="Proyecto",
-                description="Modifico información del proyecto."
+                description="Modificó información del proyecto."
             )
 
         # Si la petición es AJAX (fetch)
@@ -146,7 +146,7 @@ def community_edit(request, pk):
                 action="update",
                 model_name="Comunidad",
                 object_id=community.id,
-                description=f"Modifico la comunidad '{community.name}'."
+                description=f"Modificó la comunidad '{community.name}'."
             )
 
             response = render(
@@ -235,7 +235,7 @@ def directive_create(request):
                 action="create",
                 model_name="Directiva",
                 object_id=directive.id,
-                description=f"Registro al directivo '{directive.partner.first_name} {directive.partner.last_name}', con el cargo de '{directive.role}'."
+                description=f"Registró al directivo '{directive.partner.first_name} {directive.partner.last_name}', con el cargo de '{directive.role}'."
             )
 
             response = render(
@@ -419,7 +419,7 @@ def user_edit(request, pk):
                 action="update",
                 model_name="Usuario",
                 object_id=user.id,
-                description=f"Modifico al usuario '{user.username}', estado del usuario '{estado}'."
+                description=f"Modificó al usuario '{user.username}', estado del usuario '{estado}'."
             )
 
             if request.headers.get("HX-Request"):
@@ -503,7 +503,7 @@ def user_edit_credentials(request, pk):
                 action="update",
                 model_name="Usuario",
                 object_id=user.id,
-                description=f"El usuario '{old_username}', modifico sus credenciales, su nuevo username es: '{user.username}'."
+                description=f"El usuario '{old_username}', Modificó sus credenciales, su nuevo username es: '{user.username}'."
             )
 
             logout(request)
@@ -599,7 +599,7 @@ def partner_create_view(request):
                 action="create",
                 model_name="Socio",
                 object_id=partner.id,
-                description=f"Registro al socio '{partner.first_name} {partner.last_name}'."
+                description=f"Registró al socio '{partner.first_name} {partner.last_name}'."
             )
             registrar_log(
                 user=request.user,
@@ -657,7 +657,7 @@ def partner_edit(request, pk):
                 action="update",
                 model_name="Socio",
                 object_id=partner.id,
-                description=f"Modifico al socio '{partner.first_name} {partner.last_name}', con numero de DUI: '{partner.dui}'."
+                description=f"Modificó al socio '{partner.first_name} {partner.last_name}', con numero de DUI: '{partner.dui}'."
             )
 
             if request.headers.get("HX-Request"):
@@ -717,7 +717,7 @@ def partner_toggle_active(request, pk):
         action="update",
         model_name="Socio",
         object_id=partner.id,
-        description=f"Modifico el estado a '{estado}' al socio '{partner.first_name} {partner.last_name}'."
+        description=f"Modificó el estado a '{estado}' al socio '{partner.first_name} {partner.last_name}'."
     )
     if entro:
         registrar_log(
@@ -877,7 +877,7 @@ def connection_create_view(request):
                 action="create",
                 model_name="Acometida",
                 object_id=connection.id,
-                description=f"Registro a la acometida '{connection.description}', del socio '{connection.responsible.first_name} {connection.responsible.last_name}'."
+                description=f"Registró a la acometida '{connection.description}', del socio '{connection.responsible.first_name} {connection.responsible.last_name}'."
             )
 
             # --- ÉXITO ---
@@ -947,7 +947,7 @@ def connection_edit_view(request, pk):
                 action="update",
                 model_name="Acometida",
                 object_id=connection.id,
-                description=f"Modifico a la acometida '{connection.description}', del socio '{connection.responsible.first_name} {connection.responsible.last_name}'."
+                description=f"Modificó a la acometida '{connection.description}', del socio '{connection.responsible.first_name} {connection.responsible.last_name}'."
             )
 
             # --- Si es HTMX: mostrar fragmento de éxito ---

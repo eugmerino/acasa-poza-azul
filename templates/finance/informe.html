@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Informe | {{ project.title|default:"ACASA Poza Azul" }}
+{% endblock %}
+
+{% block content %}
+  
+<div class="row mt-4 mb-2 text-center">
+    <div class="col-12">
+        <h1 class="h3">Informe Mensual</h1>
+        <p class="text-muted">Genera el informe detallado de ingresos y egresos para un mes específico.</p>
+    </div>
+</div>
+
+<div class="table-container rounded-4 shadow p-4">
+
+    <div class="header-controls d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+        <div class="d-flex align-items-end gap-3">
+
+            <div class="d-flex flex-column">
+                <label for="month-picker" class="form-label fw-semibold">
+                    Seleccionar mes
+                </label>
+                <input 
+                    type="month" 
+                    id="month-picker" 
+                    name="month" 
+                    class="form-control" 
+                    value="{{ today|date:'Y-m' }}"
+                >
+            </div>
+
+            <div class="mt-4">
+                <a href="{% url 'informe_mensual_pdf' %}" 
+                   id="export-pdf" 
+                   class="btn btn-success px-4"
+                   target="_blank" 
+                   onclick="exportPDF(event)">
+                    <i class="fas fa-file-pdf me-2"></i> Exportar PDF
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Función para exportar PDF
+    window.exportPDF = function(event) {
+        event.preventDefault();
+        const selectedMonth = document.getElementById('month-picker').value;
+        
+        if (!selectedMonth) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Seleccione un mes',
+                text: 'Por favor seleccione el mes que desea exportar.',
+            });
+            return;
+        }
+
+        // Redirigir a la URL de exportación con el mes seleccionado
+        window.open(`{% url 'informe_mensual_pdf' %}?month=${selectedMonth}`, '_blank');
+    };
+</script>
+{% endblock %}

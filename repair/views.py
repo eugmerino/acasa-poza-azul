@@ -9,6 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.db.models import Q, F, Func, Value, CharField, Case, When, IntegerField
 from django.db.models.functions import Cast
+from audit.utils import registrar_log
 
 
 # Variable global
@@ -88,7 +89,18 @@ def report_repair_create(request):
     if request.method == "POST":
         form = ReportForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            report = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="create",
+                model_name="Reporte de daño",
+                object_id=report.id,
+                description = (
+                    f"Registró el reporte de daño '{report.report_title}'."
+                )
+            )
+
             if request.headers.get('HX-Request'):
                 response = report_repair_list(request)
                 response["HX-Trigger"] = "reportRepairCreated"
@@ -120,6 +132,17 @@ def report_repair_edit(request, pk):
 
         if form.is_valid():
             form.save()
+
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Reporte de daño",
+                object_id=report.id,
+                description = (
+                    f"Modificó el reporte de daño '{report.report_title}'."
+                )
+            )
+
             if request.headers.get("HX-Request"):
                 response = report_repair_list(request)
                 response["HX-Trigger"] = "reportRepairEdited"
@@ -148,6 +171,15 @@ def report_repair_delete(request, pk):
     report = get_object_or_404(Repair, pk=pk)
 
     if request.method == "POST":
+        registrar_log(
+            user=request.user,
+            action="delete",
+            model_name="Reporte de daño",
+            object_id=report.id,
+            description = (
+                f"Eliminó el reporte de daño '{report.report_title}'."
+            )
+        )
         report.delete()
 
         if request.headers.get("HX-Request"):
@@ -283,6 +315,17 @@ def repair_edit(request, pk):
 
             repair.save()
 
+            registrar_log(
+                user=request.user,
+                action="create" if mode=="create" else "update",
+                model_name="Reparación",
+                object_id=repair.id,
+                description = (
+                    f"Registró la reparación al reporte '{repair.report_title}'." if mode=="create" else
+                    f"Modificó la reparación al reporte '{repair.report_title}'."
+                )
+            )
+
             if request.headers.get("HX-Request"):
                 response = repair_list(request)
                 response["HX-Trigger"] = "repairEdited"
@@ -412,7 +455,18 @@ def repair_pay_edit(request, pk):
         form = RepairPayForm(data, request.FILES, instance=report)
 
         if form.is_valid():
-            form.save()
+            pay = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="create",
+                model_name="Transacción",
+                object_id=pay.id,
+                description = (
+                    f"Registró pago por reparación del reporte de daño '{pay.report_title}'."
+                )
+            )
+
             if request.headers.get("HX-Request"):
                 response = repair_pay_list(request)
                 response["HX-Trigger"] = "repairPayEdited"

@@ -254,27 +254,36 @@
       })
       .then(r => r.text())
       .then(html => {
-        const tmp   = document.createElement('div');
+        const tmp = document.createElement('div');
         tmp.innerHTML = html;
 
-        const newRow = tmp.querySelector('tr');
-        const tbody  = document.querySelector('#table-body');
+        const hasErrors = tmp.querySelector('form#payment-form');  // <--- DETECCIÓN
 
-        if (newRow && tbody) {
-          tbody.appendChild(newRow);
-        } else {
+        if (hasErrors) {
+          // --- ERROR: VOLVER A MOSTRAR FORMULARIO ---
           const node = tmp.firstElementChild || tmp;
           form.replaceWith(node);
+
+          Swal.fire({
+            title: 'Error',
+            text: 'Revisa los campos. La acometida puede ya tener pago o el abono excede el restante.',
+            icon: 'error'
+          });
+
+          btn.disabled = false; // reactivar botón
+          return;               // <-- MUY IMPORTANTE
         }
 
-        try {
-          const modalEl = document.getElementById('payment-modal') || document.querySelector('.modal.show');
-          if (modalEl && window.bootstrap && bootstrap.Modal) {
-            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
-          }
-        } catch (_) {}
+        // --- ÉXITO ---
+        const newRow = tmp.querySelector('tr');
+        const tbody  = document.querySelector('#table-body');
+        if (newRow && tbody) tbody.appendChild(newRow);
 
-        // === ÉXITO + RECARGA AL CERRAR ALERT ===
+        const modalEl = document.getElementById('payment-modal') || document.querySelector('.modal.show');
+        if (modalEl && window.bootstrap) {
+          bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+        }
+
         Swal.fire({
           title: 'Guardado',
           text: 'El pago se guardó correctamente.',
@@ -285,12 +294,6 @@
           location.reload();
         });
       })
-      .catch(() => {
-        Swal.fire('Error', 'No se pudo guardar. Intenta nuevamente.', 'error');
-      })
-      .finally(() => {
-        btn.disabled = false;
-      });
     });
   });
 

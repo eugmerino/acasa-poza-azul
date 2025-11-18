@@ -17,6 +17,8 @@ from django.utils import timezone
 from django.utils.timezone import localtime, now
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
+from audit.utils import registrar_log
+from collection.models import Reading
 
 # Importaciones de terceros
 import weasyprint
@@ -313,7 +315,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import localtime, now
 import json
-from audit.utils import registrar_log
+
 
 per_page_options =[5, 10, 20, 50]
 
@@ -531,7 +533,7 @@ def transaction_create(request):
                 model_name="Transacción",
                 object_id=transaction.id,
                 description = (
-                    f"Registró la transacción: id '{transaction.id}' con el concepto '{transaction.concept}'"
+                    f"Registró la transacción con el concepto '{transaction.concept}'"
                 )
             )
             
@@ -586,7 +588,7 @@ def transaction_edit(request, pk):
                 model_name="Transacción",
                 object_id=transaction.id,
                 description = (
-                    f"Modifico la transacción: id '{transaction.id}' con el concepto '{transaction.concept}'"
+                    f"Modificó la transacción con el concepto '{transaction.concept}'"
                 )
             )
             
@@ -692,3 +694,164 @@ def transaction_pdf(request):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="Transacciones_{year}_{month}.pdf"'
     return response
+
+
+def informe_view(request):
+    today = timezone.localtime().date()
+    return render(request, 'finance/informe.html', {'today': today})
+
+def informe_mensual_pdf(request):
+    project = Project.objects.first()
+    logo_url = request.build_absolute_uri(project.logo.url) if project.logo else None
+
+    month_param = request.GET.get("month")
+
+    if month_param:
+        try:
+            selected_date = datetime.strptime(month_param, "%Y-%m")
+            year = selected_date.year
+            month = selected_date.month
+        except ValueError:
+            today = timezone.localtime().date()
+            year = today.year
+            month = today.month
+    else:
+        today = timezone.localtime().date()
+        year = today.year
+        month = today.month
+
+    month_name = _(calendar.month_name[month]).capitalize()
+
+    # ============================
+    #  LECTURAS / COBROS MENSUALES
+    # ============================
+    readings = (
+        Reading.objects.filter(
+            date_reading__year=year,
+            date_reading__month=month,
+            isPaid=True
+        )
+        .select_related("connection__responsible__community", "fee")
+    )
+
+    communities_totals = {}
+
+    for r in readings:
+        community = r.connection.responsible.community
+        community_name = community.name if community else "Sin comunidad"
+
+        consumo = r.meter_reading - (r.previous_reading or 0)
+        monto = Reading.calculate_amount(r.fee, consumo)
+        total_cobro = monto + r.late_payment + r.penalty_fee
+
+        if community_name not in communities_totals:
+            communities_totals[community_name] = total_cobro
+        else:
+            communities_totals[community_name] += total_cobro
+
+    summary = [
+        {"community": name, "total": total}
+        for name, total in communities_totals.items()
+    ]
+    summary.sort(key=lambda x: x["community"])
+
+    # ============================
+    #  TOTAL GENERAL COBROS
+    # ============================
+    grand_total = sum(item["total"] for item in summary)
+
+    # ============================
+    #  PAGOS A ACOMETIDAS DEL MES
+    # ============================
+    acometida_total = (
+        Payment.objects.filter(
+            date_pay__year=year,
+            date_pay__month=month
+        ).aggregate(total=Sum("amount"))["total"] or 0
+    )
+
+    # ============================
+    #  TRANSACCIONES DE INGRESO
+    # ============================
+    income_transactions = list(
+        Transaction.objects.filter(
+            type='I',
+            date__year=year,
+            date__month=month
+        ).values("concept", "amount")
+    )
+
+    income_transactions_total = sum(t["amount"] for t in income_transactions)
+
+    # ============================
+    # TOTAL OTROS INGRESOS
+    # ============================
+    other_income_total = acometida_total + income_transactions_total
+
+    # ============================
+    # TOTAL GENERAL DE INGRESOS
+    # ============================
+    total_ingresos = grand_total + other_income_total
+
+    # =====================================================
+    #   🔥🔥 TRANSACCIONES DE EGRESO (NUEVO)
+    # =====================================================
+    expense_transactions = list(
+        Transaction.objects.filter(
+            type='E',
+            date__year=year,
+            date__month=month
+        ).values("concept", "amount")
+    )
+
+    # total solo egresos
+    total_egresos = sum(t["amount"] for t in expense_transactions)
+
+    # =====================================================
+    #   🔥🔥 UTILIDAD DEL PERÍODO = INGRESOS - EGRESOS
+    # =====================================================
+    utilidad_periodo = total_ingresos - total_egresos
+
+    # =====================================================
+    #   GENERAR HTML
+    # =====================================================
+    today = timezone.localtime().date()
+    now = timezone.localtime()
+
+    html_string = render_to_string("finance/partials/informe_mensual_pdf.html", {
+        "project": project,
+        "logo_url": logo_url,
+
+        # ingresos por servicio
+        "summary": summary,
+        "grand_total": grand_total,
+
+        # otros ingresos
+        "acometida_total": acometida_total,
+        "income_transactions": income_transactions,
+        "income_transactions_total": income_transactions_total,
+        "other_income_total": other_income_total,
+
+        # total general de ingresos
+        "total_ingresos": total_ingresos,
+
+        # datos de egresos (nuevo)
+        "expense_transactions": expense_transactions,
+        "total_egresos": total_egresos,
+        "utilidad_periodo": utilidad_periodo,
+
+        "month_name": month_name,
+        "year": year,
+        "today": today,
+        "now": now,
+    })
+
+    pdf_file = weasyprint.HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri()
+    ).write_pdf()
+
+    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="Informe_Mensual_{year}_{month}.pdf"'
+    return response
+
