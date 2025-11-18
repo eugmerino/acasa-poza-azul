@@ -14,10 +14,11 @@
 <div class="card mb-4">
   <div class="card-header card-header-custom">
     <h5 class="mb-0 d-inline">Formulario de Socio</h5>
-    <a href="#ayudaModal" class="btn btn-link btn-sm order-1 order-lg-0 me-2" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda"><i class="fa-solid fa-circle-info"></i></a>
   </div>
   <div class="card-body">
-    <form id="form-socio" method="post" enctype="multipart/form-data" hx-post="{% if partner %}{% url 'partner_edit' partner.id %}{% else %}{% url 'partner_create' %}{% endif %}" hx-target="#main-container" hx-swap="innerHTML">
+    <form id="form-socio" method="post" enctype="multipart/form-data"
+          hx-post="{% if partner %}{% url 'partner_edit' partner.id %}{% else %}{% url 'partner_create' %}{% endif %}"
+          hx-target="#main-container" hx-swap="innerHTML">
       {% csrf_token %}
       <div class="mb-3 text-muted">
         <span class="text-danger">*</span><span class="small"> Campos obligatorios</span>
@@ -31,6 +32,13 @@
             <div class="mb-3 mt-3">
               <label for="{{ form.first_name.id_for_label }}" class="form-label">
                   {{ form.first_name.label }}: <span class="text-danger">*</span>
+                  <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                     tabindex="0"
+                     data-bs-toggle="popover"
+                     data-bs-trigger="hover focus"
+                     data-bs-placement="right"
+                     data-bs-content="Ingrese los nombres del socio tal como aparecen en su documento.">
+                  </i>
               </label>
               <input
                   type="text"
@@ -50,6 +58,13 @@
             <div class="mb-3 mt-3">
               <label for="{{ form.last_name.id_for_label }}" class="form-label">
                   {{ form.last_name.label }}: <span class="text-danger">*</span>
+                  <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                     tabindex="0"
+                     data-bs-toggle="popover"
+                     data-bs-trigger="hover focus"
+                     data-bs-placement="right"
+                     data-bs-content="Ingrese los apellidos del socio tal como aparecen en su documento.">
+                  </i>
               </label>
               <input
                   type="text"
@@ -70,6 +85,13 @@
             <div class="mb-3 mt-3">
                 <label for="{{ form.dui.id_for_label }}" class="form-label">
                     {{ form.dui.label }}: <span class="text-danger">*</span>
+                    <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                       tabindex="0"
+                       data-bs-toggle="popover"
+                       data-bs-trigger="hover focus"
+                       data-bs-placement="right"
+                       data-bs-content="DUI con guiones. El DUI no se puede editar después de creado.">
+                    </i>
                 </label>
                 <input
                     type="text"
@@ -91,6 +113,13 @@
             <div class="mb-3 mt-3">
                 <label for="{{ form.tel.id_for_label }}" class="form-label">
                     {{ form.tel.label }}: <span class="text-danger">*</span>
+                    <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                       tabindex="0"
+                       data-bs-toggle="popover"
+                       data-bs-trigger="hover focus"
+                       data-bs-placement="right"
+                       data-bs-content="Número de teléfono con formato ####-####.">
+                    </i>
                 </label>
                 <input
                     type="text"
@@ -112,24 +141,29 @@
           <!-- Columna derecha: foto -->
           <div class="col-md-4">
             <div class="mb-3 mt-3">
-              {{ form.foto.label_tag }}
-              <span class="small"> (Previsualización)</span>
+              <label for="{{ form.foto.id_for_label }}" class="form-label">
+                {{ form.foto.label }}
+                <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                   tabindex="0"
+                   data-bs-toggle="popover"
+                   data-bs-trigger="hover focus"
+                   data-bs-placement="right"
+                   data-bs-content="La foto debe ser cuadrada (1:1) y no pesar más de 1 MB.">
+                </i>
+                <span class="small"> (Previsualización)</span>
+              </label>
             </div>
             <div class="d-flex flex-column justify-content-center align-items-center">
               <div style="width:176px; aspect-ratio:1/1; overflow:hidden;">
                 <img id="foto-preview"
-                    src="{% if form.instance.foto %}
-                      {{ form.instance.foto.url }}
-                    {% else %}
-                      {% static 'img/not_found.jpg' %}
-                    {% endif %}"
+                    src="{% if form.instance.foto %}{{ form.instance.foto.url }}{% else %}{% static 'img/not_found.jpg' %}{% endif %}"
                     alt="foto de perfil socio"
                     class="img-fluid rounded shadow"
                     style="width:100%; height:100%; object-fit:cover;" />
               </div>
             </div>
             <div class="mb-3 mt-3">
-              <span class="small">Recomendación peso máximo 1 MB y relacion 1:1.</span>
+              <span class="small">Recomendación peso máximo 1 MB y relación 1:1.</span>
               {{ form.foto }}
               <div class="invalid-feedback" id="last_name-error"></div>
             </div>
@@ -141,6 +175,13 @@
             <div class="mb-3">
               <label for="{{ form.email.id_for_label }}" class="form-label">
                   {{ form.email.label }}
+                  <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                     tabindex="0"
+                     data-bs-toggle="popover"
+                     data-bs-trigger="hover focus"
+                     data-bs-placement="right"
+                     data-bs-content="Correo electrónico para notificaciones y recuperaciones.">
+                  </i>
               </label>
               <input
                   type="text"
@@ -162,6 +203,13 @@
             <div class="mb-3">
                 <label for="{{ form.community.id_for_label }}" class="form-label">
                     {{ form.community.label }}: <span class="text-danger">*</span>
+                    <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                       tabindex="0"
+                       data-bs-toggle="popover"
+                       data-bs-trigger="hover focus"
+                       data-bs-placement="right"
+                       data-bs-content="Selecciona la comunidad correspondiente al socio.">
+                    </i>
                 </label>
                 <select
                     name="{{ form.community.name }}"
@@ -242,4 +290,19 @@
       }
     }
   });
+
+  // Inicialización de popovers (compatible con HTMX)
+  function initPopovers() {
+      const popoverList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+      popoverList.forEach(function (el) {
+          // Evitamos inicializar dos veces el mismo elemento
+          if (!el._bsPopover) {
+              const p = new bootstrap.Popover(el, { customClass: 'popover-sm' });
+              el._bsPopover = p;
+          }
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", initPopovers);
+  document.body.addEventListener("htmx:afterSettle", initPopovers);
 </script>
