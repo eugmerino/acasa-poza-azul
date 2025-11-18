@@ -24,18 +24,22 @@
         <div class="mb-3">
             <label for="{{ form.project.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.project.label }} <span class="text-danger">*</span>
-                <i class="fa-solid fa-circle-info text-primary"
-                   data-bs-toggle="tooltip"
+
+                <a tabindex="0"
+                   class="btn btn-link p-0 align-baseline"
+                   data-bs-toggle="popover"
+                   data-bs-trigger="hover focus"
                    data-bs-placement="right"
-                   title="Selecciona el proyecto al que pertenece esta transacción."></i>
+                   data-bs-content="Selecciona el proyecto al que pertenece esta transacción.">
+                    <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+                </a>
+
             </label>
             {{ form.project }}
             {% if form.project.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in form.project.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
+            <div class="invalid-feedback d-block">
+                {% for error in form.project.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
@@ -43,11 +47,19 @@
         <div class="mb-3">
             <label for="{{ form.date.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.date.label }} <span class="text-danger">*</span>
-                <i class="fa-solid fa-circle-info text-primary"
-                   data-bs-toggle="tooltip"
+
+                <a tabindex="0"
+                   class="btn btn-link p-0 align-baseline"
+                   data-bs-toggle="popover"
+                   data-bs-trigger="hover focus"
                    data-bs-placement="right"
-                   title="Selecciona la fecha de la transacción. Solo se permiten fechas dentro del mes actual."></i>
+                   data-bs-content="Selecciona la fecha de la transacción. Solo se permiten fechas dentro del mes actual."
+                  >
+                    <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+                </a>
+
             </label>
+
             <input 
                 type="date"
                 name="{{ form.date.name }}"
@@ -58,12 +70,11 @@
                 max="{{ month_end }}"
                 required
             >
+
             {% if form.date.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in form.date.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
+            <div class="invalid-feedback d-block">
+                {% for error in form.date.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
@@ -71,21 +82,30 @@
         <div class="mb-3">
             <label for="{{ form.concept.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.concept.label }} <span class="text-danger">*</span>
-                <i class="fa-solid fa-circle-info text-primary"
-                   data-bs-toggle="tooltip"
+
+                <a tabindex="0"
+                   class="btn btn-link p-0 align-baseline"
+                   data-bs-toggle="popover"
+                   data-bs-trigger="hover focus"
                    data-bs-placement="right"
-                   title="Describe brevemente el concepto o motivo de la transacción."></i>
+                   data-bs-content="Describe brevemente el concepto o motivo de la transacción."
+                  >
+                    <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+                </a>
+
             </label>
+
             <input type="text"
                 name="{{ form.concept.name }}"
                 value="{{ form.concept.value|default_if_none:'' }}"
                 id="{{ form.concept.id_for_label }}"
                 class="form-control{% if form.concept.errors %} is-invalid{% endif %}"
                 required>
+
             {% if form.concept.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in form.concept.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="invalid-feedback d-block">
+                {% for error in form.concept.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
@@ -93,18 +113,25 @@
         <div class="mb-3">
             <label for="{{ form.type.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.type.label }} <span class="text-danger">*</span>
-                <i class="fa-solid fa-circle-info text-primary"
-                   data-bs-toggle="tooltip"
+
+                <a tabindex="0"
+                   class="btn btn-link p-0 align-baseline"
+                   data-bs-toggle="popover"
+                   data-bs-trigger="hover focus"
                    data-bs-placement="right"
-                   title="Indica si la transacción es un ingreso o un egreso."></i>
+                   data-bs-content="Indica si la transacción es un ingreso o un egreso."
+                  >
+                    <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+                </a>
+
             </label>
+
             {{ form.type }}
+
             {% if form.type.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in form.type.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
+            <div class="invalid-feedback d-block">
+                {% for error in form.type.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
@@ -112,18 +139,25 @@
         <div class="mb-3">
             <label for="{{ form.amount.id_for_label }}" class="form-label d-flex align-items-center gap-1">
                 {{ form.amount.label }} <span class="text-danger">*</span>
-                <i class="fa-solid fa-circle-info text-primary"
-                   data-bs-toggle="tooltip"
+
+                <a tabindex="0"
+                   class="btn btn-link p-0 align-baseline"
+                   data-bs-toggle="popover"
+                   data-bs-trigger="hover focus"
                    data-bs-placement="right"
-                   title="Introduce el monto total de la transacción. Solo se permiten valores numéricos."></i>
+                   data-bs-content="Introduce el monto total de la transacción. Solo se permiten valores numéricos."
+                   >
+                    <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
+                </a>
+
             </label>
+
             {{ form.amount }}
+
             {% if form.amount.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in form.amount.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
+            <div class="invalid-feedback d-block">
+                {% for error in form.amount.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
     </div>
@@ -143,11 +177,16 @@
 </form>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  // Activar tooltips Bootstrap
-  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-  tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-  });
-});
+// Soporta contenido insertado por HTMX
+document.addEventListener("htmx:afterSwap", initPopovers);
+document.addEventListener("DOMContentLoaded", initPopovers);
+
+function initPopovers() {
+    const popoverList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverList.forEach(function (el) {
+        new bootstrap.Popover(el, {
+            customClass: "popover-sm"
+        });
+    });
+}
 </script>

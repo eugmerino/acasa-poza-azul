@@ -11,10 +11,20 @@
 
 {% block content %}
 <div class="row mt-4 mb-2 text-center">
-    <div class="col-12">
-        <h1 class="h3">Gestión de Comunidades</h1>
+    <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+        <h1 class="h3 mb-0">Gestión de Comunidades</h1>
+
+        <!-- Botón de ayuda (igual que en Reuniones, solo adaptado) -->
+        <a href="#"
+           class="btn btn-link btn-sm order-1 order-lg-0 me-2"
+           data-bs-toggle="modal"
+           data-bs-target="#infoComunidades"
+           role="button">
+            <i class="fa-solid fa-circle-info"></i>
+        </a>
     </div>
 </div>
+
 
 <div class="table-container rounded-4 shadow p-4">    
     <div class="header-controls">
@@ -35,6 +45,31 @@
 </div>
 
 {% include "partials/communities/community_create_modal.html" %}
+
+
+<!-- Modal de Ayuda para Comunidades -->
+<div class="modal fade" id="infoComunidades" tabindex="-1" aria-labelledby="infoComunidadesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoComunidadesLabel">Información sobre Comunidades</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> En esta sección puedes registrar, consultar y editar las comunidades.</p>
+        <p><strong>Agregar comunidad:</strong> Usa el botón <em>“Agregar Nueva Comunidad”</em> para crear una nueva, incluyendo el proyecto, nombre y descripción.</p>
+        <p><strong>Búsqueda:</strong> Utiliza el buscador para encontrar comunidades rápidamente por nombre o nombre corto.</p>
+        <p><strong>Edición:</strong> Puedes actualizar una comunidad directamente desde la tabla sin recargar la página.</p>
+        <p><strong>Consejo:</strong> Mantén nombres simples y consistentes para facilitar búsquedas posteriores.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {

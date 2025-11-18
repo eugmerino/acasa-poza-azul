@@ -1,6 +1,20 @@
 <div class="row mt-4 mb-2 text-center">
   <div class="col-12">
-    <h1 class="h3">Gestión de reportes por daño a tuberias</h1>
+
+    <!-- Título con ayuda -->
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <h1 class="h3 m-0">Gestión de reportes por daño a tuberías</h1>
+
+        <!-- Botón de ayuda con modal -->
+        <a href="#"
+           class="btn btn-link btn-sm me-2"
+           data-bs-toggle="modal"
+           data-bs-target="#infoReportesTuberias"
+           role="button">
+            <i class="fa-solid fa-circle-info"></i>
+        </a>
+    </div>
+
   </div>
 </div>
 
@@ -16,6 +30,31 @@
   </div>
   {% include "report_repair/partials/report_repair_table.html" %}
 </div>
+
+<div class="modal fade" id="infoReportesTuberias" tabindex="-1" aria-labelledby="infoReportesTuberiasLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoReportesTuberiasLabel">Información sobre Gestión de Reportes por Daño a Tuberías</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Registrar un nuevo reporte:</strong> Puedes agregar reportes sobre fugas, roturas o daños visibles en la red de tuberías.</p>
+        <p><strong>Estado del reporte:</strong> Los reportes pueden actualizarse conforme se realiza la inspección o reparación.</p>
+        <p><strong>Búsqueda:</strong> Puedes buscar reportes por fecha, comunidad, descripción o responsable.</p>
+        <p><strong>Gestión completa:</strong> Incluye creación, edición, actualización de estado  de reportes.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 
 <script>
   document.body.addEventListener("reportRepairCreated", () => {
