@@ -6,10 +6,80 @@
 </div>
 
 <div class="table-container rounded-4 shadow p-4">
+    <div class="header-controls d-flex justify-content-between align-items-center mb-3">
+        <!-- Filtros -->
+        <div class="filters-container d-flex gap-3 align-items-center">
+            <!-- Filtro por acción -->
+            <div class="filter-group">
+                <label for="action-filter" class="form-label small text-muted mb-1">Acción</label>
+                <select id="action-filter" name="action" class="form-select form-select-sm" 
+                        hx-get="{{ logs_search_url }}" 
+                        hx-target="#logs-table-content"
+                        hx-include="[name='start_date'], [name='end_date'], [name='q']">
+                    <option value="">Todas las acciones</option>
+                    <option value="create">Creación</option>
+                    <option value="update">Actualización</option>
+                    <option value="delete">Eliminación</option>
+                    <option value="login">Inicio de sesión</option>
+                    <option value="logout">Cierre de sesión</option>
+                    <option value="other">Otro</option>
+                </select>
+            </div>
+            
+            <!-- Filtro por fecha desde -->
+            <div class="filter-group">
+                <label for="start-date" class="form-label small text-muted mb-1">Desde</label>
+                <input type="date" id="start-date" name="start_date" class="form-control form-control-sm"
+                       hx-get="{{ logs_search_url }}"
+                       hx-target="#logs-table-content"
+                       hx-trigger="change"
+                       hx-include="[name='end_date'], [name='action'], [name='q']">
+            </div>
+            
+            <!-- Filtro por fecha hasta -->
+            <div class="filter-group">
+                <label for="end-date" class="form-label small text-muted mb-1">Hasta</label>
+                <input type="date" id="end-date" name="end_date" class="form-control form-control-sm"
+                       hx-get="{{ logs_search_url }}"
+                       hx-target="#logs-table-content"
+                       hx-trigger="change"
+                       hx-include="[name='start_date'], [name='action'], [name='q']">
+            </div>
 
-    <div class="header-controls d-flex justify-content-end">
+            <!-- Botón Limpiar Filtros -->
+            <div class="filter-group align-self-end">
+                <button type="button" class="btn btn-secondary btn-sm" 
+                        id="clear-filters"
+                        style="margin-top: 24px;">
+                    Limpiar Filtros
+                </button>
+            </div>
+        </div>
+        
+        <!-- Buscador -->
         {% include "partials/search_table.html" with hx_url=logs_search_url hx_target="#logs-table-content" placeholder="Buscar en bitácora..." %}
     </div>
 
     {% include "logs/partials/logs_table.html" %}
 </div>
+
+<!-- Script para limpiar filtros -->
+<script>
+document.getElementById('clear-filters').addEventListener('click', function() {
+    // Limpiar selects
+    document.getElementById('action-filter').value = '';
+    
+    // Limpiar inputs de fecha
+    document.getElementById('start-date').value = '';
+    document.getElementById('end-date').value = '';
+    
+    // Limpiar campo de búsqueda si existe
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    // Disparar evento HTMX para recargar sin filtros
+    htmx.trigger('#action-filter', 'change');
+});
+</script>

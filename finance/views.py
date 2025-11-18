@@ -214,6 +214,14 @@ def payment_create(request):
                             f"Registró la transacción por pago a la acometida '{pay.connection.description}' del socio '{pay.connection.responsible.first_name} {pay.connection.responsible.last_name}'."
                         )
                     )
+                    
+                    # ÉXITO - Redirigir a la lista de pagos
+                    if request.headers.get("HX-Request"):
+                        response = payment_create_success(request)
+                        response["HX-Trigger"] = "paymentCreated"
+                        return response
+                    return redirect('payment_create_success')  # Cambia por el nombre de tu URL de lista
+
             except ValidationError as e:
                 # Poner los errores en el form para re-renderizarlo con mensajes
                 if hasattr(e, "message_dict"):
@@ -223,55 +231,9 @@ def payment_create(request):
                 else:
                     form.add_error(None, str(e))
 
-                if request.headers.get("HX-Request"):
-                    # Mensaje amigable para SweetAlert
-                    msg = "No se pudo guardar el pago."
-                    conn_err = form.errors.get("connection", [])
-                    amount_err = form.errors.get("amount", [])
-                    if conn_err:
-                        msg = conn_err[0]
-                    elif amount_err:
-                        msg = amount_err[0]
-
-                    resp = render(request, "payment/partials/payment_form.html", {"form": form})
-                    resp["HX-Retarget"] = "#payment-form"
-                    resp["HX-Reswap"] = "outerHTML"
-                    resp["HX-Trigger"] = json.dumps({"payment:error": {"msg": msg}})
-                    resp.status_code = 422
-                    return resp
-
-                # Petición normal (sin HTMX)
-                return render(request, "payment/partials/payment_form.html", {"form": form})
-
-            # Éxito
-            if request.headers.get("HX-Request"):
-                resp = render(
-                    request,
-                    "payment/partials/payment_row_table.html",  # <-- devuelve un <tr>
-                    {"pay": pay},
-                )
-                resp["HX-Trigger-After-Swap"] = json.dumps(
-                    {"payment:added": {"id": pay.id, "msg": "El pago se guardó correctamente."}}
-                )
-                return resp
-
-            return redirect("payment_create_success")
-
-        # Form inválido por otros motivos (requeridos, formato, etc.)
+        # Form inválido (por validaciones de modelo o otros motivos)
         if request.headers.get("HX-Request"):
-            msg = "Revisa los campos."
-            conn_err = form.errors.get("connection", [])
-            amount_err = form.errors.get("amount", [])
-            if conn_err:
-                msg = conn_err[0]
-            elif amount_err:
-                msg = amount_err[0]
-
-            resp = render(request, "payment/partials/payment_form.html", {"form": form})
-            resp["HX-Retarget"] = "#payment-form"
-            resp["HX-Reswap"] = "outerHTML"
-            resp["HX-Trigger-After-Swap"] = json.dumps({"payment:error": {"msg": msg}})
-            return resp
+            return render(request, "payment/partials/payment_form.html", {"form": form})
 
     # GET
     form = PaymentForm()
@@ -674,6 +636,15 @@ def transaction_pdf(request):
     today = timezone.localtime().date()
     now = timezone.localtime()
 
+    registrar_log(
+        user=request.user,
+        action="create",
+        model_name="Finanzas",
+        description = (
+            f"Generó el informe de transacciones correspondiente a {month_name} de {year}."
+        )
+    )
+
     # Renderizar HTML
     html_string = render_to_string('finance/partials/transaction_pdf.html', {
         'project': project,
@@ -817,6 +788,15 @@ def informe_mensual_pdf(request):
     # =====================================================
     today = timezone.localtime().date()
     now = timezone.localtime()
+
+    registrar_log(
+        user=request.user,
+        action="create",
+        model_name="Finanzas",
+        description = (
+            f"Generó el informe mensual de ingresos y egresos correspondiente a {month_name} de {year}."
+        )
+    )
 
     html_string = render_to_string("finance/partials/informe_mensual_pdf.html", {
         "project": project,

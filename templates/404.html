@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página no encontrada - Error 404</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+        :root {
+            --azul-oscuro: #004085;
+            --azul-medio: #007bff;
+            --celeste: #17a2b8;
+            --blanco: #ffffff;
+            --negro: #212529;
+            --sombra-card: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--blanco);
+            text-align: center;
+        }
+        .error-container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: var(--sombra-card);
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .error-code {
+            font-size: 8rem;
+            font-weight: bold;
+            margin: 0;
+            line-height: 1;
+            color: var(--blanco);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .error-title {
+            font-size: 2rem;
+            margin: 1rem 0;
+            color: var(--blanco);
+            font-weight: 600;
+        }
+        .error-message {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        .btn-home {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--blanco);
+            color: var(--azul-oscuro);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid var(--blanco);
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            background: transparent;
+            color: var(--blanco);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        .icon-container {
+            margin-bottom: 1.5rem;
+        }
+        .search-icon {
+            font-size: 4rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="icon-container">
+            <div class="search-icon"><i class="fa-solid fa-person-circle-question"></i></div>
+        </div>
+        <h1 class="error-code">404</h1>
+        <h2 class="error-title">Página no encontrada</h2>
+        <p class="error-message">
+            Lo sentimos, la página que estás buscando no existe o ha sido movida.
+        </p>
+        <button onclick="goBack()" class="btn btn-success">
+            <span class="back-arrow">←</span>
+            Volver Atrás
+        </button>
+    </div>
+     <script>
+        function goBack() {
+            // Verifica si hay historial para retroceder
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                // Si no hay historial, redirige al inicio
+                window.location.href = "/";
+            }
+        }
+    </script>
+</body>
+</html>
