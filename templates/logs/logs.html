@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Bitácora | {{ project.title|default:"ACASA Poza Azul" }}
+{% endblock %}
+
+{% block content %}
+  {% include "logs/partials/logs_content.html" %}
+{% endblock %}

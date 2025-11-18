@@ -27,7 +27,13 @@ class Fee(models.Model):
 
     def __str__(self):
         return self.short_description
-   
+    
+
+    @classmethod
+    def has_active(cls) -> bool:
+        """Devuelve True si existe al menos una tarifa activa."""
+        return cls.objects.filter(isActive=True).exists()
+        
 
 class Range(models.Model):
     fee = models.ForeignKey(

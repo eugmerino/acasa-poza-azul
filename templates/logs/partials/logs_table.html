@@ -1,0 +1,29 @@
+<div class="table-responsive rounded-3" id="logs-table-content">
+
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Usuario</th>
+                <th>Acción</th>
+                <th>Módulo</th>
+                <th>Objeto</th>
+                <th>Descripción</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for log in page_obj %}
+            {% include "logs/partials/logs_row_table.html" %}
+        {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-3">
+                    No se encontraron registros en la bitácora
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "partials/paginator.html" with hx_url=logs_search_url hx_target="#logs-table-content" per_page_options=per_page_options %}
+</div>
