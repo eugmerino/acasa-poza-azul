@@ -108,7 +108,7 @@ def community_create(request):
                 user=request.user,
                 action="create",
                 model_name="Comunidad",
-                object_id=community.name,
+                object_id=community.id,
                 description=f"Creó la comunidad '{community.name}'."
             )
 
@@ -234,6 +234,7 @@ def directive_create(request):
                 user=request.user,
                 action="create",
                 model_name="Directiva",
+                object_id=directive.id,
                 description=f"Registro al directivo '{directive.partner.first_name} {directive.partner.last_name}', con el cargo de '{directive.role}'."
             )
 

@@ -20,6 +20,7 @@ from decimal import Decimal
 from django.template.loader import render_to_string
 import tempfile
 import weasyprint
+from audit.utils import registrar_log
 
 
 # Opciones de paginación
@@ -133,6 +134,15 @@ def fee_activate(request, pk):
     fee = get_object_or_404(Fee, pk=pk)
     fee.isActive = True
     fee.save()
+
+    registrar_log(
+        user=request.user,
+        action="update",
+        model_name="Tarifa",
+        object_id=fee.id,
+        description=f"Activo la tarifa '{fee.short_description}'."
+    )
+
     return redirect("fee_list")
 
 @csrf_exempt
@@ -151,6 +161,14 @@ def fee_create(request):
             isActive=activa
         )
 
+        registrar_log(
+            user=request.user,
+            action="create",
+            model_name="Tarifa",
+            object_id=fee.id,
+            description=f"Creo la tarifa '{fee.short_description}', ahora es la tarifa activa."
+        )
+
         for tramo in tramos:
             Range.objects.create(
                 fee=fee,
@@ -164,6 +182,15 @@ def fee_create(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
     
+
+def format_date_es(date):
+    meses = [
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+    ]
+    mes = meses[date.month - 1]
+    return f"{mes.capitalize()} de {date.year}"
+
 
 def readings_list(request):
     project = Project.objects.first()
@@ -325,7 +352,20 @@ def reading_create(request, pk):
 
         if form.is_valid():
             try:
-                form.save()
+                reading = form.save()
+
+                registrar_log(
+                    user=request.user,
+                    action="create",
+                    model_name="Lectura",
+                    object_id=reading.id,
+                    description = (
+                        f"Registró la lectura del mes '{format_date_es(reading.date_reading)}', "
+                        f"a la acometida '{reading.connection.description}', del socio "
+                        f"'{reading.connection.responsible.first_name} {reading.connection.responsible.last_name}'."
+                    )
+                )
+
                 if request.headers.get('HX-Request'):
                     response = HttpResponse()
                     response["HX-Trigger"] = "readingCreated"
@@ -416,7 +456,20 @@ def reading_edit(request, pk):
         form = ReadingForm(request.POST, instance=reading)
         if form.is_valid():
             reading.date_reading = None
-            form.save()
+            reading_update = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Lectura",
+                object_id=reading_update.id,
+                description = (
+                    f"Nodifico la lectura del mes '{format_date_es(reading_update.date_reading)}', "
+                    f"a la acometida '{reading_update.connection.description}', del socio "
+                    f"'{reading_update.connection.responsible.first_name} {reading_update.connection.responsible.last_name}'."
+                )
+            )
+
             if request.headers.get('HX-Request'):
                 response = HttpResponse()
                 response["HX-Trigger"] = "readingUpdated"
@@ -703,6 +756,18 @@ def charge_collected(request, pk):
     reading.isPaid = True
 
     reading.save()
+
+    registrar_log(
+        user=request.user,
+        action="create",
+        model_name="Cobro",
+        object_id=reading.id,
+        description = (
+            f"Registró el cobro de la lectura del mes '{reading.date_reading.strftime('%B de %Y')}', "
+            f"a la acometida '{reading.connection.description}', del socio "
+            f"'{reading.connection.responsible.first_name} {reading.connection.responsible.last_name}'."
+        )
+    )
 
     if request.headers.get("HX-Request"):
         response = collection_list(request)
