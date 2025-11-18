@@ -14,6 +14,7 @@ from django.contrib import messages
 import json
 from django.http import JsonResponse
 from django.contrib.auth import logout
+from audit.utils import registrar_log
 
 
 def project_info_view(request):
@@ -27,6 +28,14 @@ def project_info_view(request):
             project = form.instance
             form = ProjectForm(instance=project)
             success = True
+
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Proyecto",
+                description="Modifico información del proyecto."
+            )
+
         # Si la petición es AJAX (fetch)
         # Retorna solo el template parcial con el indicador de éxito.
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -94,6 +103,15 @@ def community_create(request):
         form = CommunityForm(request.POST)
         if form.is_valid():
             community = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="create",
+                model_name="Comunidad",
+                object_id=community.id,
+                description=f"Creó la comunidad '{community.name}'."
+            )
+
             response = render(
                 request,
                 "partials/communities/community_row_table.html",
@@ -122,6 +140,15 @@ def community_edit(request, pk):
         form = CommunityForm(request.POST, instance=community)
         if form.is_valid():
             community = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Comunidad",
+                object_id=community.id,
+                description=f"Modifico la comunidad '{community.name}'."
+            )
+
             response = render(
                 request,
                 "partials/communities/community_row_table.html",
@@ -202,6 +229,15 @@ def directive_create(request):
         form = DirectiveForm(request.POST)
         if form.is_valid():
             directive = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="create",
+                model_name="Directiva",
+                object_id=directive.id,
+                description=f"Registro al directivo '{directive.partner.first_name} {directive.partner.last_name}', con el cargo de '{directive.role}'."
+            )
+
             response = render(
                 request,
                 "directive/partials/directive_create_success.html",
@@ -261,6 +297,14 @@ def directive_deactivate(request, pk):
         executive.isActive = False
         executive.end_date = timezone.localdate()
         executive.save(update_fields=['isActive', 'end_date'])
+
+        registrar_log(
+            user=request.user,
+            action="update",
+            model_name="Directiva",
+            object_id = executive.id,
+            description=f"Inactivo al directivo '{executive.partner.first_name} {executive.partner.last_name}', con el cargo de '{executive.role}'."
+        )
 
         # Renderiza SOLO la fila para reemplazarla
         return render(
@@ -336,6 +380,14 @@ def user_deactivate(request, pk):
     partner.is_staff = False
     partner.save()
 
+    registrar_log(
+        user=request.user,
+        action="update",
+        model_name="Usuario",
+        object_id=partner.id,
+        description=f"Desactivo al usuario '{partner.username}'."
+    )
+
     if request.headers.get("HX-Request"):
         response = users_list(request)
         response["HX-Trigger"] = "userDeactivated"
@@ -360,6 +412,15 @@ def user_edit(request, pk):
     if request.method == "POST":
         if form.is_valid():
             form.save()
+
+            estado = "Activo" if user.is_staff else "Inactivo"
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Usuario",
+                object_id=user.id,
+                description=f"Modifico al usuario '{user.username}', estado del usuario '{estado}'."
+            )
 
             if request.headers.get("HX-Request"):
                 response = users_list(request)
@@ -409,6 +470,14 @@ def user_reset_credentials(request, pk):
 
     user.save()
 
+    registrar_log(
+        user=request.user,
+        action="update",
+        model_name="Usuario",
+        object_id=user.id,
+        description=f"Restablecio las credenciales al usuario '{user.username}'."
+    )
+
     return JsonResponse({
         "success": True,
         "message": "Credenciales restablecidas correctamente."
@@ -422,11 +491,21 @@ def profile_view(request):
 @require_http_methods(["GET", "POST"])
 def user_edit_credentials(request, pk):
     user = get_object_or_404(Partner, pk=pk)
+    old_username = user.username
 
     if request.method == "POST":
         form = UserCredentialsForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
+
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Usuario",
+                object_id=user.id,
+                description=f"El usuario '{old_username}', modifico sus credenciales, su nuevo username es: '{user.username}'."
+            )
+
             logout(request)
             if request.headers.get("HX-Request"):  # petición HTMX
                 response = JsonResponse({"hx-trigger": "redirect"})
@@ -514,6 +593,22 @@ def partner_create_view(request):
         form = PartnerForm(request.POST, request.FILES)
         if form.is_valid():
             partner = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="create",
+                model_name="Socio",
+                object_id=partner.id,
+                description=f"Registro al socio '{partner.first_name} {partner.last_name}'."
+            )
+            registrar_log(
+                user=request.user,
+                action="create",
+                model_name="Usuario",
+                object_id=partner.id,
+                description=f"El sistema creo al usuario '{partner.username}', del socio '{partner.first_name} {partner.last_name}'."
+            )
+
             if request.headers.get('HX-Request'):
                 response = partners_list(request)
                 response["HX-Trigger"] = "partnerCreated"
@@ -556,6 +651,15 @@ def partner_edit(request, pk):
 
         if form.is_valid():
             form.save()
+
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Socio",
+                object_id=partner.id,
+                description=f"Modifico al socio '{partner.first_name} {partner.last_name}', con numero de DUI: '{partner.dui}'."
+            )
+
             if request.headers.get("HX-Request"):
                 response = partners_list(request)
                 response["HX-Trigger"] = "partnerEdited"
@@ -599,11 +703,30 @@ def partner_toggle_active(request, pk):
 
     partner.is_active = not partner.is_active
 
+    entro = False
     # Si se desactiva, quitar is_staff
     if not partner.is_active:
         partner.is_staff = False
+        entro = True
 
     partner.save()
+
+    estado = "Activo" if partner.is_active else "Inactivo"
+    registrar_log(
+        user=request.user,
+        action="update",
+        model_name="Socio",
+        object_id=partner.id,
+        description=f"Modifico el estado a '{estado}' al socio '{partner.first_name} {partner.last_name}'."
+    )
+    if entro:
+        registrar_log(
+            user=request.user,
+            action="update",
+            model_name="Usuario",
+            object_id=partner.id,
+            description=f"EL sistema desactivo al usuario '{partner.username}' del socio '{partner.first_name} {partner.last_name}'."
+        )
 
     if request.headers.get("HX-Request"):
         response = partners_list(request)
@@ -671,16 +794,34 @@ def connections_search(request):
 def connection_toggle_active(request, pk):
     connection = get_object_or_404(WaterConnection, pk=pk)
 
-    connection.is_active = not connection.is_active
+    if connection.responsible.is_active:
+        
+        connection.is_active = not connection.is_active
 
-    connection.save()
+        connection.save()
 
-    if request.headers.get("HX-Request"):
-        response = connections_list(request)
-        response["HX-Trigger"] = (
-            "connectionActivated" if connection.is_active else "connectionDeactivated"
+        estado = "Activo" if connection.is_active else "Inactivo"
+        registrar_log(
+            user=request.user,
+            action="update",
+            model_name="Acometida",
+            object_id=connection.id,
+            description=f"{estado} a la acometida '{connection.description}', del socio '{connection.responsible.first_name} {connection.responsible.last_name}'."
         )
-        return response
+
+        if request.headers.get("HX-Request"):
+            response = connections_list(request)
+            response["HX-Trigger"] = (
+                "connectionActivated" if connection.is_active else "connectionDeactivated"
+            )
+            return response
+    
+    else:
+
+        if request.headers.get("HX-Request"):
+            response = connections_list(request)
+            response["HX-Trigger"] = ("connectionErrorInactivePartner")
+            return response
 
     return redirect("connections_list")
 
@@ -698,7 +839,7 @@ def partner_search_view(request):
             | Q(last_name__icontains=q)
             | Q(dui__icontains=q)
         )
-        .filter(is_active=True)
+        .filter(is_active=True, is_superuser=False)
         .order_by("first_name", "last_name")[:10]
     )
 
@@ -730,6 +871,14 @@ def connection_create_view(request):
 
         if form.is_valid():
             connection = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="create",
+                model_name="Acometida",
+                object_id=connection.id,
+                description=f"Registro a la acometida '{connection.description}', del socio '{connection.responsible.first_name} {connection.responsible.last_name}'."
+            )
 
             # --- ÉXITO ---
             if request.headers.get("HX-Request"):
@@ -792,6 +941,14 @@ def connection_edit_view(request, pk):
 
         if form.is_valid():
             form.save()
+
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Acometida",
+                object_id=connection.id,
+                description=f"Modifico a la acometida '{connection.description}', del socio '{connection.responsible.first_name} {connection.responsible.last_name}'."
+            )
 
             # --- Si es HTMX: mostrar fragmento de éxito ---
             if request.headers.get("HX-Request"):

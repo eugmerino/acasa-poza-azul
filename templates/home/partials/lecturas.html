@@ -1,0 +1,29 @@
+<div class="mb-4">
+  <div class="card border-0 shadow-sm rounded-4 p-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0 fw-semibold text-primary">Lecturas realizadas de {{ current_month }}</h5>
+      <span class="fw-bold">{{ readings_done }} / {{ total_connections }}</span>
+    </div>
+
+    {% if total_connections > 0 %}
+      {% widthratio readings_done total_connections 100 as percent_readings %}
+    {% else %}
+      {% with 0 as percent_readings %}{% endwith %}
+    {% endif %}
+
+    <div class="progress" style="height: 20px; border-radius: 10px;">
+      <div
+        class="progress-bar bg-success"
+        role="progressbar"
+        style="width: {{ percent_readings }}%;"
+        aria-valuenow="{{ readings_done }}"
+        aria-valuemin="0"
+        aria-valuemax="{{ total_connections }}"
+      >
+        {{ percent_readings }}%
+      </div>
+    </div>
+
+    <div class="text-muted small mt-1 text-end">Avance total de lecturas</div>
+  </div>
+</div>

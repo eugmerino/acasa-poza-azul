@@ -1,0 +1,15 @@
+<div class="row mt-4 mb-2 text-center">
+    <div class="col-12">
+        <h1 class="h3">Bitácora del Sistema</h1>
+        <p class="text-muted">Registro interno de actividades del sistema</p>
+    </div>
+</div>
+
+<div class="table-container rounded-4 shadow p-4">
+
+    <div class="header-controls d-flex justify-content-end">
+        {% include "partials/search_table.html" with hx_url=logs_search_url hx_target="#logs-table-content" placeholder="Buscar en bitácora..." %}
+    </div>
+
+    {% include "logs/partials/logs_table.html" %}
+</div>
