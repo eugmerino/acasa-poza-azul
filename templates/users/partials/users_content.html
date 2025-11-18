@@ -1,6 +1,14 @@
 <div class="row mt-4 mb-2 text-center">
   <div class="col-12">
     <h1 class="h3">Gestión de usuarios del sistema</h1>
+
+     <a href="#"
+       class="btn btn-link btn-sm order-1 order-lg-0 me-2"
+       data-bs-toggle="modal"
+       data-bs-target="#infoUsuarios"
+       role="button">
+        <i class="fa-solid fa-circle-info"></i>
+    </a>
   </div>
 </div>
 
@@ -10,3 +18,36 @@
   </div>
   {% include "users/partials/users_table.html" %}
 </div>
+
+<!-- Modal de Ayuda para Usuarios -->
+<div class="modal fade" id="infoUsuarios" tabindex="-1" aria-labelledby="infoUsuariosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoUsuariosLabel">Información sobre Gestión de Usuarios</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> En esta sección puedes administrar las cuentas de usuario del sistema, permitiendo gestionar accesos y roles.</p>
+
+        <p><strong>Búsqueda:</strong> Usa el cuadro de búsqueda para localizar rápidamente usuarios por nombre, correo o rol.</p>
+
+        <p><strong>Visualización:</strong> La tabla muestra información general como nombre, correo, rol y estado del usuario.</p>
+
+        <p><strong>Edición:</strong> Puedes editar los datos de un usuario desde las acciones disponibles en la tabla. En esta sección no se crean usuarios; solo se gestionan.</p>
+
+        <p><strong>Desactivación:</strong> Puedes desactivar temporalmente un usuario sin eliminarlo, evitando su acceso al sistema.</p>
+
+        <p><strong>Consejo:</strong> Asegura que cada usuario tenga asignado el rol correcto para evitar accesos indebidos.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+

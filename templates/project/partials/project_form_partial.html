@@ -8,45 +8,82 @@
 
 <form id="project-form" class="row g-3" autocomplete="off" method="post" enctype="multipart/form-data">
   {% csrf_token %}
-  <!-- Sección: Perfil del proyecto -->
-  <h6 class="mt-4">Perfil del proyecto</h6>
+  <h6 class="mt-4 d-inline">Perfil del proyecto</h6>
   <hr class="mb-4 m-0" />
 
   <div class="row">
     <div class="col-md-6 mb-3">
       <div class="mb-3 mt-3">
-        {{ form.title.label_tag }}
+        <label class="form-label">
+          {{ form.title.label }}
+          <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+             tabindex="0"
+             data-bs-toggle="popover"
+             data-bs-trigger="hover focus"
+             data-bs-placement="right"
+             data-bs-content="Es el nombre oficial del proyecto. Se mostrará en reportes, encabezados y paneles.">
+          </i>
+        </label>
+
         {{ form.title }}
         <div class="invalid-feedback" id="title-error"></div>
       </div>
-      <div>{{ form.logo.label_tag }}
-        {{ form.logo }}</div>
-        <span class="small">Recomendación: Peso máximo 1 MB y imagen sin fondo.</span>
+      <label class="form-label">
+        {{ form.logo.label }}
+        <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+           tabindex="0"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Este logo se usa en reportes, recibos y papelería del sistema. Se recomienda PNG sin fondo.">
+        </i>
+      </label>
+
+      {{ form.logo }}
+      <span class="small">Recomendación: Peso máximo 1 MB y imagen sin fondo.</span>
     </div>
 
+    <!-- PREVIEW DEL LOGO -->
     <div class="col-md-6 d-flex justify-content-center align-items-center">
       <img id="logo-preview"
-        src="{% if form.instance.logo %}
-          {{ form.instance.logo.url }}
-        {% else %}
-          {% static 'img/not_found.jpg' %}
-        {% endif %}"
+        src="{% if form.instance.logo %}{{ form.instance.logo.url }}{% else %}{% static 'img/not_found.jpg' %}{% endif %}"
         alt="Logo del proyecto"
         class="img-fluid rounded shadow"
         style="max-width:180px;" />
     </div>
   </div>
 
-  <div class="mb-3">{{ form.description.label_tag }}
-    {{ form.description }}</div>
+  <div class="mb-3">
+    <label class="form-label">
+      {{ form.description.label }}
+      <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+         tabindex="0"
+         data-bs-toggle="popover"
+         data-bs-trigger="hover focus"
+         data-bs-placement="right"
+         data-bs-content="Descripción general del proyecto. Se muestra en áreas informativas y reportes.">
+      </i>
+    </label>
 
-  <!-- Sección: Variables administrativas -->
-  <h6 class="mt-4">Variables administrativas</h6>
+    {{ form.description }}
+  </div>
+
+  <h6 class="mt-4 d-inline">Variables administrativas</h6>
   <hr class="mb-4 m-0" />
 
   <div class="row">
     <div class="col-md-6 mb-3">
-      {{ form.connection_price.label_tag }}
+      <label class="form-label">
+        {{ form.connection_price.label }}
+        <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+           tabindex="0"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Costo de la instalación inicial del servicio para nuevos socios.">
+        </i>
+      </label>
+
       <div class="input-group">
         <span class="input-group-text">$</span>
         {{ form.connection_price }}
@@ -54,9 +91,20 @@
       </div>
     </div>
   </div>
+
   <div class="row">
     <div class="col-md-6 mb-3">
-      {{ form.absence_fine.label_tag }}
+      <label class="form-label">
+        {{ form.absence_fine.label }}
+        <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+           tabindex="0"
+           data-bs-toggle="popover"
+           data-bs-trigger="hover focus"
+           data-bs-placement="right"
+           data-bs-content="Monto que se cobra al socio por no asistir a una reunión obligatoria.">
+        </i>
+      </label>
+
       <div class="input-group">
         <span class="input-group-text">$</span>
         {{ form.absence_fine }}
@@ -65,7 +113,25 @@
     </div>
   </div>
 
+  <!-- BOTÓN GUARDAR -->
   <div class="col-12 mt-4">
-    <button id="btn-save" type="button" class="btn btn-success d-none"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button>
+    <button id="btn-save" type="button" class="btn btn-success d-none">
+      <i class="fa-solid fa-floppy-disk me-1"></i>Guardar
+    </button>
   </div>
 </form>
+
+
+<!-- ========================= -->
+<!-- POPOVER INIT -->
+<!-- ========================= -->
+<script>
+function initPopovers() {
+  document.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => {
+    new bootstrap.Popover(el, { customClass: 'popover-sm' });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", initPopovers);
+document.body.addEventListener("htmx:afterSettle", initPopovers);
+</script>

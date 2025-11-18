@@ -1,6 +1,19 @@
 <div class="row mt-4 mb-2 text-center">
   <div class="col-12">
-    <h1 class="h3">Gestión de reparaciones por daño a tuberias</h1>
+
+    <!-- Título + botón de ayuda -->
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <h1 class="h3 m-0">Gestión de reparaciones por daño a tuberías</h1>
+
+        <a href="#"
+           class="btn btn-link btn-sm me-2"
+           data-bs-toggle="modal"
+           data-bs-target="#infoReparacionesTuberias"
+           role="button">
+            <i class="fa-solid fa-circle-info"></i>
+        </a>
+    </div>
+
   </div>
 </div>
 
@@ -9,6 +22,29 @@
     {% include "partials/search_table.html" with hx_url=repair_search_url hx_target="#table-content" placeholder="Buscar Reparación..." %}
   </div>
   {% include "repair/partials/repair_table.html" %}
+</div>
+
+<div class="modal fade" id="infoReparacionesTuberias" tabindex="-1" aria-labelledby="infoReparacionesTuberiasLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoReparacionesTuberiasLabel">Información sobre Reparaciones de Tuberías</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Registrar reparación:</strong> Aquí puedes actualizar el avance y solución aplicada a un reporte de daño en la tubería.</p>
+        <p><strong>Relación con reportes:</strong> Las reparaciones están vinculadas a un reporte inicial de daño.</p>
+        <p><strong>Búsqueda:</strong> Puedes buscar por fecha, comunidad, titulo de reparación o estado.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script>

@@ -1,6 +1,20 @@
 <div class="row mt-4 mb-2 text-center">
   <div class="col-12">
-    <h1 class="h3">Gestión de socios</h1>
+
+    <!-- Encabezado + ayuda -->
+    <div class="d-flex justify-content-center align-items-center gap-2">
+      <h1 class="h3 mb-0">Gestión de socios</h1>
+
+      <!-- Botón de ayuda -->
+      <a href="#"
+         class="btn btn-link btn-sm me-2"
+         data-bs-toggle="modal"
+         data-bs-target="#infoSocios"
+         role="button">
+          <i class="fa-solid fa-circle-info"></i>
+      </a>
+    </div>
+
   </div>
 </div>
 
@@ -15,4 +29,29 @@
     {% include "partials/search_table.html" with hx_url=partners_search_url hx_target="#table-content" placeholder="Buscar Socio..." %}
   </div>
   {% include "partner/partials/partners_table.html" %}
+</div>
+
+<div class="modal fade" id="infoSocios" tabindex="-1" aria-labelledby="infoSociosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoSociosLabel">Información sobre Gestión de Socios</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> Administrar el registro de todos los socios que pertenecen a la comunidad.</p>
+        <p><strong>Agregar Socio:</strong> Usa el botón <em>“Agregar Nuevo Socio”</em> para registrar un nuevo usuario con su información personal y comunitaria.</p>
+        <p><strong>Edición:</strong> Los socios registrados se pueden editar sin recargar la página.</p>
+        <p><strong>Búsqueda:</strong> Encuentra socios fácilmente filtrando por nombre, comunidad u otros datos relevantes.</p>
+        <p><strong>Consejo:</strong> Mantén la información actualizada para facilitar los procesos de cobros, lecturas y reportes.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
 </div>

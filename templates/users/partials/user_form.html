@@ -8,16 +8,20 @@
 <div class="card mb-4">
   <div class="card-header card-header-custom">
     <h5 class="mb-0 d-inline">Información del usuario</h5>
-    <a href="#ayudaModal" class="btn btn-link btn-sm order-1 order-lg-0 me-2" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda">
+
+    <a href="#ayudaModal" class="btn btn-link btn-sm order-1 order-lg-0 me-2" 
+       data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda">
       <i class="fa-solid fa-circle-info"></i>
     </a>
   </div>
 
   <div class="card-body">
     <div class="row align-items-center p-3">
+
       <!-- Información actual -->
       <fieldset class="border rounded-3 p-3 mb-4">
         <legend class="w-auto px-2 mb-3">Información del registro</legend>
+
         <div class="row align-items-center">
           <div class="col-md-4 text-center mb-3 mb-md-0">
             <div class="rounded-circle overflow-hidden mx-auto shadow" style="width: 140px; height: 140px;">
@@ -35,14 +39,17 @@
               <strong>Nombre:</strong>
               <span class="text-muted">{{ user.first_name }} {{ user.last_name }}</span>
             </div>
+
             <div class="mb-2">
               <strong>Nombre de usuario:</strong>
               <span class="text-muted">{{ user.username }}</span>
             </div>
+
             <div class="mb-2">
               <strong>Correo electrónico:</strong>
               <span class="text-muted">{{ user.email|default:"No registrado" }}</span>
             </div>
+
             <div class="mb-2">
               <strong>Socio Activo:</strong>
               {% if user.is_active %}
@@ -55,9 +62,10 @@
         </div>
       </fieldset>
 
-      <!-- Formulario HTMX -->
+      <!-- FORMULARIO HTMX -->
       <fieldset class="border rounded-3 p-3 mb-4">
         <legend class="w-auto px-2">Editar datos del usuario</legend><hr>
+
         <form
           method="post"
           hx-post="{% url 'user_edit' user.id %}"
@@ -68,64 +76,107 @@
         >
           {% csrf_token %}
 
-            <div class="row mt-3">
-              <div class="col-md-8 mb-3">
-                <label for="{{ form.email.id_for_label }}" class="form-label">Correo electrónico: <span class="text-danger">*</span></label>
-                {{ form.email }}
-                {% for error in form.email.errors %}
-                  <div class="invalid-feedback d-block">{{ error }}</div>
-                {% endfor %}
-              </div>
+          <div class="row mt-3">
 
-              <div class="col-md-4 mb-3">
-                <label for="{{ form.groups.id_for_label }}" class="form-label">Rol: <span class="text-danger">*</span></label>
-                {{ form.groups }}
-                {% for error in form.groups.errors %}
-                  <div class="invalid-feedback d-block">{{ error }}</div>
-                {% endfor %}
-              </div>
+            <!-- CAMPO EMAIL -->
+            <div class="col-md-8 mb-3">
+              <label for="{{ form.email.id_for_label }}" class="form-label">
+                Correo electrónico:
+                <span class="text-danger">*</span>
+
+                <!-- 🟦 POPOVER -->
+                <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                   tabindex="0"
+                   data-bs-toggle="popover"
+                   data-bs-trigger="hover focus"
+                   data-bs-placement="right"
+                   data-bs-content="Debe ser un correo válido. Se utiliza para recuperar la contraseña y enviar notificaciones.">
+                </i>
+              </label>
+
+              {{ form.email }}
+              {% for error in form.email.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
             </div>
 
-            <div class="form-check form-switch mb-3">
-              {{ form.is_staff }}
-              <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">Activar</label>
-            </div>
+            <!-- CAMPO ROL -->
+            <div class="col-md-4 mb-3">
+              <label for="{{ form.groups.id_for_label }}" class="form-label">
+                Rol:
+                <span class="text-danger">*</span>
 
-            <div class="mb-3 text-muted mb-4">
-              <span class="text-danger">*</span><span class="small"> Campos obligatorios</span>
+                <!-- 🟦 POPOVER -->
+                <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                   tabindex="0"
+                   data-bs-toggle="popover"
+                   data-bs-trigger="hover focus"
+                   data-bs-placement="right"
+                   data-bs-content="Selecciona el rol que define los permisos del usuario dentro del sistema.">
+                </i>
+              </label>
+
+              {{ form.groups }}
+              {% for error in form.groups.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
             </div>
-            
-            
-            <div class="d-flex justify-content-end gap-2">
-              <div class="w-100 d-flex justify-content-between gap-2">
-                <button type="submit" class="btn btn-success">
-                  <i class="fa-solid fa-pen-to-square me-2"></i></i>Editar Usuario
-                </button>
-                <button type="button" class="btn btn-secondary" 
-                hx-get="{% url 'users_list' %}" 
-                hx-target="#main-container" 
+          </div>
+
+          <!-- SWITCH ACTIVAR -->
+          <div class="form-check form-switch mb-3">
+            {{ form.is_staff }}
+
+            <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+              Activar
+
+              <!-- 🟦 POPOVER -->
+              <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                 tabindex="0"
+                 data-bs-toggle="popover"
+                 data-bs-trigger="hover focus"
+                 data-bs-placement="right"
+                 data-bs-content="Activa o desactiva el acceso del usuario al sistema. No se puede activar si el socio está inactivo.">
+              </i>
+            </label>
+          </div>
+
+          <div class="mb-3 text-muted mb-4">
+            <span class="text-danger">*</span><span class="small"> Campos obligatorios</span>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <div class="w-100 d-flex justify-content-between gap-2">
+              <button type="submit" class="btn btn-success">
+                <i class="fa-solid fa-pen-to-square me-2"></i>Editar Usuario
+              </button>
+
+              <button type="button" class="btn btn-secondary"
+                hx-get="{% url 'users_list' %}"
+                hx-target="#main-container"
                 hx-swap="innerHTML">
-                <i class="fas fa-times me-2"></i>Cancelar</button
-                >
-              </div>
+                <i class="fas fa-times me-2"></i>Cancelar
+              </button>
             </div>
-          </form>
-        </fieldset>
+          </div>
+
+        </form>
+      </fieldset>
     </div>
   </div>
 </div>
 
+<!-- VALIDACIÓN SOCIO INACTIVO -->
 <script>
 document.body.addEventListener("htmx:configRequest", function(event) {
     const form = event.target;
     if (!form.matches("form[hx-post]")) return;
 
     const isStaffCheckbox = form.querySelector("input[name='is_staff']");
-    // Pasamos como string para JS
     const isActive = "{{ user.is_active|yesno:'true,false' }}" === "true";
 
     if (isStaffCheckbox.checked && !isActive) {
-        event.preventDefault(); // detiene HTMX
+        event.preventDefault();
         Swal.fire({
             icon: "warning",
             title: "Socio inactivo",
@@ -135,4 +186,15 @@ document.body.addEventListener("htmx:configRequest", function(event) {
 });
 </script>
 
+<!-- POPOVERS (como en tu ejemplo) -->
+<script>
+function initPopovers() {
+    const popoverList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverList.forEach(function (el) {
+        new bootstrap.Popover(el, { customClass: 'popover-sm' });
+    });
+}
 
+document.addEventListener("DOMContentLoaded", initPopovers);
+document.body.addEventListener("htmx:afterSettle", initPopovers);
+</script>
