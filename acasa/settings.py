@@ -30,15 +30,17 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "acasa.com",
     "www.acasa.com",
-    "*.railway.app",
-    "*"
+    "acasa-poza-azul-production.up.railway.app",
+    "localhost",
+    "127.0.0.1",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://acasa.com",
     "https://www.acasa.com",
-    "https://acasa-poza-azul-production.up.railway.app/",
+    "https://acasa-poza-azul-production.up.railway.app",
 ]
+
 
 
 # Renmplazamos el modelo de usuario por Partner
