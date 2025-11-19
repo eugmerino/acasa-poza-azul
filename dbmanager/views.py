@@ -120,34 +120,58 @@ def download_backup(request, filename):
 # ======================================================
 @csrf_exempt
 def restore_backup(request, filename):
+    """
+    Restaura un backup SQL sobre la base de datos actual de forma destructiva.
+    - Borra la base de datos
+    - La recrea
+    - Restaura todo desde el backup
+    """
     path = settings.BACKUP_DIR / filename
     if not path.exists():
         messages.error(request, "El backup no existe.")
         return redirect("backup_list")
 
     db = get_db_settings()
-
-    command = [
-        "psql",
-        "-h", db["HOST"],
-        "-p", str(db["PORT"]),
-        "-U", db["USER"],
-        "-d", db["NAME"]
-    ]
-
     env = os.environ.copy()
     env["PGPASSWORD"] = db["PASSWORD"]
 
     try:
-        with open(path, "r") as f:
-            subprocess.run(command, env=env, stdin=f, check=True)
+        # 1️⃣ Borrar la base de datos
+        subprocess.run([
+            "dropdb",
+            "-h", db["HOST"],
+            "-p", str(db["PORT"]),
+            "-U", db["USER"],
+            db["NAME"]
+        ], env=env, check=True)
 
-        messages.success(request, f"Base restaurada desde: {filename}")
+        # 2️⃣ Crear la base de datos nuevamente
+        subprocess.run([
+            "createdb",
+            "-h", db["HOST"],
+            "-p", str(db["PORT"]),
+            "-U", db["USER"],
+            db["NAME"]
+        ], env=env, check=True)
 
-    except Exception:
-        messages.error(request, "Error al restaurar el backup.")
+        # 3️⃣ Restaurar el backup
+        subprocess.run([
+            "psql",
+            "-h", db["HOST"],
+            "-p", str(db["PORT"]),
+            "-U", db["USER"],
+            "-d", db["NAME"],
+            "-f", str(path)
+        ], env=env, check=True)
 
+        messages.success(request, f"Base de datos restaurada correctamente desde: {filename}")
+
+    except subprocess.CalledProcessError as e:
+        messages.error(request, f"Error al restaurar el backup: {e}")
+
+    # Si la petición viene de HTMX, devolvemos la tabla de backups
     if request.headers.get("HX-Request") == "true":
+        from .views import backups_list
         return backups_list(request)
 
     return redirect("backup_list")
