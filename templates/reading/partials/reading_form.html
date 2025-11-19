@@ -24,6 +24,13 @@
                 <div class="mb-3">
                 <label for="{{ form.receipt_number.id_for_label }}" class="form-label">
                     {{ form.receipt_number.label }}: <span class="text-danger">*</span>
+                    <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                        tabindex="0"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover focus"
+                        data-bs-placement="right"
+                        data-bs-content="Numero del recibo fisico de la lectura.">
+                    </i>
                 </label>
                 {{ form.receipt_number }}
                 {% if form.receipt_number.errors %}
@@ -36,6 +43,13 @@
                     <label class="form-label">
                         Fecha de lectura:
                     </label>
+                    <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                        tabindex="0"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover focus"
+                        data-bs-placement="right"
+                        data-bs-content="Fecha de registro de la lectura (automáticamente hoy).">
+                    </i>
                     <input type="date" class="form-control" value="{{ today|date:'Y-m-d' }}" disabled>
                 </div>
             </div>
@@ -46,6 +60,13 @@
             <label class="form-label">
                 A acometida:
             </label>
+            <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                tabindex="0"
+                data-bs-toggle="popover"
+                data-bs-trigger="hover focus"
+                data-bs-placement="right"
+                data-bs-content="Acometida a la que se le realiza la lectura.">
+            </i>
             <input type="text" class="form-control" value="{{ connection.description }}" disabled>
         </div>
 
@@ -54,6 +75,13 @@
             <label class="form-label">
                 Del socio:
             </label>
+            <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                tabindex="0"
+                data-bs-toggle="popover"
+                data-bs-trigger="hover focus"
+                data-bs-placement="right"
+                data-bs-content="Socio responsable de la acometida.">
+            </i>
             <input type="text" class="form-control" value="{{ connection.responsible.first_name }} {{ connection.responsible.last_name }}" disabled>
         </div>
 
@@ -64,6 +92,13 @@
                     <label class="form-label">
                         Lectura anterior:
                     </label>
+                    <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                        tabindex="0"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover focus"
+                        data-bs-placement="right"
+                        data-bs-content="Ultima lectura registrada.">
+                    </i>
                     <input type="number" id="lectura-anterior" class="form-control" value="{{ pre_reading }}" disabled>
                 </div>
             </div>
@@ -72,6 +107,13 @@
                 <label for="{{ form.meter_reading.id_for_label }}" class="form-label">
                     {{ form.meter_reading.label }}: <span class="text-danger">*</span>
                 </label>
+                <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                    tabindex="0"
+                    data-bs-toggle="popover"
+                    data-bs-trigger="hover focus"
+                    data-bs-placement="right"
+                    data-bs-content="Lectura en metros cúbicos del consumo de la acometida.">
+                </i>
                 {{ form.meter_reading }}
                 {% if form.meter_reading.errors %}
                     <div class="text-danger small mt-1">{{ form.meter_reading.errors|first }}</div>
@@ -87,6 +129,13 @@
                     <label class="form-label">
                         Mora:
                     </label>
+                    <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                        tabindex="0"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover focus"
+                        data-bs-placement="right"
+                        data-bs-content="Mora por no pagar los recibos anteriores (solo el total a pagar anterior sin cargos extras).">
+                    </i>
                     <div class="input-group">
                         <span class="input-group-text">$</span>
                         <input type="number" id="mora" class="form-control" value="{{ total_to_pay }}" disabled>
@@ -98,6 +147,13 @@
                     <label class="form-label">
                         Multa:
                     </label>
+                    <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                        tabindex="0"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover focus"
+                        data-bs-placement="right"
+                        data-bs-content="Multa por inasistencia a reunión obligatorio en el mes.">
+                    </i>
                     <div class="input-group">
                         <span class="input-group-text">$</span>
                         <input type="number" id="multa" class="form-control" value="{{ penalty_fee }}" disabled>
@@ -263,4 +319,21 @@ function confirmReading(event) {
         }
     });
 }
+</script>
+
+<script>
+   // Inicialización de popovers (compatible con HTMX)
+  function initPopovers() {
+      const popoverList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+      popoverList.forEach(function (el) {
+          // Evitamos inicializar dos veces el mismo elemento
+          if (!el._bsPopover) {
+              const p = new bootstrap.Popover(el, { customClass: 'popover-sm' });
+              el._bsPopover = p;
+          }
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", initPopovers);
+  document.body.addEventListener("htmx:afterSettle", initPopovers);
 </script>

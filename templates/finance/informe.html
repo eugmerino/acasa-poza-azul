@@ -8,10 +8,17 @@
 {% block content %}
   
 <div class="row mt-4 mb-2 text-center">
-    <div class="col-12">
+    <div class="col-12 d-flex justify-content-center align-items-center gap-2">
         <h1 class="h3">Informe Mensual</h1>
-        <p class="text-muted">Genera el informe detallado de ingresos y egresos para un mes específico.</p>
+        <a href="#"
+          class="btn btn-link btn-sm me-2 p-0"
+          data-bs-toggle="modal"
+          data-bs-target="#infoInformeMensual"
+          role="button">
+          <i class="fa-solid fa-circle-info"></i>
+        </a>
     </div>
+    <p class="text-muted">Genera el informe detallado de ingresos y egresos para un mes específico.</p>
 </div>
 
 <div class="table-container rounded-4 shadow p-4">
@@ -47,6 +54,34 @@
 
     </div>
 
+</div>
+
+<!-- Modal de Ayuda para Informe Mensual -->
+<div class="modal fade" id="infoInformeMensual" tabindex="-1" aria-labelledby="infoInformeMensualLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoInformeMensualLabel">Información sobre Informe Mensual</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> Esta sección permite generar reportes financieros mensuales detallados con información completa de ingresos, egresos.</p>
+
+        <p><strong>Selección de mes:</strong> Utiliza el selector de mes para elegir el período específico del cual deseas generar el informe. Por defecto se muestra el mes actual.</p>
+
+        <p><strong>Exportación PDF:</strong> Al hacer clic en "Exportar PDF".</p>
+
+        <p><strong>Nota:</strong> El informe se abre en una nueva pestaña para que puedas revisarlo antes de guardar o imprimir.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 {% endblock %}

@@ -11,8 +11,15 @@
 
 {% block content %}
     <div class="row mt-4 mb-2 text-center">
-        <div class="col-12">
-        <h1 class="h3">Gestión de Tarifas</h1>
+        <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+            <h1 class="h3">Gestión de Tarifas</h1>
+            <a href="#"
+              class="btn btn-link btn-sm me-2 p-0"
+              data-bs-toggle="modal"
+              data-bs-target="#infoTarifas"
+              role="button">
+              <i class="fa-solid fa-circle-info"></i>
+            </a>
         </div>
     </div>
 
@@ -27,6 +34,40 @@
             {% include "partials/search_table.html" with hx_url=fee_search_url hx_target="#fee-list" placeholder="Buscar tarifas..." %}
         </div>
         {% include "partials/fee/fee_table.html" %}
+    </div>
+
+    <!-- Modal de Ayuda para Tarifas -->
+    <div class="modal fade" id="infoTarifas" tabindex="-1" aria-labelledby="infoTarifasLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          
+          <div class="modal-header">
+            <h5 class="modal-title" id="infoTarifasLabel">Información sobre Gestión de Tarifas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+
+          <div class="modal-body">
+            <p><strong>Objetivo:</strong> En esta sección puedes administrar las tarifas del sistema, creando, editando y activando diferentes configuraciones de precios.</p>
+
+            <p><strong>Crear Tarifas:</strong> Usa el botón "Agregar Nueva Tarifa" para definir nuevas configuraciones con montos, fechas de vigencia y descripciones.</p>
+
+            <p><strong>Búsqueda:</strong> Utiliza el campo de búsqueda para encontrar tarifas específicas por nombre, monto o descripción.</p>
+
+            <p><strong>Activación de Tarifas:</strong> Solo una tarifa puede estar activa a la vez. Al activar una nueva tarifa, la anterior se desactiva automáticamente.</p>
+
+            <p><strong>Información mostrada:</strong> La tabla incluye nombre, monto, estado (activa/inactiva), fecha de creación y acciones disponibles.</p>
+
+            <p><strong>Importante:</strong> La tarifa activa es la que se aplica actualmente en el sistema para cálculos y facturación.</p>
+
+            <p><strong>Consejo:</strong> Planifica los cambios de tarifa con anticipación y comunica a los usuarios sobre nuevas tarifas antes de activarlas.</p>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+
+        </div>
+      </div>
     </div>
 {% endblock %}
 {% block extra_js %}

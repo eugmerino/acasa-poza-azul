@@ -1,8 +1,15 @@
 <div class="row mt-4 mb-2 text-center">
-    <div class="col-12">
+    <div class="col-12 d-flex justify-content-center align-items-center gap-2">
         <h1 class="h3">Bitácora del Sistema</h1>
-        <p class="text-muted">Registro interno de actividades del sistema</p>
+        <a href="#"
+          class="btn btn-link btn-sm me-2 p-0"
+          data-bs-toggle="modal"
+          data-bs-target="#infoBitacora"
+          role="button">
+          <i class="fa-solid fa-circle-info"></i>
+        </a>
     </div>
+    <p class="text-muted">Registro interno de actividades del sistema</p>
 </div>
 
 <div class="table-container rounded-4 shadow p-4">
@@ -61,6 +68,43 @@
     </div>
 
     {% include "logs/partials/logs_table.html" %}
+</div>
+
+<!-- Modal de Ayuda para Bitácora -->
+<div class="modal fade" id="infoBitacora" tabindex="-1" aria-labelledby="infoBitacoraLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoBitacoraLabel">Información sobre la Bitácora del Sistema</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> Esta sección muestra el registro completo de actividades realizadas en el sistema, permitiendo auditoría y seguimiento de acciones.</p>
+
+        <p><strong>Filtros disponibles:</strong></p>
+        <ul>
+          <li><strong>Acción:</strong> Filtra por tipo de actividad (creación, actualización, eliminación, etc.)</li>
+          <li><strong>Rango de fechas:</strong> Especifica un período específico para revisar</li>
+          <li><strong>Búsqueda:</strong> Encuentra registros específicos por usuario, descripción o detalles</li>
+        </ul>
+
+        <p><strong>Información registrada:</strong> Cada entrada incluye usuario, acción realizada, fecha/hora exacta, dirección IP y detalles específicos.</p>
+
+        <p><strong>Uso de filtros:</strong> Puedes combinar múltiples filtros para afinar tu búsqueda. Usa "Limpiar Filtros" para restablecer la vista completa.</p>
+
+        <p><strong>Importancia:</strong> La bitácora es fundamental para seguridad, resolución de problemas y cumplimiento de políticas internas.</p>
+
+        <p><strong>Consejo:</strong> Revisa regularmente la bitácora para detectar actividades inusuales o errores en el sistema.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <!-- Script para limpiar filtros -->

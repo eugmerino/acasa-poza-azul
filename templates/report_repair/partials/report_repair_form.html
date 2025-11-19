@@ -39,6 +39,13 @@
         <label for="{{ form.community.id_for_label }}" class="form-label">
           {{ form.community.label }}: <span class="text-danger">*</span>
         </label>
+        <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+            tabindex="0"
+            data-bs-toggle="popover"
+            data-bs-trigger="hover focus"
+            data-bs-placement="right"
+            data-bs-content="Comunidad donde se localiza el reporte por daño.">
+        </i>
         <select name="{{ form.community.name }}"
                 id="{{ form.community.id_for_label }}"
                 class="form-select{% if form.community.errors %} is-invalid{% endif %}"
@@ -62,6 +69,13 @@
         <label for="{{ form.report_title.id_for_label }}" class="form-label">
           {{ form.report_title.label }}: <span class="text-danger">*</span>
         </label>
+        <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+            tabindex="0"
+            data-bs-toggle="popover"
+            data-bs-trigger="hover focus"
+            data-bs-placement="right"
+            data-bs-content="Título breve y específico del reporte.">
+        </i>
         <input type="text"
                name="{{ form.report_title.name }}"
                id="{{ form.report_title.id_for_label }}"
@@ -81,6 +95,13 @@
         <label for="{{ form.report_description.id_for_label }}" class="form-label">
           {{ form.report_description.label }}: <span class="text-danger">*</span>
         </label>
+        <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+            tabindex="0"
+            data-bs-toggle="popover"
+            data-bs-trigger="hover focus"
+            data-bs-placement="right"
+            data-bs-content="Descripción detallada del daño.">
+        </i>
         <textarea name="{{ form.report_description.name }}"
                   id="{{ form.report_description.id_for_label }}"
                   rows="4"
@@ -97,6 +118,13 @@
       <!-- Foto del reporte -->
       <div class="mb-5">
         <label class="form-label">{{ form.report_photo.label }}: <span class="text-danger">*</span></label>
+        <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+            tabindex="0"
+            data-bs-toggle="popover"
+            data-bs-trigger="hover focus"
+            data-bs-placement="right"
+            data-bs-content="Foto del daño (obligatoria).">
+        </i>
         <div class="text-center mb-5">
           <img id="report-photo-preview"
                src="{% if form.instance.report_photo %}{{ form.instance.report_photo.url }}{% else %}{% static 'img/image-not-found.png' %}{% endif %}"
@@ -224,3 +252,19 @@
 
 </script>
 
+<script>
+    // Inicialización de popovers (compatible con HTMX)
+  function initPopovers() {
+      const popoverList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+      popoverList.forEach(function (el) {
+          // Evitamos inicializar dos veces el mismo elemento
+          if (!el._bsPopover) {
+              const p = new bootstrap.Popover(el, { customClass: 'popover-sm' });
+              el._bsPopover = p;
+          }
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", initPopovers);
+  document.body.addEventListener("htmx:afterSettle", initPopovers);
+</script>

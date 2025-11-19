@@ -83,6 +83,13 @@
           <label class="form-label">
             Pago a:
           </label>
+          <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+              tabindex="0"
+              data-bs-toggle="popover"
+              data-bs-trigger="hover focus"
+              data-bs-placement="right"
+              data-bs-content="Socio fontanero al que se le va apagar por realizar la reparación.">
+          </i>
           <input type="text"
             value="{{ report.plumber }}"
             class="form-control"
@@ -95,6 +102,13 @@
             <label for="{{ form.payment_date.id_for_label }}" class="form-label">
               {{ form.payment_date.label }}: {% if not report.payment_date %} (hoy){% endif %}
             </label>
+            <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                tabindex="0"
+                data-bs-toggle="popover"
+                data-bs-trigger="hover focus"
+                data-bs-placement="right"
+                data-bs-content="Fecha del pago (automáticamente hoy).">
+            </i>
             <input type="text"
               {% if report.payment_date %}
                 value="{{ report.payment_date }}"
@@ -110,6 +124,13 @@
             <label for="{{ form.payment_amount.id_for_label }}" class="form-label">
               {{ form.payment_amount.label }}: <span class="text-danger">*</span>
             </label>
+            <i class="fa-solid fa-circle-info fa-xs text-primary ms-1 info-help"
+                tabindex="0"
+                data-bs-toggle="popover"
+                data-bs-trigger="hover focus"
+                data-bs-placement="right"
+                data-bs-content="Monto a pagar al socio que realizo la reparación.">
+            </i>
 
             <div class="input-group">
               <span class="input-group-text bg-light">$</span>
@@ -187,4 +208,20 @@
   }
 </script>
 
+<script>
+    // Inicialización de popovers (compatible con HTMX)
+  function initPopovers() {
+      const popoverList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+      popoverList.forEach(function (el) {
+          // Evitamos inicializar dos veces el mismo elemento
+          if (!el._bsPopover) {
+              const p = new bootstrap.Popover(el, { customClass: 'popover-sm' });
+              el._bsPopover = p;
+          }
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", initPopovers);
+  document.body.addEventListener("htmx:afterSettle", initPopovers);
+</script>
 
