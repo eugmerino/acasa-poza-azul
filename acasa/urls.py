@@ -19,6 +19,7 @@ urlpatterns = [
     path("finanzas/", include("finance.urls")),
     path("reparaciones/", include("repair.urls")),
     path("bitacora/", include("audit.urls")),
+    path("dbmanager/", include("dbmanager.urls")),
 ]
 
 if settings.DEBUG:

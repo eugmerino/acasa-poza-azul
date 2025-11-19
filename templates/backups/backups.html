@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Backups | {{ project.title|default:"ACASA Poza Azul" }}
+{% endblock %}
+
+{% block content %}
+  {% include "backups/partials/backups_content.html" %}
+{% endblock %}

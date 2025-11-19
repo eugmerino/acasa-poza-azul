@@ -16,8 +16,8 @@
         {% for user in page_obj %}
             {% include "users/partials/users_row_table.html" %}
         {% empty %}
-            <tr>
-                <td colspan="4">No hay resultados</td>
+            <tr class="text-center">
+                <td colspan="5">No hay resultados</td>
             </tr>
         {% endfor %}
         </tbody>

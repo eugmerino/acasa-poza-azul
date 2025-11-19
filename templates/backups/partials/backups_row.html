@@ -1,0 +1,35 @@
+<tr>
+    <td>{{ bk.name }}</td>
+    <td>{{ bk.size|filesizeformat }}</td>
+    <td>{{ bk.created|date:"d/m/Y H:i" }}</td>
+
+    <td class="text-end">
+        <a href="{{ bk.url }}" class="btn btn-outline-primary btn-sm">
+            Descargar
+        </a>
+
+        <button class="btn btn-warning btn-sm"
+                onclick="confirmRestore('{{ bk.name }}')">
+            Restaurar
+        </button>
+    </td>
+</tr>
+<script>
+function confirmRestore(filename) {
+    Swal.fire({
+        title: "¿Restaurar backup?",
+        text: "Esta acción reemplazará la base de datos actual.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, restaurar",
+        cancelButtonText: "Cancelar"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            htmx.ajax('POST', `/dbmanager/restore/${filename}/`, {
+                target: "#backups-table-content",
+                swap: "outerHTML"
+            });
+        }
+    });
+}
+</script>
