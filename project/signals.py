@@ -5,8 +5,13 @@ from .models import Project
 @receiver(post_migrate)
 def create_default_project(sender, **kwargs):
     """
-    Crea un proyecto por defecto si no existe ninguno.
+    Crea un proyecto por defecto solo cuando la app 'project'
+    termina sus migraciones. Así no se ejecuta para todas las apps.
     """
+    # Evita ejecutar esto para TODAS las apps
+    if sender.name != 'project':  # <-- CLAVE
+        return
+
     if not Project.objects.exists():
         Project.objects.create(
             title="ACASA Poza Azul",
