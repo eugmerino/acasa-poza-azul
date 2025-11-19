@@ -69,7 +69,7 @@ def backups_list(request):
 def generate_backup(request):
     db = get_db_settings()
     timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"backup_{timestamp}.dump"
+    filename = f"backup_{timestamp}.sql"
     backup_path = settings.BACKUP_DIR / filename
 
     command = [
@@ -77,8 +77,9 @@ def generate_backup(request):
         "-h", db["HOST"],
         "-p", str(db["PORT"]),
         "-U", db["USER"],
-        "-F", "c",         # custom format
-        "-f", str(backup_path),
+        "-F", "p",  # plain SQL
+        "-O",       # omite ownership de objetos (útil para evitar errores al restaurar)
+        "-x",       # omite privilegios
         db["NAME"]
     ]
 
@@ -86,8 +87,9 @@ def generate_backup(request):
     env["PGPASSWORD"] = db["PASSWORD"]
 
     try:
-        subprocess.run(command, env=env, check=True)
-        messages.success(request, "Backup generado exitosamente (formato custom).")
+        with open(backup_path, "w") as f:
+            subprocess.run(command, env=env, stdout=f, check=True)
+        messages.success(request, "Backup generado exitosamente (plain SQL completo).")
     except subprocess.CalledProcessError as e:
         messages.error(request, f"Error al generar backup: {e}")
 
@@ -118,26 +120,39 @@ def restore_backup(request, filename):
         return redirect("backup_list")
 
     db = get_db_settings()
-    command = [
-        "pg_restore",
+
+    # Comando para dropear y crear la base
+    drop_create_cmd = [
+        "psql",
         "-h", db["HOST"],
         "-p", str(db["PORT"]),
         "-U", db["USER"],
-        "-d", db["NAME"],
-        "--data-only",        # solo datos
-        "--disable-triggers", # evita errores por FK
-        str(backup_path)
+        "-d", "postgres",  # conectamos a postgres para poder dropear la base
+        "-c", f'DROP DATABASE IF EXISTS "{db["NAME"]}"; CREATE DATABASE "{db["NAME"]}";'
+    ]
+
+    restore_cmd = [
+        "psql",
+        "-h", db["HOST"],
+        "-p", str(db["PORT"]),
+        "-U", db["USER"],
+        "-d", db["NAME"]
     ]
 
     env = os.environ.copy()
     env["PGPASSWORD"] = db["PASSWORD"]
 
     try:
-        subprocess.run(command, env=env, check=True)
-        messages.success(request, f"Base restaurada desde: {filename} (solo datos)")
+        # 1️⃣ Dropear y crear base
+        subprocess.run(drop_create_cmd, env=env, check=True)
+
+        # 2️⃣ Restaurar backup
+        with open(backup_path, "r") as f:
+            subprocess.run(restore_cmd, env=env, stdin=f, check=True)
+
+        messages.success(request, f"Base reemplazada y restaurada desde: {filename}")
+
     except subprocess.CalledProcessError as e:
         messages.error(request, f"Error al restaurar backup: {e}")
-
-    return redirect("backup_list")
 
     return redirect("backup_list")
