@@ -4,7 +4,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
-from django.http import FileResponse, JsonResponse, HttpResponse
+from django.http import FileResponse
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -63,7 +63,7 @@ def backups_list(request):
 
 
 # ======================================================
-# GENERAR BACKUP
+# GENERAR BACKUP (agregando --clean para restauraciones seguras)
 # ======================================================
 @csrf_exempt
 def generate_backup(request):
@@ -78,24 +78,20 @@ def generate_backup(request):
         "-p", str(db["PORT"]),
         "-U", db["USER"],
         "-F", "p",
+        "--clean",       # <-- elimina objetos existentes antes de recrearlos
+        "--if-exists",   # <-- solo elimina si existen
         db["NAME"],
     ]
 
     env = os.environ.copy()
     env["PGPASSWORD"] = db["PASSWORD"]
 
-    success = False
-
     try:
         with open(backup_path, "w") as f:
             subprocess.run(command, env=env, stdout=f, check=True)
-            success = True
-
         messages.success(request, "Backup generado exitosamente.")
-
     except Exception:
         messages.error(request, "Error al generar el backup.")
-        
 
     if request.headers.get("HX-Request") == "true":
         return backups_list(request)
@@ -111,20 +107,18 @@ def download_backup(request, filename):
     if not path.exists():
         messages.error(request, "El archivo no existe.")
         return redirect("backup_list")
-
     return FileResponse(open(path, "rb"), as_attachment=True, filename=filename)
 
 
 # ======================================================
-# RESTAURAR BACKUP
+# RESTAURAR BACKUP usando psql con --clean
 # ======================================================
 @csrf_exempt
 def restore_backup(request, filename):
     """
-    Restaura un backup SQL sobre la base de datos actual de forma destructiva.
-    - Borra la base de datos
-    - La recrea
-    - Restaura todo desde el backup
+    Restaura un backup SQL sobre la base de datos actual de forma segura:
+    - Usa los DROP existentes en el backup (--clean) para eliminar conflictos
+    - Evita dropdb para no afectar conexiones activas
     """
     path = settings.BACKUP_DIR / filename
     if not path.exists():
@@ -136,25 +130,6 @@ def restore_backup(request, filename):
     env["PGPASSWORD"] = db["PASSWORD"]
 
     try:
-        # 1️⃣ Borrar la base de datos
-        subprocess.run([
-            "dropdb",
-            "-h", db["HOST"],
-            "-p", str(db["PORT"]),
-            "-U", db["USER"],
-            db["NAME"]
-        ], env=env, check=True)
-
-        # 2️⃣ Crear la base de datos nuevamente
-        subprocess.run([
-            "createdb",
-            "-h", db["HOST"],
-            "-p", str(db["PORT"]),
-            "-U", db["USER"],
-            db["NAME"]
-        ], env=env, check=True)
-
-        # 3️⃣ Restaurar el backup
         subprocess.run([
             "psql",
             "-h", db["HOST"],
@@ -163,9 +138,7 @@ def restore_backup(request, filename):
             "-d", db["NAME"],
             "-f", str(path)
         ], env=env, check=True)
-
         messages.success(request, f"Base de datos restaurada correctamente desde: {filename}")
-
     except subprocess.CalledProcessError as e:
         messages.error(request, f"Error al restaurar el backup: {e}")
 
