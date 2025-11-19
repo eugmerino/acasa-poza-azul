@@ -4,6 +4,7 @@ from .views import (
     generate_backup,
     restore_backup,
     download_backup,
+    delete_backup,
 )
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path("generate/", generate_backup, name="generate_backup"),
     path("restore/<str:filename>/", restore_backup, name="restore_backup"),
     path("download/<str:filename>/", download_backup, name="download_backup"),
+    path("delete/<str:filename>/", delete_backup, name="delete_backup"),
 ]
