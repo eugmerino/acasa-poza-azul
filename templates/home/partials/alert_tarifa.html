@@ -19,8 +19,7 @@
           {% with group_name=request.user.groups.first.name %}
             {% if group_name == "ADMINISTRADOR" or group_name == "SECRETARIO" %}
             <div class="mt-2 d-flex flex-wrap gap-2">
-              <a href="{% url 'fee_create_form' %}" class="btn btn-warning btn-sm fw-semibold">Crear tarifa</a>
-              <a href="{% url 'fee_list' %}" class="btn btn-outline-secondary btn-sm">Ver tarifas</a>
+              <a href="{% url 'fee_list' %}" class="btn btn-warning btn-sm fw-semibold">Ver tarifas</a>
             </div>
             {% endif %}
           {% endwith %}
