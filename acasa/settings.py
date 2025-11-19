@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +29,19 @@ SECRET_KEY = 'django-insecure--rht5chuamw5&07ae-5i1$gp_74gekhjqw!k1tlv6lq0!aocv#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "acasa.com",
+    "www.acasa.com",
+    "*.railway.app",
+    "*"
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://acasa.com",
+    "https://www.acasa.com",
+    "https://*.railway.app",
+]
+
 
 # Renmplazamos el modelo de usuario por Partner
 AUTH_USER_MODEL = 'project.Partner'
@@ -90,11 +105,11 @@ WSGI_APPLICATION = 'acasa.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'postgres'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': 'LvIzzsPKZgoSMMOfjtpvDRmTDmwUFxjx',
+        'HOST': 'postgres.railway.internal',
+        'PORT': '5432',
     }
 }
 
