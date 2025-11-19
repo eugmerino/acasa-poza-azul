@@ -37,7 +37,7 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://acasa.com",
     "https://www.acasa.com",
-    "https://*.railway.app",
+    "https://acasa-poza-azul-production.up.railway.app/",
 ]
 
 
