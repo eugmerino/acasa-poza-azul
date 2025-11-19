@@ -8,9 +8,6 @@ from django.http import FileResponse, JsonResponse, HttpResponse
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.db import connection
-import psycopg2
-from psycopg2 import sql
 
 
 def get_db_settings():
@@ -31,12 +28,9 @@ def backups_list(request):
     backup_dir = settings.BACKUP_DIR
     files = []
 
-    # Crear directorio si no existe
-    backup_dir.mkdir(parents=True, exist_ok=True)
-    
     for fname in os.listdir(backup_dir):
         path = Path(backup_dir) / fname
-        if path.is_file() and fname.endswith('.sql'):
+        if path.is_file():
             files.append({
                 "name": fname,
                 "size": path.stat().st_size,
@@ -69,7 +63,7 @@ def backups_list(request):
 
 
 # ======================================================
-# GENERAR BACKUP (MEJORADO)
+# GENERAR BACKUP
 # ======================================================
 @csrf_exempt
 def generate_backup(request):
@@ -78,18 +72,14 @@ def generate_backup(request):
     filename = f"backup_{timestamp}.sql"
     backup_path = settings.BACKUP_DIR / filename
 
-    # Crear directorio si no existe
-    backup_path.parent.mkdir(parents=True, exist_ok=True)
-
     command = [
         "pg_dump",
         "-h", db["HOST"],
         "-p", str(db["PORT"]),
         "-U", db["USER"],
-        "-F", "p",
-        "-O",  # No owner
-        "-x",  # No privileges
-        "--clean",  # Incluye DROP statements
+        "-F", "p",  # plain SQL
+        "-O",       # omite ownership de objetos (útil para evitar errores al restaurar)
+        "-x",       # omite privilegios
         db["NAME"]
     ]
 
@@ -98,33 +88,13 @@ def generate_backup(request):
 
     try:
         with open(backup_path, "w") as f:
-            result = subprocess.run(
-                command, 
-                env=env, 
-                stdout=f, 
-                stderr=subprocess.PIPE,
-                text=True,
-                check=True
-            )
-        
-        # Verificar que el backup se creó correctamente
-        if backup_path.stat().st_size > 0:
-            messages.success(request, f"Backup generado: {filename}")
-        else:
-            messages.error(request, "El backup se generó vacío")
-            backup_path.unlink(missing_ok=True)
-            
+            subprocess.run(command, env=env, stdout=f, check=True)
+        messages.success(request, "Backup generado exitosamente (plain SQL completo).")
     except subprocess.CalledProcessError as e:
-        error_msg = e.stderr if e.stderr else str(e)
-        messages.error(request, f"Error al generar backup: {error_msg}")
-        backup_path.unlink(missing_ok=True)
-    except Exception as e:
-        messages.error(request, f"Error inesperado: {str(e)}")
-        backup_path.unlink(missing_ok=True)
+        messages.error(request, f"Error al generar backup: {e}")
 
-    if request.headers.get("HX-Request") == "true":
-        return backups_list(request)
     return redirect("backup_list")
+
 
 
 # ======================================================
@@ -140,7 +110,7 @@ def download_backup(request, filename):
 
 
 # ======================================================
-# RESTAURAR BACKUP (SOLUCIÓN CORREGIDA)
+# RESTAURAR BACKUP
 # ======================================================
 @csrf_exempt
 def restore_backup(request, filename):
@@ -150,108 +120,39 @@ def restore_backup(request, filename):
         return redirect("backup_list")
 
     db = get_db_settings()
-    
-    # Verificar que el archivo no esté vacío
-    if backup_path.stat().st_size == 0:
-        messages.error(request, "El archivo de backup está vacío.")
-        return redirect("backup_list")
 
-    env = os.environ.copy()
-    env["PGPASSWORD"] = db["PASSWORD"]
-
-    try:
-        # 1️⃣ Cerrar todas las conexiones a la base de datos actual
-        close_connections_command = [
-            "psql",
-            "-h", db["HOST"],
-            "-p", str(db["PORT"]),
-            "-U", db["USER"],
-            "-d", "postgres",
-            "-c", f"""
-            SELECT pg_terminate_backend(pg_stat_activity.pid)
-            FROM pg_stat_activity
-            WHERE pg_stat_activity.datname = '{db['NAME']}'
-            AND pid <> pg_backend_pid();
-            """
-        ]
-        
-        subprocess.run(close_connections_command, env=env, capture_output=True)
-
-        # 2️⃣ Dropear y recrear la base de datos
-        recreate_db_command = [
-            "psql", 
-            "-h", db["HOST"],
-            "-p", str(db["PORT"]),
-            "-U", db["USER"],
-            "-d", "postgres",
-            "-c", f"DROP DATABASE IF EXISTS \"{db['NAME']}\"; CREATE DATABASE \"{db['NAME']}\";"
-        ]
-        
-        result = subprocess.run(
-            recreate_db_command, 
-            env=env, 
-            capture_output=True, 
-            text=True
-        )
-        
-        if result.returncode != 0:
-            messages.error(request, f"Error al recrear BD: {result.stderr}")
-            return redirect("backup_list")
-
-        # 3️⃣ Restaurar el backup
-        restore_command = [
-            "psql",
-            "-h", db["HOST"],
-            "-p", str(db["PORT"]),
-            "-U", db["USER"],
-            "-d", db["NAME"],
-            "-f", str(backup_path)  # Usar -f en lugar de stdin
-        ]
-
-        result = subprocess.run(
-            restore_command, 
-            env=env, 
-            capture_output=True, 
-            text=True,
-            timeout=300  # 5 minutos timeout
-        )
-
-        if result.returncode == 0:
-            messages.success(request, f"Base de datos restaurada exitosamente desde: {filename}")
-        else:
-            error_detail = result.stderr[:500] if result.stderr else "Error desconocido"
-            messages.error(request, f"Error en restauración: {error_detail}")
-
-    except subprocess.TimeoutExpired:
-        messages.error(request, "La restauración tomó demasiado tiempo (timeout)")
-    except Exception as e:
-        messages.error(request, f"Error inesperado: {str(e)}")
-
-    if request.headers.get("HX-Request") == "true":
-        return backups_list(request)
-    return redirect("backup_list")
-
-
-# ======================================================
-# VERIFICAR CONEXIÓN (PARA DEBUGGING)
-# ======================================================
-def test_db_connection():
-    """Función para verificar que podemos conectarnos a PostgreSQL"""
-    db = get_db_settings()
-    command = [
+    # Comando para dropear y crear la base
+    drop_create_cmd = [
         "psql",
         "-h", db["HOST"],
         "-p", str(db["PORT"]),
         "-U", db["USER"],
-        "-d", "postgres",
-        "-c", "SELECT version();"
+        "-d", "postgres",  # conectamos a postgres para poder dropear la base
+        "-c", f'DROP DATABASE IF EXISTS "{db["NAME"]}"; CREATE DATABASE "{db["NAME"]}";'
     ]
-    
+
+    restore_cmd = [
+        "psql",
+        "-h", db["HOST"],
+        "-p", str(db["PORT"]),
+        "-U", db["USER"],
+        "-d", db["NAME"]
+    ]
+
     env = os.environ.copy()
     env["PGPASSWORD"] = db["PASSWORD"]
-    
+
     try:
-        result = subprocess.run(command, env=env, capture_output=True, text=True)
-        return result.returncode == 0
-    except:
-        return False
+        # 1️⃣ Dropear y crear base
+        subprocess.run(drop_create_cmd, env=env, check=True)
+
+        # 2️⃣ Restaurar backup
+        with open(backup_path, "r") as f:
+            subprocess.run(restore_cmd, env=env, stdin=f, check=True)
+
+        messages.success(request, f"Base reemplazada y restaurada desde: {filename}")
+
+    except subprocess.CalledProcessError as e:
+        messages.error(request, f"Error al restaurar backup: {e}")
+
+    return redirect("backup_list")
