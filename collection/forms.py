@@ -36,7 +36,7 @@ class ReadingForm(forms.ModelForm):
 
         labels = {
             'receipt_number': 'N° de recibo',
-            'meter_reading': 'Lectura del medidor (m³)',
+            'meter_reading': 'Lectura actual (m³)',
         }
 
     def clean_receipt_number(self):

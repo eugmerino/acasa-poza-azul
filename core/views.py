@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from .forms import UserLoginForm
-from project.models import Project, WaterConnection, Community
+from project.models import Project, WaterConnection, Community, Partner
 from repair.models import Repair
 from collection.models import Reading, Fee
 from django.contrib.auth.tokens import default_token_generator
@@ -49,8 +49,8 @@ def inicio(request):
     }
 
      
-    # Socios activos del proyecto (Que tengan acometidas activas)
-    active_partner_count = WaterConnection.objects.values('responsible').distinct().count()
+    # Socios activos del proyecto
+    active_partner_count = Partner.objects.filter(is_active=True, is_superuser=False).count()
 
     # Acometidas activas del proyecto
     active_connections_count = WaterConnection.objects.filter(is_active=True).count()
