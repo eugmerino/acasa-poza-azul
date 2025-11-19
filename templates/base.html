@@ -146,7 +146,7 @@
         </div>
         {% endif %}
 
-        {% if request.user.groups.first and request.user.groups.first.name in "LECTOR, COLECTOR" %}
+        {% if request.user.groups.first and request.user.groups.first.name in "LECTOR, COLECTOR, FONTANERO" %}
         {% else %}
         <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuProyecto">
           <span><i class="fa-solid fa-building me-3"></i>Proyecto</span>
@@ -172,6 +172,8 @@
         </div>
 
         {% endif %}
+        {% if request.user.groups.first and request.user.groups.first.name in "FONTANERO" %}
+        {% else %}
         <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuCobros">
           <span><i class="fa-solid fa-faucet-drip me-3"></i></i>Servicio</span>
           <i class="fas fa-chevron-down small"></i>
@@ -181,20 +183,27 @@
           <a href="{% url 'collection_list' %}"><i class="fa-solid fa-coins me-2"></i></i>Cobros</a>
           <a href="{% url 'collection_list_historical' %}"><i class="fa-solid fa-coins me-2"></i></i>Historico de cobros</a>
         </div>
+        {% endif %}
 
         {% if request.user.groups.first and request.user.groups.first.name in "LECTOR, COLECTOR" %}
+        {% else %}
+        {% if request.user.groups.first and request.user.groups.first.name in "FONTANERO" %}
         {% else %}
         <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuFinanzas">
           <span><i class="fa-solid fa-money-bill-trend-up me-3"></i>Finanzas</span>
           <i class="fas fa-chevron-down small"></i>
         </a>
         <div class="collapse ps-4" id="submenuFinanzas">
+          {% if request.user.groups.first and request.user.groups.first.name in "ADMINISTRADOR, CONTADOR" %}
           <a href="{% url 'transaction_list' %}"><i class="fa-solid fa-money-bill-transfer me-2"></i>Transacciones</a>
           <a href="{% url 'transaction_list_all' %}"><i class="fa-solid fa-money-check-dollar me-2"></i></i>Lista de Transacciones</a>
           <a href="{% url 'payment_list' %}"><i class="fa-solid fa-coins me-2"></i>Pagos por acometida</a>
           <a href="{% url 'payment_list_view' %}"><i class="fa-solid fa-money-check-dollar me-2"></i>Lista de Pagos</a>
           <a href="{% url 'repair_pay_list' %}"><i class="fa-solid fa-money-bill-wave me-2"></i>Pago de reparaciones</a>
+          {% endif %}
+          <a href="{% url 'informe_view' %}"><i class="fa-solid fa-money-bill-wave me-2"></i>Informe mensual</a>
         </div>
+        {% endif %}
 
         <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuReparaciones">
           <span><i class="fa-solid fa-screwdriver-wrench me-3"></i>Reparaciones</span>

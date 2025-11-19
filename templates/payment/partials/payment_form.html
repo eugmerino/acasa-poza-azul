@@ -2,6 +2,9 @@
       class="modal-content needs-validation"
       action="{% url 'payment_create' %}"
       method="post"
+      hx-post="{% url 'payment_create' %}"
+      hx-target="#payment-form"
+      hx-swap="outerHTML"
       novalidate>
   {% csrf_token %}
 
@@ -23,7 +26,7 @@
            data-bs-toggle="popover"
            data-bs-trigger="hover focus"
            data-bs-placement="right"
-           data-bs-content="Busca la acometida por descripción o nombre del propietario. Debes seleccionar una de la lista.">
+           data-bs-content="Busca la acometida por descripción o nombre del propietario. Debes seleccionar una de la lista; solo se registra un pago por acometida en el mes.">
           <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
         </a>
       </label>
@@ -91,7 +94,7 @@
            data-bs-toggle="popover"
            data-bs-trigger="hover focus"
            data-bs-placement="right"
-           data-bs-content="Monto que se abona a la acometida en este mes. Verifica que sea correcto.">
+           data-bs-content="Monto que se abona a la acometida en este mes. Verifica que sea correcto y no supere el saldo pendiente, ya que el pago no se podrá editar ni eliminar.">
           <i class="fa-solid fa-circle-info fa-xs text-primary"></i>
         </a>
       </label>
@@ -113,45 +116,67 @@
   </div>
 </form>
 
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
 <script>
-(function () {
-  document.addEventListener('submit', function(e){
-    if(e.target && e.target.id === 'payment-form'){
-      e.preventDefault();
-      e.stopPropagation();
+  /*****
+   * Selección de acometida (se mantiene)
+   *****/
+  (function bindConnectionPicker(){
+    if (window.__connPickerBound) return;
+    window.__connPickerBound = true;
+
+    document.addEventListener('click', function(e){
+      const item = e.target.closest('[data-connection-id]');
+      if (!item) return;
+
+      const id    = item.getAttribute('data-connection-id');
+      const label = item.getAttribute('data-connection-label') || item.textContent.trim();
+
+      const hidden   = document.querySelector('select[name="connection"]');
+      const input    = document.getElementById('connection_search_input');
+      const clearBtn = document.getElementById('connection-clear-btn');
+      const box      = document.getElementById('connection-results');
+
+      if (hidden) hidden.value = id || '';
+      if (input) {
+        input.value = label || '';
+        input.disabled = true;
+        input.classList.remove('is-invalid');
+      }
+      if (clearBtn) clearBtn.hidden = false;
+      if (box) box.innerHTML = '';
+    });
+
+    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.forEach(function (popoverTriggerEl) {
+      new bootstrap.Popover(popoverTriggerEl, {
+        customClass: 'popover-sm' 
+      });
+    });
+  })();
+
+  /*****
+   * Escuchar el evento de éxito para cerrar el modal
+   *****/
+  document.body.addEventListener("paymentCreated", function (evt) {
+    // Cerrar el modal
+    const modalEl = document.getElementById('payment-modal');
+    if (modalEl) {
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
     }
-  }, true);
-
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'Enter' && e.target.closest('#payment-form')){
-      e.preventDefault();
-    }
-  }, true);
-
-  document.addEventListener('click', function (e) {
-    const item = e.target.closest('[data-connection-id]');
-    if (!item) return;
-
-    const id    = item.getAttribute('data-connection-id');
-    const label = item.getAttribute('data-connection-label') || item.textContent.trim();
-
-    const hidden   = document.querySelector('select[name="connection"]');
-    const input    = document.getElementById('connection_search_input');
-    const clearBtn = document.getElementById('connection-clear-btn');
-    const box      = document.getElementById('connection-results');
-
-    if (hidden) hidden.value = id || '';
-    if (input) {
-      input.value = label || '';
-      input.disabled = true;
-      input.classList.remove('is-invalid');
-    }
-    if (clearBtn) clearBtn.hidden = false;
-    if (box) box.innerHTML = '';
   });
 
+  /*****
+   * Manejo automático de errores - HTMX se encarga
+   * El formulario se reemplaza con la versión que tiene errores
+   *****/
+</script>
+
+<script>
+  // Rellena el input visible con la etiqueta de la opción seleccionada del <select hidden>
   function hydrateConnectionUI(root) {
-    const container = root && root.querySelector ? root : document;
+    const container = root?.querySelector ? root : document;
     const hidden   = container.querySelector('select[name="connection"]');
     const input    = container.querySelector('#connection_search_input');
     const clearBtn = container.querySelector('#connection-clear-btn');
@@ -161,7 +186,7 @@
     const val = hidden.value;
     if (val) {
       let label = '';
-      const opt = hidden.querySelector('option[value="' + CSS.escape(val) + '"]');
+      const opt = hidden.querySelector(`option[value="${CSS.escape(val)}"]`);
       if (opt) label = opt.textContent.trim();
 
       if (!label && input.value) label = input.value.trim();
@@ -175,10 +200,12 @@
     }
   }
 
+  // 1) Al cargar el DOM
   document.addEventListener('DOMContentLoaded', function () {
     hydrateConnectionUI(document);
   });
 
+  // 2) Cada vez que HTMX reemplace el formulario
   document.body.addEventListener('htmx:afterSwap', function (evt) {
     const swapped = evt.target;
     if (!swapped) return;
@@ -187,119 +214,10 @@
     }
   });
 
+  // 3) Opcional: si cambia el <select>
   document.addEventListener('change', function (e) {
     if (e.target && e.target.matches('select[name="connection"]')) {
       hydrateConnectionUI(document);
     }
   });
-
-  document.addEventListener('click', function(e){
-    const btn = e.target.closest('#btn-save-payment');
-    if(!btn) return;
-
-    const form = document.getElementById('payment-form');
-    if(!form) return;
-
-    const connectionHidden = form.querySelector('select[name="connection"]');
-    const connectionInput  = form.querySelector('#connection_search_input');
-    const amountInput      = form.querySelector('input[name="amount"]');
-
-    connectionInput?.classList.remove('is-invalid');
-    amountInput?.classList.remove('is-invalid');
-
-    let valido = true;
-    if(!connectionHidden || !connectionHidden.value){
-      connectionInput?.classList.add('is-invalid');
-      valido = false;
-    }
-    if(!amountInput || !amountInput.value){
-      amountInput?.classList.add('is-invalid');
-      valido = false;
-    }
-
-    if(!valido){
-      (connectionInput?.classList.contains('is-invalid') ? connectionInput : amountInput)?.focus();
-      return;
-    }
-
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'El pago será guardado y no se podrá editar ni eliminar.',
-      icon: 'question',
-      showCancelButton: true,
-      customClass: {
-        confirmButton: 'btn btn-success',
-        cancelButton: 'btn btn-secondary'
-      },
-      confirmButtonText: 'Sí, guardar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if(!result.isConfirmed) return;
-
-      btn.disabled = true;
-
-      const url  = form.action;
-      const csrf = form.querySelector('[name=csrfmiddlewaretoken]')?.value;
-      const fd   = new FormData(form);
-
-      const headers = {
-        'X-CSRFToken': csrf,
-        'HX-Request': 'true'
-      };
-
-      fetch(url, {
-        method: 'POST',
-        headers: headers,
-        body: fd
-      })
-      .then(r => r.text())
-      .then(html => {
-        const tmp   = document.createElement('div');
-        tmp.innerHTML = html;
-
-        const newRow = tmp.querySelector('tr');
-        const tbody  = document.querySelector('#table-body');
-
-        if (newRow && tbody) {
-          tbody.appendChild(newRow);
-        } else {
-          const node = tmp.firstElementChild || tmp;
-          form.replaceWith(node);
-        }
-
-        try {
-          const modalEl = document.getElementById('payment-modal') || document.querySelector('.modal.show');
-          if (modalEl && window.bootstrap && bootstrap.Modal) {
-            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
-          }
-        } catch (_) {}
-
-        // === ÉXITO + RECARGA AL CERRAR ALERT ===
-        Swal.fire({
-          title: 'Guardado',
-          text: 'El pago se guardó correctamente.',
-          icon: 'success',
-          showConfirmButton: false,
-          timer: 2000
-        }).then(() => {
-          location.reload();
-        });
-      })
-      .catch(() => {
-        Swal.fire('Error', 'No se pudo guardar. Intenta nuevamente.', 'error');
-      })
-      .finally(() => {
-        btn.disabled = false;
-      });
-    });
-  });
-
-  const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-  popoverTriggerList.forEach(function (popoverTriggerEl) {
-    new bootstrap.Popover(popoverTriggerEl, {
-      customClass: 'popover-sm'
-    });
-  });
-
-})();
 </script>

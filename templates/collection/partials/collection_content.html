@@ -1,7 +1,23 @@
 <div class="row mt-4 mb-2 text-center">
-  <div class="col-12">
-    <h1 class="h3">Gestión de Cobros</h1>
-    <h2 class="h4">{{ today|date:"F \\d\\e Y" }}</h2>
+  <div class="col-12 d-flex flex-column align-items-center">
+
+    <!-- Encabezado principal con botón de ayuda -->
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <h1 class="h3 mb-0">Gestión de Cobros</h1>
+
+        <!-- Botón de ayuda -->
+        <a href="#"
+           class="btn btn-link btn-sm order-1 order-lg-0 me-2"
+           data-bs-toggle="modal"
+           data-bs-target="#infoCobros"
+           role="button">
+            <i class="fa-solid fa-circle-info"></i>
+        </a>
+    </div>
+
+    <!-- Fecha debajo del título -->
+    <h2 class="h4 mt-1">{{ today|date:"F \\d\\e Y" }}</h2>
+
   </div>
 </div>
 
@@ -18,39 +34,52 @@
           {{ count_collections }}
           <span class="text-muted fs-5">/ {{ count_readings }}</span>
         </div>
-
       </div>
 
-      
       <div class="card border-0 shadow-sm rounded-4 py-2 px-3 d-inline-block bg-success-subtle">
         <span class="text-success fw-semibold">Dinero colectado</span>
         <div class="display-6 fw-bold text-dark">
           ${{ total_collected|floatformat:2 }}
         </div>
       </div>
-    
-
     </div>
  
-    <a
-    href="{% url 'collection_pdf' %}"
-    class="btn btn-primary"
-    target="_blank"
->
-    <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
-</a>
-
-
+    <a href="{% url 'collection_pdf' %}" class="btn btn-primary" target="_blank">
+        <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
+    </a>
 
     {% include "partials/search_table.html" with hx_url=collection_search_url hx_target="#table-content" placeholder="Buscar Cobro..." %}
   </div>
-  {% include "collection/partials/collection_table.html" %}
 
+  {% include "collection/partials/collection_table.html" %}
 </div>
 
+<!-- Modal de Ayuda -->
+<div class="modal fade" id="infoCobros" tabindex="-1" aria-labelledby="infoCobrosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoCobrosLabel">Información sobre Cobros</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Gestión de Cobros:</strong> Aquí puedes visualizar y administrar los cobros realizados en base a las lecturas registradas.</p>
+        <p><strong>Cobros realizados:</strong> Muestra cuántos usuarios ya han pagado en comparación con el total de lecturas del mes.</p>
+        <p><strong>Dinero colectado:</strong> Refleja el monto total recaudado hasta el momento.</p>
+        <p><strong>Exportar a PDF:</strong> Genera un informe detallado del estado actual de los cobros.</p>
+        <p><strong>Búsqueda:</strong> Puedes buscar por nombre del socio, comunidad, monto o cualquier dato asociado.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
-    document.body.addEventListener("chargedReading", () => {
+document.body.addEventListener("chargedReading", () => {
     Swal.fire({
       title: "¡Cobro realizado!",
       text: "El cobro se realizó correctamente.",
@@ -58,5 +87,5 @@
       timer: 2000,
       showConfirmButton: false
     });
-  });
+});
 </script>

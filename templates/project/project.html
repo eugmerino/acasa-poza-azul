@@ -10,16 +10,65 @@
 {% endblock %}
 
 {% block content %}
-  <div class="row mt-4 mb-2 text-center">
-    <div class="col-12">
-      <h1 class="h3">Información del proyecto</h1>
-    </div>
+  <div class="row mt-4 mb-2">
+  <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+    
+    <h1 class="h3 m-0">Información del proyecto</h1>
+
+    <a href="#"
+       class="btn btn-link btn-sm me-2 p-0"
+       data-bs-toggle="modal"
+       data-bs-target="#infoProyecto"
+       role="button"
+       style="font-size: 1.2rem;">
+        <i class="fa-solid fa-circle-info"></i>
+    </a>
+
+  </div>
+</div>
+
   </div>
   <div class="table-container rounded-4 shadow p-4 mb-5">
     <div id="project-content">
       {% include 'project/partials/project_form_partial.html' %}
     </div>
   </div>
+
+  <!-- Modal de Ayuda para Información del Proyecto -->
+<div class="modal fade" id="infoProyecto" tabindex="-1" aria-labelledby="infoProyectoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoProyectoLabel">Información sobre el Proyecto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <p><strong>Objetivo:</strong> Esta sección muestra la información principal del proyecto, permitiendo visualizar y actualizar datos esenciales como nombre, logo, descripción y valores administrativos.</p>
+
+        <p><strong>Perfil del proyecto:</strong> Incluye el título, logo y descripción pública. Estos datos representan la identidad del proyecto dentro del sistema.</p>
+
+        <p><strong>Variables administrativas:</strong></p>
+        <ul>
+          <li><strong>Precio de conexión:</strong> Monto que se cobra al registrar un nuevo socio.</li>
+          <li><strong>Multa por ausencia:</strong> Valor aplicado cuando un socio no asiste a reuniones.</li>
+        </ul>
+
+        <p><strong>Edición:</strong> Para modificar la información, haz clic en <strong>“Editar”</strong>.  
+        Podrás cancelar los cambios con <strong>“Cancelar”</strong> o guardarlos con <strong>“Guardar”</strong>.</p>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}

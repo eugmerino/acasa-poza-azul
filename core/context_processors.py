@@ -3,6 +3,9 @@ def notificaciones_context(request):
     from collection.models import Fee
     from django.urls import reverse
     from project.models import Project
+    from meeting.models import Meeting 
+    from django.utils.timezone import localtime
+    from datetime import datetime, time
 
     project = Project.objects.first()
 
@@ -13,15 +16,34 @@ def notificaciones_context(request):
             "num_notificaciones": 0
         }
 
-    # EJEMPLO: notificación sin modelo  
-    # Puedes agregar más reglas si quieres.
     notificaciones = []
 
-    # 1. Mostrar alerta si NO hay una tarifa activa
-    if not Fee.objects.filter(isActive=True).exists():
+    # 1. Mostrar alerta si NO hay una tarifa activa - SOLO para ADMINISTRADOR o SECRETARIO
+    user_group = request.user.groups.first()
+    if user_group and user_group.name in ["ADMINISTRADOR", "SECRETARIO"]:
+        if not Fee.objects.filter(isActive=True).exists():
+            notificaciones.append({
+                "mensaje": "No se ha seleccionado ninguna tarifa activa.",
+                "link": reverse("fee_list")
+            })
+
+    # 2. Verificar si hay una reunión en proceso
+    now = localtime()
+    current_time = now.time()
+    current_date = now.date()
+
+    # Buscar reuniones activas que estén en curso
+    meeting_in_progress = Meeting.objects.filter(
+        isActive=True,
+        date=current_date,
+        start_time__lte=current_time,
+        end_time__gte=current_time
+    ).first()
+
+    if meeting_in_progress:
         notificaciones.append({
-            "mensaje": "No se ah seleccionado ninguna tarifa activa.",
-            "link": reverse("fee_list")
+            "mensaje": f"Reunión en proceso: {meeting_in_progress.title}",
+            "link": reverse("attendance")
         })
 
     # número total

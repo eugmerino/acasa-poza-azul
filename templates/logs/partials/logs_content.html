@@ -1,15 +1,129 @@
 <div class="row mt-4 mb-2 text-center">
-    <div class="col-12">
+    <div class="col-12 d-flex justify-content-center align-items-center gap-2">
         <h1 class="h3">Bitácora del Sistema</h1>
-        <p class="text-muted">Registro interno de actividades del sistema</p>
+        <a href="#"
+          class="btn btn-link btn-sm me-2 p-0"
+          data-bs-toggle="modal"
+          data-bs-target="#infoBitacora"
+          role="button">
+          <i class="fa-solid fa-circle-info"></i>
+        </a>
     </div>
+    <p class="text-muted">Registro interno de actividades del sistema</p>
 </div>
 
 <div class="table-container rounded-4 shadow p-4">
+    <div class="header-controls d-flex justify-content-between align-items-center mb-3">
+        <!-- Filtros -->
+        <div class="filters-container d-flex gap-3 align-items-center">
+            <!-- Filtro por acción -->
+            <div class="filter-group">
+                <label for="action-filter" class="form-label small text-muted mb-1">Acción</label>
+                <select id="action-filter" name="action" class="form-select form-select-sm" 
+                        hx-get="{{ logs_search_url }}" 
+                        hx-target="#logs-table-content"
+                        hx-include="[name='start_date'], [name='end_date'], [name='q']">
+                    <option value="">Todas las acciones</option>
+                    <option value="create">Creación</option>
+                    <option value="update">Actualización</option>
+                    <option value="delete">Eliminación</option>
+                    <option value="login">Inicio de sesión</option>
+                    <option value="logout">Cierre de sesión</option>
+                    <option value="other">Otro</option>
+                </select>
+            </div>
+            
+            <!-- Filtro por fecha desde -->
+            <div class="filter-group">
+                <label for="start-date" class="form-label small text-muted mb-1">Desde</label>
+                <input type="date" id="start-date" name="start_date" class="form-control form-control-sm"
+                       hx-get="{{ logs_search_url }}"
+                       hx-target="#logs-table-content"
+                       hx-trigger="change"
+                       hx-include="[name='end_date'], [name='action'], [name='q']">
+            </div>
+            
+            <!-- Filtro por fecha hasta -->
+            <div class="filter-group">
+                <label for="end-date" class="form-label small text-muted mb-1">Hasta</label>
+                <input type="date" id="end-date" name="end_date" class="form-control form-control-sm"
+                       hx-get="{{ logs_search_url }}"
+                       hx-target="#logs-table-content"
+                       hx-trigger="change"
+                       hx-include="[name='start_date'], [name='action'], [name='q']">
+            </div>
 
-    <div class="header-controls d-flex justify-content-end">
+            <!-- Botón Limpiar Filtros -->
+            <div class="filter-group align-self-end">
+                <button type="button" class="btn btn-secondary btn-sm" 
+                        id="clear-filters"
+                        style="margin-top: 24px;">
+                    Limpiar Filtros
+                </button>
+            </div>
+        </div>
+        
+        <!-- Buscador -->
         {% include "partials/search_table.html" with hx_url=logs_search_url hx_target="#logs-table-content" placeholder="Buscar en bitácora..." %}
     </div>
 
     {% include "logs/partials/logs_table.html" %}
 </div>
+
+<!-- Modal de Ayuda para Bitácora -->
+<div class="modal fade" id="infoBitacora" tabindex="-1" aria-labelledby="infoBitacoraLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoBitacoraLabel">Información sobre la Bitácora del Sistema</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> Esta sección muestra el registro completo de actividades realizadas en el sistema, permitiendo auditoría y seguimiento de acciones.</p>
+
+        <p><strong>Filtros disponibles:</strong></p>
+        <ul>
+          <li><strong>Acción:</strong> Filtra por tipo de actividad (creación, actualización, eliminación, etc.)</li>
+          <li><strong>Rango de fechas:</strong> Especifica un período específico para revisar</li>
+          <li><strong>Búsqueda:</strong> Encuentra registros específicos por usuario, descripción o detalles</li>
+        </ul>
+
+        <p><strong>Información registrada:</strong> Cada entrada incluye usuario, acción realizada, fecha/hora exacta, dirección IP y detalles específicos.</p>
+
+        <p><strong>Uso de filtros:</strong> Puedes combinar múltiples filtros para afinar tu búsqueda. Usa "Limpiar Filtros" para restablecer la vista completa.</p>
+
+        <p><strong>Importancia:</strong> La bitácora es fundamental para seguridad, resolución de problemas y cumplimiento de políticas internas.</p>
+
+        <p><strong>Consejo:</strong> Revisa regularmente la bitácora para detectar actividades inusuales o errores en el sistema.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Script para limpiar filtros -->
+<script>
+document.getElementById('clear-filters').addEventListener('click', function() {
+    // Limpiar selects
+    document.getElementById('action-filter').value = '';
+    
+    // Limpiar inputs de fecha
+    document.getElementById('start-date').value = '';
+    document.getElementById('end-date').value = '';
+    
+    // Limpiar campo de búsqueda si existe
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    // Disparar evento HTMX para recargar sin filtros
+    htmx.trigger('#action-filter', 'change');
+});
+</script>

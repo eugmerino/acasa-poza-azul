@@ -1,6 +1,45 @@
 <div class="row mt-4 mb-2 text-center">
-  <div class="col-12">
-    <h1 class="h3">Gestión de pagos por reparaciones de daño a tuberias</h1>
+  <div class="col-12 d-flex justify-content-center align-items-center gap-2">
+    <h1 class="h3">Gestión de pagos por reparaciones de daño a tuberías</h1>
+    <a href="#"
+      class="btn btn-link btn-sm me-2 p-0"
+      data-bs-toggle="modal"
+      data-bs-target="#infoReparaciones"
+      role="button">
+      <i class="fa-solid fa-circle-info"></i>
+    </a>
+  </div>
+</div>
+
+<!-- Modal de Ayuda para Pagos por Reparaciones -->
+<div class="modal fade" id="infoReparaciones" tabindex="-1" aria-labelledby="infoReparacionesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoReparacionesLabel">Información sobre Pagos por Reparaciones</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Objetivo:</strong> Esta sección permite gestionar los pagos asociados a reparaciones de daños en tuberías, facilitando el seguimiento de transacciones relacionadas con mantenimiento.</p>
+
+        <p><strong>Búsqueda:</strong> Utiliza el campo de búsqueda para encontrar pagos específicos por título, comunidad, monto.</p>
+
+        <p><strong>Información registrada:</strong> Cada pago incluye detalles como referencia, monto, fecha, estado del pago y relación con la reparación específica.</p>
+
+        <p><strong>Estados de pago:</strong> Los pagos pueden mostrar diferentes estados (pagado, pendiente).</p>
+
+        <p><strong>Seguimiento:</strong> Esta herramienta permite mantener un historial completo de todos los pagos asociados a reparaciones para fines de contabilidad y auditoría.</p>
+
+        <p><strong>Consejo:</strong> Verifica regularmente el estado de los pagos pendientes y utiliza la búsqueda para localizar rápidamente transacciones específicas cuando sea necesario.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
   </div>
 </div>
 

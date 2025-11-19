@@ -18,7 +18,8 @@
                             <td>{{ meeting.end_time|time:"H:i" }}</td>
                             <td>
                                 <a href="{% url 'attendance_pdf' meeting.id %}" 
-                                   class="btn btn-primary btn-sm">
+                                   class="btn btn-primary btn-sm"
+                                   target="_blank">
                                     <i class="bi bi-file-earmark-pdf-fill"></i> Descargar PDF
                                 </a>
                             </td>

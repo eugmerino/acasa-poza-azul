@@ -14,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.utils.timezone import localtime, now
 from project.models import Partner
+from audit.utils import registrar_log
 
 
 
@@ -80,6 +81,17 @@ def meet_create(request):
         form = MeetingForm(request.POST)
         if form.is_valid():
             meeting = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="create",
+                model_name="Reunión",
+                object_id=meeting.id,
+                description = (
+                    f"Registró la reunión '{meeting.title}'."
+                )
+            )
+
             response = render(request, "partials/meet/meet_row_table.html", {"meeting": meeting})
             response["HX-Trigger"] = json.dumps({
                 "state": "success",
@@ -107,6 +119,16 @@ def meet_edit(request, pk):
         form = MeetingForm(request.POST, instance=meeting)
         if form.is_valid():
             meeting = form.save()
+
+            registrar_log(
+                user=request.user,
+                action="update",
+                model_name="Reunión",
+                object_id=meeting.id,
+                description = (
+                    f"Modificó la reunión '{meeting.title}'."
+                )
+            )
             
             response = render(request, "partials/meet/meet_row_table.html", {"meeting": meeting})
             response["HX-Trigger"] = json.dumps({
@@ -280,9 +302,41 @@ def attendance(request):
             attended = checkbox_name in request.POST
 
             if attended:
-                Attendance.objects.get_or_create(meeting=active_meeting, partner=partner)
+                attendance, created = Attendance.objects.get_or_create(
+                    meeting=active_meeting,
+                    partner=partner
+                )
+
+                registrar_log(
+                    user=request.user,
+                    action="create",
+                    model_name="Reunión",
+                    object_id=attendance.id,
+                    description=(
+                        f"Registró la asistencia del socio "
+                        f"'{attendance.partner.first_name} {attendance.partner.last_name}'."
+                    )
+                )
             else:
-                Attendance.objects.filter(meeting=active_meeting, partner=partner).delete()
+                # Buscar la asistencia existente ANTES de eliminarla
+                attendance = Attendance.objects.filter(
+                    meeting=active_meeting,
+                    partner=partner
+                ).first()
+
+                if attendance:
+                    registrar_log(
+                        user=request.user,
+                        action="delete",
+                        model_name="Reunión",
+                        object_id=attendance.id,
+                        description=(
+                            f"Eliminó la asistencia del socio "
+                            f"'{attendance.partner.first_name} {attendance.partner.last_name}'."
+                        )
+                    )
+
+                    attendance.delete()
 
         # Actualizar IDs después de guardar
         attended_partner_ids = set(

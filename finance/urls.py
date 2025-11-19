@@ -17,4 +17,6 @@ urlpatterns = [
     path('pagos/buscar-acometida/', views.payment_connection_search, name="payment_connection_search"),
     path('payment/create/success/', views.payment_create_success, name='payment_create_success'),
     path('transacciones/pdf/', views.transaction_pdf, name='transaction_pdf'),
+    path('informe/', views.informe_view, name='informe_view'),
+    path('informe/pdf/', views.informe_mensual_pdf, name='informe_mensual_pdf'),
 ]

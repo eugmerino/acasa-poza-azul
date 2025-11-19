@@ -1,6 +1,20 @@
 <div class="row mt-4 mb-2 text-center">
   <div class="col-12">
-    <h1 class="h3">Histórico de cobros</h1>
+
+    <!-- Encabezado + ayuda -->
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <h1 class="h3 mb-0">Histórico de cobros</h1>
+
+        <!-- Botón de ayuda -->
+        <a href="#"
+           class="btn btn-link btn-sm me-2"
+           data-bs-toggle="modal"
+           data-bs-target="#infoHistoricoCobros"
+           role="button">
+            <i class="fa-solid fa-circle-info"></i>
+        </a>
+    </div>
+
   </div>
 </div>
 
@@ -8,5 +22,31 @@
   <div class="header-controls d-flex justify-content-end">
     {% include "partials/search_table.html" with hx_url=collection_search_url|add:"?mode=all" hx_target="#table-content" placeholder="Buscar en todo el historial..." %}
   </div>
+
   {% include "collection/partials/collection_table_historical.html" %}
+</div>
+
+<!-- Modal de Ayuda -->
+<div class="modal fade" id="infoHistoricoCobros" tabindex="-1" aria-labelledby="infoHistoricoCobrosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoHistoricoCobrosLabel">Información del Histórico de Cobros</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p><strong>Histórico de Cobros:</strong> Muestra todos los cobros realizados en meses anteriores.</p>
+        <p><strong>Búsqueda avanzada:</strong> Puedes buscar por nombre de socio, comunidad, monto, fecha y más.</p>
+        <p><strong>Listado completo:</strong> No se filtra solo al mes actual; incluye todo el historial.</p>
+        <p><strong>Acceso rápido:</strong> Ideal para auditorías, revisiones de meses previos o conciliaciones.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
 </div>

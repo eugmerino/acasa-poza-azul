@@ -21,6 +21,8 @@ from django.template.loader import render_to_string
 import tempfile
 import weasyprint
 from audit.utils import registrar_log
+import calendar
+from django.utils.translation import gettext as _
 
 
 # Opciones de paginación
@@ -888,6 +890,17 @@ def collection_pdf(request):
         'today': today,
         'now': now,
     })
+
+    month_name = _(calendar.month_name[today.month]).capitalize()
+
+    registrar_log(
+        user=request.user,
+        action="create",
+        model_name="Cobros",
+        description = (
+            f"Generó el informe de cobros correspondiente a {month_name} de {today.year}."
+        )
+    )
 
     pdf_file = weasyprint.HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
