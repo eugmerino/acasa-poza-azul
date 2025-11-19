@@ -15,11 +15,13 @@ RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
     libpangoft2-1.0-0 \
     libcairo2 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    libgdk-pixbuf-xlib-2.0-0 \
     libffi-dev \
     shared-mime-info \
     fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Copia los archivos necesarios para instalar dependencias primero
 COPY requirements.txt ./
