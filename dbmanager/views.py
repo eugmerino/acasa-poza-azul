@@ -8,6 +8,7 @@ from django.http import FileResponse
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
 
 
 def get_db_settings():
@@ -35,7 +36,7 @@ def backups_list(request):
                 "name": fname,
                 "size": path.stat().st_size,
                 "created": timezone.datetime.fromtimestamp(path.stat().st_mtime),
-                "url": f"/dbmanager/download/{fname}",
+                "url": reverse("download_backup", args=[fname]),
             })
 
     # Búsqueda
