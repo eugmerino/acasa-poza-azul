@@ -69,7 +69,7 @@ def backups_list(request):
 def generate_backup(request):
     db = get_db_settings()
     timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"backup_{timestamp}.sql"
+    filename = f"backup_{timestamp}.dump"
     backup_path = settings.BACKUP_DIR / filename
 
     command = [
@@ -77,30 +77,22 @@ def generate_backup(request):
         "-h", db["HOST"],
         "-p", str(db["PORT"]),
         "-U", db["USER"],
-        "-F", "p",
-        db["NAME"],
+        "-F", "c",         # custom format
+        "-f", str(backup_path),
+        db["NAME"]
     ]
 
     env = os.environ.copy()
     env["PGPASSWORD"] = db["PASSWORD"]
 
-    success = False
-
     try:
-        with open(backup_path, "w") as f:
-            subprocess.run(command, env=env, stdout=f, check=True)
-            success = True
-
-        messages.success(request, "Backup generado exitosamente.")
-
-    except Exception:
-        messages.error(request, "Error al generar el backup.")
-        
-
-    if request.headers.get("HX-Request") == "true":
-        return backups_list(request)
+        subprocess.run(command, env=env, check=True)
+        messages.success(request, "Backup generado exitosamente (formato custom).")
+    except subprocess.CalledProcessError as e:
+        messages.error(request, f"Error al generar backup: {e}")
 
     return redirect("backup_list")
+
 
 
 # ======================================================
@@ -120,34 +112,32 @@ def download_backup(request, filename):
 # ======================================================
 @csrf_exempt
 def restore_backup(request, filename):
-    path = settings.BACKUP_DIR / filename
-    if not path.exists():
+    backup_path = settings.BACKUP_DIR / filename
+    if not backup_path.exists():
         messages.error(request, "El backup no existe.")
         return redirect("backup_list")
 
     db = get_db_settings()
-
     command = [
-        "psql",
+        "pg_restore",
         "-h", db["HOST"],
         "-p", str(db["PORT"]),
         "-U", db["USER"],
-        "-d", db["NAME"]
+        "-d", db["NAME"],
+        "--data-only",        # solo datos
+        "--disable-triggers", # evita errores por FK
+        str(backup_path)
     ]
 
     env = os.environ.copy()
     env["PGPASSWORD"] = db["PASSWORD"]
 
     try:
-        with open(path, "r") as f:
-            subprocess.run(command, env=env, stdin=f, check=True)
+        subprocess.run(command, env=env, check=True)
+        messages.success(request, f"Base restaurada desde: {filename} (solo datos)")
+    except subprocess.CalledProcessError as e:
+        messages.error(request, f"Error al restaurar backup: {e}")
 
-        messages.success(request, f"Base restaurada desde: {filename}")
-
-    except Exception:
-        messages.error(request, "Error al restaurar el backup.")
-
-    if request.headers.get("HX-Request") == "true":
-        return backups_list(request)
+    return redirect("backup_list")
 
     return redirect("backup_list")
