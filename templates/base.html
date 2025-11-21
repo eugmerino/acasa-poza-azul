@@ -135,85 +135,81 @@
       <div class="sidebar-menu p-2">
         <a href="{% url 'inicio' %}"><i class="fas fa-home me-2"></i> Inicio</a>
 
-        {% if request.user.groups.first and request.user.groups.first.name == "ADMINISTRADOR" %}
-        <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuSeguridad">
-          <span><i class="fa-solid fa-shield-halved me-3"></i>Seguridad</span>
-          <i class="fas fa-chevron-down small"></i>
-        </a>
-        <div class="collapse ps-4" id="submenuSeguridad">
-          <a href="{% url 'users_list' %}"><i class="fa-solid fa-circle-user me-3"></i>Usuarios</a>
-          <a href="{% url 'logs_list' %}"><i class="fa-solid fa-fingerprint me-3"></i>Bitácora</a> 
-          <a href="{% url 'backup_list' %}"><i class="fa-solid fa-database me-3"></i>Backup</a> 
-        </div>
+        {% if request.user.has_perm("audit.view_logentry") %}
+          <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuSeguridad">
+            <span><i class="fa-solid fa-shield-halved me-3"></i>Seguridad</span>
+            <i class="fas fa-chevron-down small"></i>
+          </a>
+          <div class="collapse ps-4" id="submenuSeguridad">
+            <a href="{% url 'users_list' %}"><i class="fa-solid fa-circle-user me-3"></i>Usuarios</a>
+            <a href="{% url 'logs_list' %}"><i class="fa-solid fa-fingerprint me-3"></i>Bitácora</a> 
+            <a href="{% url 'backup_list' %}"><i class="fa-solid fa-database me-3"></i>Backup</a> 
+          </div>
         {% endif %}
 
-        {% if request.user.groups.first and request.user.groups.first.name in "LECTOR, COLECTOR, FONTANERO" %}
-        {% else %}
-        <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuProyecto">
-          <span><i class="fa-solid fa-building me-3"></i>Proyecto</span>
-          <i class="fas fa-chevron-down small"></i>
-        </a>
-        <div class="collapse ps-4" id="submenuProyecto">
-          <a href="{% url 'project_info' %}"><i class="fa-solid fa-file-invoice me-3"></i>Información</a>
-          <a href="{% url 'fee_list' %}"><i class="fa-solid fa-circle-dollar-to-slot me-3"></i>Tarifa</a>
-          <a href="{% url 'community_list' %}"><i class="fa-solid fa-map-location-dot me-3"></i>Comunidades</a>
-          <a href="{% url 'directive_list' %}"><i class="fa-solid fa-users-line me-3"></i>Directiva</a>
-          <a href="{% url 'partners_list' %}"><i class="fa-solid fa-users me-3"></i>Socios</a>
-          <a href="{% url 'connections_list' %}"><i class="fa-solid fa-faucet-drip me-3"></i></i>Acometidas</a>
-        </div>
-
-        <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuReuniones">
-          <span><i class="fas fa-calendar-check me-3"></i>Reuniones</span>
-          <i class="fas fa-chevron-down small"></i>
-        </a>
-        <div class="collapse ps-4" id="submenuReuniones">
-          <a href="{% url 'meet_list' %}"><i class="fa-solid fa-plus me-2"></i>Reuniones</a>
-          <a href="{% url 'attendance' %}"><i class="fa-solid fa-clipboard-user me-2"></i>Asistencia</a>
-          <a href="{% url 'information' %}"><i class="fa-solid fa-file-lines me-2"></i>Informes</a>
-        </div>
-
-        {% endif %}
-        {% if request.user.groups.first and request.user.groups.first.name in "FONTANERO" %}
-        {% else %}
-        <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuCobros">
-          <span><i class="fa-solid fa-faucet-drip me-3"></i></i>Servicio</span>
-          <i class="fas fa-chevron-down small"></i>
-        </a>
-        <div class="collapse ps-4" id="submenuCobros">
-          <a href="{% url 'readings_list' %}"><i class="fa-solid fa-gauge-high me-2"></i>Lecturas</a>
-          <a href="{% url 'collection_list' %}"><i class="fa-solid fa-coins me-2"></i></i>Cobros</a>
-          <a href="{% url 'collection_list_historical' %}"><i class="fa-solid fa-coins me-2"></i></i>Historico de cobros</a>
-        </div>
+        {% if request.user.has_perm("project.view_project") %}
+          <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuProyecto">
+            <span><i class="fa-solid fa-building me-3"></i>Proyecto</span>
+            <i class="fas fa-chevron-down small"></i>
+          </a>
+          <div class="collapse ps-4" id="submenuProyecto">
+            <a href="{% url 'project_info' %}"><i class="fa-solid fa-file-invoice me-3"></i>Información</a>
+            <a href="{% url 'fee_list' %}"><i class="fa-solid fa-circle-dollar-to-slot me-3"></i>Tarifa</a>
+            <a href="{% url 'community_list' %}"><i class="fa-solid fa-map-location-dot me-3"></i>Comunidades</a>
+            <a href="{% url 'directive_list' %}"><i class="fa-solid fa-users-line me-3"></i>Directiva</a>
+            <a href="{% url 'partners_list' %}"><i class="fa-solid fa-users me-3"></i>Socios</a>
+            <a href="{% url 'connections_list' %}"><i class="fa-solid fa-faucet-drip me-3"></i></i>Acometidas</a>
+          </div>
         {% endif %}
 
-        {% if request.user.groups.first and request.user.groups.first.name in "LECTOR, COLECTOR" %}
-        {% else %}
-        {% if request.user.groups.first and request.user.groups.first.name in "FONTANERO" %}
-        {% else %}
-        <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuFinanzas">
-          <span><i class="fa-solid fa-money-bill-trend-up me-3"></i>Finanzas</span>
-          <i class="fas fa-chevron-down small"></i>
-        </a>
-        <div class="collapse ps-4" id="submenuFinanzas">
-          {% if request.user.groups.first and request.user.groups.first.name in "ADMINISTRADOR, CONTADOR" %}
-          <a href="{% url 'transaction_list' %}"><i class="fa-solid fa-money-bill-transfer me-2"></i>Transacciones</a>
-          <a href="{% url 'transaction_list_all' %}"><i class="fa-solid fa-money-check-dollar me-2"></i></i>Lista de Transacciones</a>
-          <a href="{% url 'payment_list' %}"><i class="fa-solid fa-coins me-2"></i>Pagos por acometida</a>
-          <a href="{% url 'payment_list_view' %}"><i class="fa-solid fa-money-check-dollar me-2"></i>Lista de Pagos</a>
-          <a href="{% url 'repair_pay_list' %}"><i class="fa-solid fa-money-bill-wave me-2"></i>Pago de reparaciones</a>
-          {% endif %}
-          <a href="{% url 'informe_view' %}"><i class="fa-solid fa-money-bill-wave me-2"></i>Informe mensual</a>
-        </div>
+        {% if request.user.has_perm("meeting.view_meeting") %}
+          <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuReuniones">
+            <span><i class="fas fa-calendar-check me-3"></i>Reuniones</span>
+            <i class="fas fa-chevron-down small"></i>
+          </a>
+          <div class="collapse ps-4" id="submenuReuniones">
+            <a href="{% url 'meet_list' %}"><i class="fa-solid fa-plus me-2"></i>Reuniones</a>
+            <a href="{% url 'attendance' %}"><i class="fa-solid fa-clipboard-user me-2"></i>Asistencia</a>
+            <a href="{% url 'information' %}"><i class="fa-solid fa-file-lines me-2"></i>Informes</a>
+          </div>
         {% endif %}
 
-        <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuReparaciones">
-          <span><i class="fa-solid fa-screwdriver-wrench me-3"></i>Reparaciones</span>
-          <i class="fas fa-chevron-down small"></i>
-        </a>
-        <div class="collapse ps-4" id="submenuReparaciones">
-          <a href="{% url 'report_repair_list' %}"><i class="fa-solid fa-triangle-exclamation me-2"></i>Reportes</a>
-          <a href="{% url 'repair_list' %}"><i class="fa-solid fa-hammer me-2"></i>Reparaciones</a>
-        </div>
+        {% if request.user.has_perm("collection.view_reading") %}
+          <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuCobros">
+            <span><i class="fa-solid fa-faucet-drip me-3"></i></i>Servicio</span>
+            <i class="fas fa-chevron-down small"></i>
+          </a>
+          <div class="collapse ps-4" id="submenuCobros">
+            <a href="{% url 'readings_list' %}"><i class="fa-solid fa-gauge-high me-2"></i>Lecturas</a>
+            <a href="{% url 'collection_list' %}"><i class="fa-solid fa-coins me-2"></i></i>Cobros</a>
+            <a href="{% url 'collection_list_historical' %}"><i class="fa-solid fa-coins me-2"></i></i>Historico de cobros</a>
+          </div>
+        {% endif %}
+
+        {% if request.user.has_perm("finance.view_transaction") %}
+          <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuFinanzas">
+            <span><i class="fa-solid fa-money-bill-trend-up me-3"></i>Finanzas</span>
+            <i class="fas fa-chevron-down small"></i>
+          </a>
+          <div class="collapse ps-4" id="submenuFinanzas">
+            <a href="{% url 'transaction_list' %}"><i class="fa-solid fa-money-bill-transfer me-2"></i>Transacciones</a>
+            <a href="{% url 'transaction_list_all' %}"><i class="fa-solid fa-money-check-dollar me-2"></i></i>Lista de Transacciones</a>
+            <a href="{% url 'payment_list' %}"><i class="fa-solid fa-coins me-2"></i>Pagos por acometida</a>
+            <a href="{% url 'payment_list_view' %}"><i class="fa-solid fa-money-check-dollar me-2"></i>Lista de Pagos</a>
+            <a href="{% url 'repair_pay_list' %}"><i class="fa-solid fa-money-bill-wave me-2"></i>Pago de reparaciones</a>
+            <a href="{% url 'informe_view' %}"><i class="fa-solid fa-money-bill-wave me-2"></i>Informe mensual</a>
+          </div>
+        {% endif %}
+
+        {% if request.user.has_perm("repair.view_repair") %}
+          <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuReparaciones">
+            <span><i class="fa-solid fa-screwdriver-wrench me-3"></i>Reparaciones</span>
+            <i class="fas fa-chevron-down small"></i>
+          </a>
+          <div class="collapse ps-4" id="submenuReparaciones">
+            <a href="{% url 'report_repair_list' %}"><i class="fa-solid fa-triangle-exclamation me-2"></i>Reportes</a>
+            <a href="{% url 'repair_list' %}"><i class="fa-solid fa-hammer me-2"></i>Reparaciones</a>
+          </div>
         {% endif %}
       </div>
     </div>
