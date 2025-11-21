@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.utils.timezone import localtime, now
 from project.models import Partner
 from audit.utils import registrar_log
-from django.contrib.auth.decorators import permission_required
+from core.decorators import permission_required_custom
 
 
 
