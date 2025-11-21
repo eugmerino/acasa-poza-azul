@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.timezone import localtime, now
 from project.models import Partner
 from audit.utils import registrar_log
+from django.contrib.auth.decorators import permission_required
 
 
 
@@ -76,6 +77,7 @@ def meet_search(request):
         }
     )
 
+@permission_required("meeting.add_meeting", raise_exception=True)
 def meet_create(request):
     if request.method == "POST":
         form = MeetingForm(request.POST)

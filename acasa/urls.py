@@ -3,12 +3,19 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import render
+from django.core.exceptions import PermissionDenied
 
 def custom_404_view(request, exception=None):
     """
     Vista simple para mostrar el template 404
     """
     return render(request, '404.html', status=404)
+
+def custom_403_view(request, exception=None):
+    return render(request, '403.html', status=403)
+
+handler403 = "acasa.urls.custom_403_view" 
+handler404 = "acasa.urls.custom_404_view"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
