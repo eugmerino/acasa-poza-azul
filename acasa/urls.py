@@ -14,8 +14,6 @@ def custom_404_view(request, exception=None):
 def custom_403_view(request, exception=None):
     return render(request, '403.html', status=403)
 
-handler403 = "acasa.urls.custom_403_view" 
-handler404 = "acasa.urls.custom_404_view"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -36,3 +34,6 @@ if settings.DEBUG:
 #urlpatterns += [
 #    re_path(r'^.*$', custom_404_view),
 #]
+
+handler403 = "acasa.urls.custom_403_view" 
+handler404 = "acasa.urls.custom_404_view"
