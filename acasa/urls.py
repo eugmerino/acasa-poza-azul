@@ -11,10 +11,6 @@ def custom_404_view(request, exception=None):
     """
     return render(request, '404.html', status=404)
 
-def custom_403_view(request, exception=None):
-    return render(request, '403.html', status=403)
-
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include("core.urls")),
@@ -31,9 +27,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Catch-all pattern para URLs no encontradas
-#urlpatterns += [
-#    re_path(r'^.*$', custom_404_view),
-#]
-
-handler403 = "acasa.urls.custom_403_view" 
-handler404 = "acasa.urls.custom_404_view"
+urlpatterns += [
+    re_path(r'^.*$', custom_404_view),
+]

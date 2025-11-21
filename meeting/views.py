@@ -77,7 +77,7 @@ def meet_search(request):
         }
     )
 
-@permission_required("meeting.add_meeting", raise_exception=True)
+@permission_required_custom("meeting.add_meeting")
 def meet_create(request):
     if request.method == "POST":
         form = MeetingForm(request.POST)
