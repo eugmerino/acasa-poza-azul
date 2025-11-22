@@ -169,7 +169,9 @@
             <i class="fas fa-chevron-down small"></i>
           </a>
           <div class="collapse ps-4" id="submenuReuniones">
-            <a href="{% url 'meet_list' %}"><i class="fa-solid fa-plus me-2"></i>Reuniones</a>
+            {% if perms.meeting.add_meeting %}
+              <a href="{% url 'meet_list' %}"><i class="fa-solid fa-plus me-2"></i>Reuniones</a>
+            {% endif %}
             <a href="{% url 'attendance' %}"><i class="fa-solid fa-clipboard-user me-2"></i>Asistencia</a>
             <a href="{% url 'information' %}"><i class="fa-solid fa-file-lines me-2"></i>Informes</a>
           </div>

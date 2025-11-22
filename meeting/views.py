@@ -15,11 +15,6 @@ from django.utils import timezone
 from django.utils.timezone import localtime, now
 from project.models import Partner
 from audit.utils import registrar_log
-from core.decorators import permission_required_custom
-
-
-
-
 
 per_page_options = [5, 10, 20, 50]
 
@@ -78,7 +73,7 @@ def meet_search(request):
         }
     )
 
-@permission_required_custom("meeting.add_meeting")
+
 def meet_create(request):
     if request.method == "POST":
         form = MeetingForm(request.POST)
