@@ -23,6 +23,7 @@
             </button>
             <ul class="dropdown-menu">
                 {% if not item.reading.isPaid %}
+                {% if perms.reading.add_reading %}
                     <li>
                         <a href="#"
                             class="dropdown-item"
@@ -30,6 +31,7 @@
                                 <i class="fa-solid fa-cash-register me-2"></i> Cobrar
                         </a>
                     </li>
+                {% endif %}
                 {% endif %}
                 <li>
                     <a href="#"

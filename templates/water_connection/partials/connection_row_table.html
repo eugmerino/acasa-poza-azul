@@ -12,12 +12,14 @@
     </td>
     <td class="text-center">
         <div class="btn-group">
+          {% if perms.waterconnection.add_waterconnection %}
             <button
                 type="button"
                 class="btn btn-outline-primary dropdown-toggle"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
             >
+          {% endif %}
                 <span class="visually-hidden">Acciones</span>
             </button>
             <ul class="dropdown-menu">

@@ -27,6 +27,7 @@
 
     <div class="table-container rounded-4 shadow p-4">    
         <div class="header-controls">
+          {% if perms.directive.add_directive %}
             <button
                 id="btn-abrir-crud"
                 class="btn btn-success"
@@ -38,7 +39,8 @@
             >
                 <i class="fas fa-plus me-1"></i> Agregar Nuevo Directivo
             </button>
-            {% include "partials/search_table.html" with hx_url=directive_search_url hx_target="#table-content" placeholder="Buscar Directivo..." %}
+          {% endif %}
+          {% include "partials/search_table.html" with hx_url=directive_search_url hx_target="#table-content" placeholder="Buscar Directivo..." %}
         </div>
         {% include "directive/partials/directive_table.html" %}
     </div>

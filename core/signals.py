@@ -54,7 +54,7 @@ GROUP_PERMISSIONS = {
         ("finance", "payment", ["view"]),
         ("repair", "repair", ["view"]),
         ("meeting", "meeting", ["view"]),
-        ("meeting", "attendance", ["add", "change", "view"]),
+        ("meeting", "attendance", ["change", "view"]),
     ],
     "CONTADOR": [
         ("finance", "transaction", ["add", "change", "view"]),

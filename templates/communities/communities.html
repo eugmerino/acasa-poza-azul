@@ -14,20 +14,21 @@
     <div class="col-12 d-flex justify-content-center align-items-center gap-2">
         <h1 class="h3 mb-0">Gestión de Comunidades</h1>
 
-        <!-- Botón de ayuda (igual que en Reuniones, solo adaptado) -->
-        <a href="#"
-           class="btn btn-link btn-sm order-1 order-lg-0 me-2"
-           data-bs-toggle="modal"
-           data-bs-target="#infoComunidades"
-           role="button">
-            <i class="fa-solid fa-circle-info"></i>
-        </a>
+          <a href="#"
+            class="btn btn-link btn-sm order-1 order-lg-0 me-2"
+            data-bs-toggle="modal"
+            data-bs-target="#infoComunidades"
+            role="button">
+              <i class="fa-solid fa-circle-info"></i>
+          </a>
+        
     </div>
 </div>
 
 
 <div class="table-container rounded-4 shadow p-4">    
     <div class="header-controls">
+      {% if perms.community.add_community %}
         <button
             id="btn-abrir-crud"
             class="btn btn-success"
@@ -39,7 +40,8 @@
         >
             <i class="fas fa-plus me-1"></i> Agregar Nueva Comunidad
         </button>
-        {% include "partials/search_table.html" with hx_url=community_search_url hx_target="#community-table-content" placeholder="Buscar Comunidades..." %}
+      {% endif %}
+      {% include "partials/search_table.html" with hx_url=community_search_url hx_target="#community-table-content" placeholder="Buscar Comunidades..." %}
     </div>
     {% include "partials/communities/community_table.html" %}
 </div>

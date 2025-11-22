@@ -22,6 +22,7 @@
             <ul class="dropdown-menu">
                 {% if connection.has_current_reading %}
                     {% if not connection.current_reading_isPaid %}
+                    {% if perms.reading.add_reading %}
                         <li>
                             <a href=""
                                 class="dropdown-item"
@@ -33,6 +34,7 @@
                                     <i class="fas fa-edit me-2"></i> Editar
                             </a>
                         </li>
+                    {% endif %}
                     {% endif %}
                     <li>
                         <a href=""
@@ -46,6 +48,7 @@
                         </a>
                     </li>
                 {% else %}
+                {% if perms.reading.add_reading %}
                     <li>
                         <a href=""
                             class="dropdown-item"
@@ -57,6 +60,7 @@
                                 <i class="fa-solid fa-gauge-high me-2"></i> Registrar
                         </a>
                     </li>
+                {% endif %}
                 {% endif %}
             </ul>
         </div>

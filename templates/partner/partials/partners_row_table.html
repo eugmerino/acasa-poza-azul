@@ -22,6 +22,7 @@
             </button>
             <ul class="dropdown-menu">
                 <li>
+                    {% if perms.partner.add_partner %}
                     <a href="#" 
                         class="dropdown-item"
                         onclick="togglePartnerStatus({{ partner.pk }}, '{{ partner.is_active }}', '{{ csrf_token }}')">
@@ -33,6 +34,7 @@
                     </a>
 
                 </li>
+                {% endif %}
                 <li>
                     <a class="dropdown-item"
                         href="#"
@@ -43,6 +45,7 @@
                     </a>
                 </li>
 
+                {% if perms.partner.add_partner %}
                 <li>
                     <a class="dropdown-item"
                         href="#"
@@ -52,6 +55,7 @@
                         <i class="fa-solid fa-pen-to-square me-1"></i> Editar
                     </a>
                 </li>
+                {% endif %}
             </ul>
         </div>
     </td>

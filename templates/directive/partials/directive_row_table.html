@@ -15,15 +15,17 @@
 
   <td class="text-center">
     <div class="btn-group">
-      {% if executive.isActive %}
-      <button type="button"
-              class="btn btn-outline-primary btn-deactivate"
-              title="Desactivar"
-              data-id="{{ executive.id }}"
-              data-name="{{ executive.partner.first_name }} {{ executive.partner.last_name }}"
-              data-url="{% url 'directive_deactivate' executive.id %}">
-        <i class="fas fa-user-slash"></i>
-      </button>
+      {% if perms.directive.add_directive %}
+        {% if executive.isActive %}
+        <button type="button"
+                class="btn btn-outline-primary btn-deactivate"
+                title="Desactivar"
+                data-id="{{ executive.id }}"
+                data-name="{{ executive.partner.first_name }} {{ executive.partner.last_name }}"
+                data-url="{% url 'directive_deactivate' executive.id %}">
+          <i class="fas fa-user-slash"></i>
+        </button>
+        {% else %}
       {% else %}
       <button type="button" class="btn btn-outline-secondary" disabled title="Ya está inactivo">
         <i class="fas fa-user-slash"></i>

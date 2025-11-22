@@ -20,14 +20,16 @@
 
 <div class="table-container rounded-4 shadow p-4">    
   <div class="header-controls">
-    <button class="btn btn-success"
-            hx-get="{% url 'partner_create' %}"
-            hx-target="#main-container"
-            hx-swap="innerHTML">
-      <i class="fas fa-plus me-1"></i> Agregar Nuevo Socio
-    </button>
-    {% include "partials/search_table.html" with hx_url=partners_search_url hx_target="#table-content" placeholder="Buscar Socio..." %}
-  </div>
+    {% if perms.partner.add_partner %}
+      <button class="btn btn-success"
+              hx-get="{% url 'partner_create' %}"
+              hx-target="#main-container"
+              hx-swap="innerHTML">
+        <i class="fas fa-plus me-1"></i> Agregar Nuevo Socio
+      </button>
+      {% include "partials/search_table.html" with hx_url=partners_search_url hx_target="#table-content" placeholder="Buscar Socio..." %}
+    </div>
+  {% endif %}
   {% include "partner/partials/partners_table.html" %}
 </div>
 
