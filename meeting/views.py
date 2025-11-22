@@ -20,6 +20,7 @@ from core.decorators import permission_required_custom
 
 
 
+
 per_page_options = [5, 10, 20, 50]
 
 def meet_list(request):
