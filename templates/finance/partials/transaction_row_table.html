@@ -23,7 +23,6 @@
     {% if show_actions %}
     <td class="text-center">
         <div class="btn-group">
-            {% if perms.transaction.add_transaction %}
             <button
                 type="button"
                 class="btn btn-outline-primary"
@@ -35,7 +34,6 @@
             >
                 <i class="fas fa-edit"></i>
             </button>
-            {% endif %}
         </div>
     </td>
     {% endif %}
