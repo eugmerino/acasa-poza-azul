@@ -41,7 +41,7 @@ def project_info_view(request):
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return render(request, 'project/partials/project_form_partial.html', {'project': project, 'form': form, 'success': success})
         return redirect('project_info')
-    # NO es POST (por ejemplo, al cancelar o recargar el bloque), retorna el template parcial sin indicador de éxito.
+    # NO es POST
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'project/partials/project_form_partial.html', {'project': project, 'form': form})
     return render(request, 'project/project.html', {'project': project, 'form': form})

@@ -224,13 +224,13 @@ class Reading(models.Model):
         last_paid = None
         total_unpaid = 0
 
-        # 🔹 Obtenemos la fecha de la lectura actual
+        # Obtenemos la fecha de la lectura actual
         date_ref = reading.date_reading
 
         if not date_ref:
             return None
 
-        # 🔹 Filtramos solo las lecturas ANTERIORES a la fecha de la lectura actual
+        # Filtramos solo las lecturas ANTERIORES a la fecha de la lectura actual
         readings = (
             Reading.objects
             .filter(
@@ -253,10 +253,10 @@ class Reading(models.Model):
                 last_paid = r
                 break
             else:
-                # 🔹 Sumar multa
+                # Sumar multa
                 penalty_total += r.penalty_fee
 
-                # 🔹 Calcular consumo
+                # Calcular consumo
                 metros_consumidos = r.meter_reading - (r.previous_reading or 0)
                 monto = Reading.calculate_amount(r.fee, metros_consumidos)
                 unpaid_total += monto

@@ -3,7 +3,6 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import render
-from django.core.exceptions import PermissionDenied
 
 def custom_404_view(request, exception=None):
     """

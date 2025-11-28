@@ -693,9 +693,8 @@ def informe_mensual_pdf(request):
 
     month_name = _(calendar.month_name[month]).capitalize()
 
-    # ============================
+ 
     #  LECTURAS / COBROS MENSUALES
-    # ============================
     readings = (
         Reading.objects.filter(
             date_reading__year=year,
@@ -726,14 +725,11 @@ def informe_mensual_pdf(request):
     ]
     summary.sort(key=lambda x: x["community"])
 
-    # ============================
     #  TOTAL GENERAL COBROS
-    # ============================
     grand_total = sum(item["total"] for item in summary)
 
-    # ============================
+ 
     #  PAGOS A ACOMETIDAS DEL MES
-    # ============================
     acometida_total = (
         Payment.objects.filter(
             date_pay__year=year,
@@ -741,9 +737,8 @@ def informe_mensual_pdf(request):
         ).aggregate(total=Sum("amount"))["total"] or 0
     )
 
-    # ============================
+
     #  TRANSACCIONES DE INGRESO
-    # ============================
     income_transactions = list(
         Transaction.objects.filter(
             type='I',
@@ -754,19 +749,15 @@ def informe_mensual_pdf(request):
 
     income_transactions_total = sum(t["amount"] for t in income_transactions)
 
-    # ============================
+
     # TOTAL OTROS INGRESOS
-    # ============================
     other_income_total = acometida_total + income_transactions_total
 
-    # ============================
+
     # TOTAL GENERAL DE INGRESOS
-    # ============================
     total_ingresos = grand_total + other_income_total
 
-    # =====================================================
-    #   🔥🔥 TRANSACCIONES DE EGRESO (NUEVO)
-    # =====================================================
+    # TRANSACCIONES DE EGRESO
     expense_transactions = list(
         Transaction.objects.filter(
             type='E',
@@ -778,14 +769,10 @@ def informe_mensual_pdf(request):
     # total solo egresos
     total_egresos = sum(t["amount"] for t in expense_transactions)
 
-    # =====================================================
-    #   🔥🔥 UTILIDAD DEL PERÍODO = INGRESOS - EGRESOS
-    # =====================================================
+    #  UTILIDAD DEL PERÍODO = INGRESOS - EGRESOS
     utilidad_periodo = total_ingresos - total_egresos
 
-    # =====================================================
     #   GENERAR HTML
-    # =====================================================
     today = timezone.localtime().date()
     now = timezone.localtime()
 
@@ -815,7 +802,7 @@ def informe_mensual_pdf(request):
         # total general de ingresos
         "total_ingresos": total_ingresos,
 
-        # datos de egresos (nuevo)
+        # datos de egresos
         "expense_transactions": expense_transactions,
         "total_egresos": total_egresos,
         "utilidad_periodo": utilidad_periodo,
