@@ -27,6 +27,7 @@ SECRET_KEY = 'django-insecure--rht5chuamw5&07ae-5i1$gp_74gekhjqw!k1tlv6lq0!aocv#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Actualizamos los hosts permitidos y orígenes confiables para CSRF
 ALLOWED_HOSTS = [
     "acasa.com",
     "www.acasa.com",
@@ -35,6 +36,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
 ]
 
+# Agregamos orígenes confiables para CSRF
 CSRF_TRUSTED_ORIGINS = [
     "https://acasa.com",
     "https://www.acasa.com",
@@ -158,9 +160,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email settings for password reset and notifications
+# Modificar a su correo y contraseña de aplicación, agregar a .env
 DEFAULT_FROM_EMAIL = 'soportetecnico247360@gmail.com'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'soportetecnico247360@gmail.com'
-EMAIL_HOST_PASSWORD = 'zxex woxb eeaj ihkt'
+EMAIL_HOST_PASSWORD = 'agregar_key_de_su_correo' # App password generated for Gmail
 EMAIL_USE_TLS = True
